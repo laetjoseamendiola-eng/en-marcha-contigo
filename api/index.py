@@ -1,4 +1,5 @@
 import os
+import sys
 import jwt
 import datetime
 from functools import wraps
@@ -6,9 +7,10 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy.pool import NullPool
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # Clave secreta para JWT
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'en-marcha-contigo-dev-key-change-in-prod')
@@ -19,19 +21,26 @@ database_url = os.environ.get('DATABASE_URL', 'sqlite:////tmp/app.db')
 # Neon usa postgresql:// pero SQLAlchemy necesita postgresql+psycopg2://
 if database_url.startswith('postgres://'):
     database_url = database_url.replace('postgres://', 'postgresql+psycopg2://', 1)
-elif database_url.startswith('postgresql://'):
+elif database_url.startswith('postgresql://') and '+' not in database_url.split('://')[0]:
     database_url = database_url.replace('postgresql://', 'postgresql+psycopg2://', 1)
+
+# Agregar sslmode=require para Neon si no está presente
+if 'postgresql' in database_url and 'sslmode' not in database_url:
+    separator = '&' if '?' in database_url else '?'
+    database_url = database_url + separator + 'sslmode=require'
 
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Configuración de pool para PostgreSQL serverless (Neon)
-if 'postgresql' in database_url or 'postgres' in database_url:
+# Para entornos serverless (Vercel), usar NullPool: cada invocación crea su propia conexión.
+# Esto evita problemas de conexiones obsoletas y pool exhaustion en serverless.
+if 'postgresql' in database_url:
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-        'pool_pre_ping': True,
-        'pool_recycle': 300,
-        'pool_size': 5,
-        'max_overflow': 10,
+        'poolclass': NullPool,
+        'connect_args': {
+            'connect_timeout': 10,
+            'options': '-c statement_timeout=30000',
+        },
     }
 
 db = SQLAlchemy(app)
@@ -88,8 +97,26 @@ class Sintoma(db.Model):
         }
 
 
-with app.app_context():
-    db.create_all()
+# Inicialización lazy de tablas: no crashear el módulo si la BD no está disponible al arrancar.
+_tables_initialized = False
+
+
+def ensure_tables():
+    """Crea las tablas si no existen. Se llama en el primer request, no al importar el módulo."""
+    global _tables_initialized
+    if not _tables_initialized:
+        try:
+            with app.app_context():
+                db.create_all()
+            _tables_initialized = True
+        except Exception as e:
+            print(f"[WARN] No se pudieron crear las tablas: {e}", file=sys.stderr)
+
+
+@app.before_request
+def before_request_handler():
+    """Asegurar que las tablas existan antes de cada request."""
+    ensure_tables()
 
 
 # =============================================
@@ -111,7 +138,7 @@ def token_requerido(f):
 
         try:
             datos = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
-            usuario_actual = Usuario.query.get(datos['usuario_id'])
+            usuario_actual = db.session.get(Usuario, datos['usuario_id'])
             if not usuario_actual or not usuario_actual.activo:
                 return jsonify({'error': 'Usuario no válido o inactivo'}), 401
         except jwt.ExpiredSignatureError:
@@ -140,6 +167,9 @@ def generar_token(usuario):
 def registro():
     try:
         data = request.get_json()
+
+        if not data:
+            return jsonify({'error': 'Datos no proporcionados'}), 400
 
         if not data.get('nombre') or not data.get('nombre').strip():
             return jsonify({'error': 'El nombre es requerido'}), 400
@@ -176,13 +206,16 @@ def registro():
 
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': f'Error del servidor: {str(e)}'}), 500
 
 
 @app.route('/api/auth/login', methods=['POST'])
 def login():
     try:
         data = request.get_json()
+
+        if not data:
+            return jsonify({'error': 'Datos no proporcionados'}), 400
 
         if not data.get('email') or not data.get('password'):
             return jsonify({'error': 'Email y contraseña son requeridos'}), 400
@@ -205,7 +238,7 @@ def login():
         }), 200
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': f'Error del servidor: {str(e)}'}), 500
 
 
 @app.route('/api/auth/perfil', methods=['GET'])
@@ -265,7 +298,7 @@ def obtener_sintomas(usuario_actual):
 @token_requerido
 def obtener_sintoma(usuario_actual, sintoma_id):
     try:
-        sintoma = Sintoma.query.get(sintoma_id)
+        sintoma = db.session.get(Sintoma, sintoma_id)
         if not sintoma:
             return jsonify({'error': 'Síntoma no encontrado'}), 404
         if sintoma.usuario_id != usuario_actual.id:
@@ -279,7 +312,7 @@ def obtener_sintoma(usuario_actual, sintoma_id):
 @token_requerido
 def actualizar_sintoma(usuario_actual, sintoma_id):
     try:
-        sintoma = Sintoma.query.get(sintoma_id)
+        sintoma = db.session.get(Sintoma, sintoma_id)
         if not sintoma:
             return jsonify({'error': 'Síntoma no encontrado'}), 404
         if sintoma.usuario_id != usuario_actual.id:
@@ -314,7 +347,7 @@ def actualizar_sintoma(usuario_actual, sintoma_id):
 @token_requerido
 def eliminar_sintoma(usuario_actual, sintoma_id):
     try:
-        sintoma = Sintoma.query.get(sintoma_id)
+        sintoma = db.session.get(Sintoma, sintoma_id)
         if not sintoma:
             return jsonify({'error': 'Síntoma no encontrado'}), 404
         if sintoma.usuario_id != usuario_actual.id:
@@ -367,8 +400,28 @@ def estadisticas_sintomas(usuario_actual):
 
 @app.route('/api/health', methods=['GET'])
 def health():
+    """Endpoint de salud que verifica la conexión a la base de datos."""
+    db_status = 'unknown'
+    db_type = 'sqlite'
+
+    if 'postgresql' in app.config['SQLALCHEMY_DATABASE_URI']:
+        db_type = 'postgresql'
+
+    try:
+        with app.app_context():
+            db.session.execute(db.text('SELECT 1'))
+            db_status = 'connected'
+    except Exception as e:
+        db_status = f'error: {str(e)}'
+
     return jsonify({
         'status': 'ok',
-        'database': 'postgresql' if 'postgresql' in app.config['SQLALCHEMY_DATABASE_URI'] else 'sqlite',
-        'auth': 'enabled'
+        'database_type': db_type,
+        'database_status': db_status,
+        'auth': 'enabled',
+        'python_version': sys.version,
+        'env_vars': {
+            'DATABASE_URL': 'set' if os.environ.get('DATABASE_URL') else 'not set',
+            'SECRET_KEY': 'set' if os.environ.get('SECRET_KEY') else 'not set',
+        }
     }), 200
