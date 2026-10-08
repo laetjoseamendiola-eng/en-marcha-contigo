@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
@@ -6,12 +7,27 @@ from datetime import datetime
 app = Flask(__name__)
 CORS(app)
 
-# En Vercel el filesystem del deployment es de solo lectura; /tmp sí es escribible.
-# NOTA: /tmp no persiste de forma garantizada entre invocaciones (serverless).
-# Esto es suficiente para probar la función ahora; para persistencia real
-# se necesita una base de datos hospedada (Postgres/MySQL) más adelante.
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/app.db'
+# Configuración de base de datos: Neon PostgreSQL en producción, SQLite como fallback local.
+database_url = os.environ.get('DATABASE_URL', 'sqlite:////tmp/app.db')
+
+# Neon usa postgresql:// pero SQLAlchemy necesita postgresql+psycopg2://
+if database_url.startswith('postgres://'):
+    database_url = database_url.replace('postgres://', 'postgresql+psycopg2://', 1)
+elif database_url.startswith('postgresql://'):
+    database_url = database_url.replace('postgresql://', 'postgresql+psycopg2://', 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Configuración de pool para PostgreSQL serverless (Neon)
+if 'postgresql' in database_url or 'postgres' in database_url:
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_pre_ping': True,
+        'pool_recycle': 300,
+        'pool_size': 5,
+        'max_overflow': 10,
+    }
+
 db = SQLAlchemy(app)
 
 
@@ -183,4 +199,4 @@ def estadisticas_sintomas(usuario_id):
 
 @app.route('/api/health', methods=['GET'])
 def health():
-    return jsonify({'status': 'ok'}), 200
+    return jsonify({'status': 'ok', 'database': 'postgresql' if 'postgresql' in app.config['SQLALCHEMY_DATABASE_URI'] else 'sqlite'}), 200
