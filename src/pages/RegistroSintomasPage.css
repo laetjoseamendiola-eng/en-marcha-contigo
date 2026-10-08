@@ -103,6 +103,11 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: 0 12px;
 }
 
 .intensidad-slider {
@@ -112,6 +117,9 @@
   outline: none;
   -webkit-appearance: none;
   appearance: none;
+  margin: 8px 0;
+  box-sizing: border-box;
+  display: block;
 }
 
 .intensidad-slider::-webkit-slider-thumb {
