@@ -39,7 +39,6 @@ if 'postgresql' in database_url:
         'poolclass': NullPool,
         'connect_args': {
             'connect_timeout': 10,
-            'options': '-c statement_timeout=30000',
         },
     }
 
