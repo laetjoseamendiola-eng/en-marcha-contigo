@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './RegistroSintomasPage.css';
 
-const RegistroSintomasPage = () => {
+const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
   const [formData, setFormData] = useState({
     tipo: '',
     intensidad: 3,
@@ -15,8 +15,13 @@ const RegistroSintomasPage = () => {
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState('');
 
-  const usuarioId = 1; // Por ahora asumimos usuario_id = 1
   const apiUrl = import.meta.env.VITE_API_URL || '';
+
+  // Headers con autenticación
+  const authHeaders = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  };
 
   const tiposSintomas = [
     'Temblor',
@@ -58,11 +63,15 @@ const RegistroSintomasPage = () => {
 
   const cargarSintomas = async () => {
     try {
-      const response = await fetch(`${apiUrl}/api/sintomas/${usuarioId}`);
+      const response = await fetch(`${apiUrl}/api/sintomas`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (response.ok) {
         const data = await response.json();
         setSintomas(data);
         cargarEstadisticas();
+      } else if (response.status === 401) {
+        onLogout();
       }
     } catch (error) {
       console.error('Error cargando síntomas:', error);
@@ -71,7 +80,9 @@ const RegistroSintomasPage = () => {
 
   const cargarEstadisticas = async () => {
     try {
-      const response = await fetch(`${apiUrl}/api/sintomas/stats/${usuarioId}`);
+      const response = await fetch(`${apiUrl}/api/sintomas/stats`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (response.ok) {
         const data = await response.json();
         setEstadisticas(data);
@@ -111,11 +122,8 @@ const RegistroSintomasPage = () => {
     try {
       const response = await fetch(`${apiUrl}/api/sintomas`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: authHeaders,
         body: JSON.stringify({
-          usuario_id: usuarioId,
           tipo: formData.tipo,
           intensidad: formData.intensidad,
           duracion: formData.duracion,
@@ -135,6 +143,8 @@ const RegistroSintomasPage = () => {
         });
         cargarSintomas();
         setTimeout(() => setMensaje(''), 3000);
+      } else if (response.status === 401) {
+        onLogout();
       } else {
         const error = await response.json();
         setMensaje(`Error: ${error.error}`);
@@ -153,13 +163,16 @@ const RegistroSintomasPage = () => {
 
     try {
       const response = await fetch(`${apiUrl}/api/sintomas/${sintomaId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
       });
 
       if (response.ok) {
         setMensaje('✓ Síntoma eliminado');
         cargarSintomas();
         setTimeout(() => setMensaje(''), 2000);
+      } else if (response.status === 401) {
+        onLogout();
       }
     } catch (error) {
       setMensaje(`Error al eliminar: ${error.message}`);
@@ -204,6 +217,16 @@ const RegistroSintomasPage = () => {
 
   return (
     <div className="registro-sintomas-container">
+      {/* Barra de usuario */}
+      <div className="user-bar">
+        <div className="user-info">
+          <span className="user-greeting">Hola, {usuario.nombre}</span>
+        </div>
+        <button onClick={onLogout} className="btn-logout">
+          Cerrar sesión
+        </button>
+      </div>
+
       <div className="registro-sintomas-wrapper">
         {/* Sección del formulario */}
         <div className="registro-form-section">

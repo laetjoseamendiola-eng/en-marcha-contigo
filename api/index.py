@@ -1,11 +1,17 @@
 import os
+import jwt
+import datetime
+from functools import wraps
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 CORS(app)
+
+# Clave secreta para JWT
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'en-marcha-contigo-dev-key-change-in-prod')
 
 # Configuración de base de datos: Neon PostgreSQL en producción, SQLite como fallback local.
 database_url = os.environ.get('DATABASE_URL', 'sqlite:////tmp/app.db')
@@ -31,17 +37,43 @@ if 'postgresql' in database_url or 'postgres' in database_url:
 db = SQLAlchemy(app)
 
 
+# =============================================
+# MODELOS
+# =============================================
+
+class Usuario(db.Model):
+    __tablename__ = 'usuarios'
+
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False)
+    fecha_registro = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    activo = db.Column(db.Boolean, default=True)
+
+    sintomas = db.relationship('Sintoma', backref='usuario', lazy=True)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'nombre': self.nombre,
+            'email': self.email,
+            'fecha_registro': self.fecha_registro.isoformat() if self.fecha_registro else None,
+            'activo': self.activo
+        }
+
+
 class Sintoma(db.Model):
     __tablename__ = 'sintomas'
 
     id = db.Column(db.Integer, primary_key=True)
-    usuario_id = db.Column(db.Integer, nullable=False)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     tipo = db.Column(db.String(50), nullable=False)
     intensidad = db.Column(db.Integer, nullable=False)
     duracion = db.Column(db.Integer, nullable=False)
     localizacion = db.Column(db.String(100), nullable=False)
     notas = db.Column(db.Text)
-    fecha_registro = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_registro = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
     def to_dict(self):
         return {
@@ -60,13 +92,138 @@ with app.app_context():
     db.create_all()
 
 
-@app.route('/api/sintomas', methods=['POST'])
-def crear_sintoma():
+# =============================================
+# MIDDLEWARE DE AUTENTICACIÓN
+# =============================================
+
+def token_requerido(f):
+    @wraps(f)
+    def decorador(*args, **kwargs):
+        token = None
+
+        if 'Authorization' in request.headers:
+            auth_header = request.headers['Authorization']
+            if auth_header.startswith('Bearer '):
+                token = auth_header.split(' ')[1]
+
+        if not token:
+            return jsonify({'error': 'Token de autenticación requerido'}), 401
+
+        try:
+            datos = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+            usuario_actual = Usuario.query.get(datos['usuario_id'])
+            if not usuario_actual or not usuario_actual.activo:
+                return jsonify({'error': 'Usuario no válido o inactivo'}), 401
+        except jwt.ExpiredSignatureError:
+            return jsonify({'error': 'Token expirado. Inicia sesión nuevamente'}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({'error': 'Token no válido'}), 401
+
+        return f(usuario_actual, *args, **kwargs)
+    return decorador
+
+
+def generar_token(usuario):
+    payload = {
+        'usuario_id': usuario.id,
+        'email': usuario.email,
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(days=30)
+    }
+    return jwt.encode(payload, app.config['SECRET_KEY'], algorithm='HS256')
+
+
+# =============================================
+# ENDPOINTS DE AUTENTICACIÓN
+# =============================================
+
+@app.route('/api/auth/registro', methods=['POST'])
+def registro():
     try:
         data = request.get_json()
 
-        if not data.get('usuario_id'):
-            return jsonify({'error': 'usuario_id es requerido'}), 400
+        if not data.get('nombre') or not data.get('nombre').strip():
+            return jsonify({'error': 'El nombre es requerido'}), 400
+        if not data.get('email') or not data.get('email').strip():
+            return jsonify({'error': 'El email es requerido'}), 400
+        if not data.get('password') or len(data.get('password', '')) < 6:
+            return jsonify({'error': 'La contraseña debe tener al menos 6 caracteres'}), 400
+
+        email = data['email'].strip().lower()
+        nombre = data['nombre'].strip()
+
+        # Verificar si el email ya existe
+        usuario_existente = Usuario.query.filter_by(email=email).first()
+        if usuario_existente:
+            return jsonify({'error': 'Este email ya está registrado'}), 409
+
+        # Crear usuario
+        nuevo_usuario = Usuario(
+            nombre=nombre,
+            email=email,
+            password_hash=generate_password_hash(data['password'])
+        )
+
+        db.session.add(nuevo_usuario)
+        db.session.commit()
+
+        token = generar_token(nuevo_usuario)
+
+        return jsonify({
+            'mensaje': 'Usuario registrado exitosamente',
+            'token': token,
+            'usuario': nuevo_usuario.to_dict()
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    try:
+        data = request.get_json()
+
+        if not data.get('email') or not data.get('password'):
+            return jsonify({'error': 'Email y contraseña son requeridos'}), 400
+
+        email = data['email'].strip().lower()
+        usuario = Usuario.query.filter_by(email=email).first()
+
+        if not usuario or not check_password_hash(usuario.password_hash, data['password']):
+            return jsonify({'error': 'Email o contraseña incorrectos'}), 401
+
+        if not usuario.activo:
+            return jsonify({'error': 'Cuenta desactivada'}), 403
+
+        token = generar_token(usuario)
+
+        return jsonify({
+            'mensaje': 'Inicio de sesión exitoso',
+            'token': token,
+            'usuario': usuario.to_dict()
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/auth/perfil', methods=['GET'])
+@token_requerido
+def obtener_perfil(usuario_actual):
+    return jsonify({'usuario': usuario_actual.to_dict()}), 200
+
+
+# =============================================
+# ENDPOINTS DE SÍNTOMAS (PROTEGIDOS)
+# =============================================
+
+@app.route('/api/sintomas', methods=['POST'])
+@token_requerido
+def crear_sintoma(usuario_actual):
+    try:
+        data = request.get_json()
+
         if not data.get('tipo'):
             return jsonify({'error': 'tipo es requerido'}), 400
         if not isinstance(data.get('intensidad'), int) or data['intensidad'] < 1 or data['intensidad'] > 5:
@@ -77,7 +234,7 @@ def crear_sintoma():
             return jsonify({'error': 'localizacion es requerida'}), 400
 
         sintoma = Sintoma(
-            usuario_id=data['usuario_id'],
+            usuario_id=usuario_actual.id,
             tipo=data['tipo'],
             intensidad=data['intensidad'],
             duracion=data['duracion'],
@@ -94,32 +251,39 @@ def crear_sintoma():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/sintomas/<int:usuario_id>', methods=['GET'])
-def obtener_sintomas(usuario_id):
+@app.route('/api/sintomas', methods=['GET'])
+@token_requerido
+def obtener_sintomas(usuario_actual):
     try:
-        sintomas = Sintoma.query.filter_by(usuario_id=usuario_id).order_by(Sintoma.fecha_registro.desc()).all()
+        sintomas = Sintoma.query.filter_by(usuario_id=usuario_actual.id).order_by(Sintoma.fecha_registro.desc()).all()
         return jsonify([s.to_dict() for s in sintomas]), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/sintomas/detalle/<int:sintoma_id>', methods=['GET'])
-def obtener_sintoma(sintoma_id):
+@app.route('/api/sintomas/<int:sintoma_id>', methods=['GET'])
+@token_requerido
+def obtener_sintoma(usuario_actual, sintoma_id):
     try:
         sintoma = Sintoma.query.get(sintoma_id)
         if not sintoma:
             return jsonify({'error': 'Síntoma no encontrado'}), 404
+        if sintoma.usuario_id != usuario_actual.id:
+            return jsonify({'error': 'No autorizado'}), 403
         return jsonify(sintoma.to_dict()), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/sintomas/<int:sintoma_id>', methods=['PUT'])
-def actualizar_sintoma(sintoma_id):
+@token_requerido
+def actualizar_sintoma(usuario_actual, sintoma_id):
     try:
         sintoma = Sintoma.query.get(sintoma_id)
         if not sintoma:
             return jsonify({'error': 'Síntoma no encontrado'}), 404
+        if sintoma.usuario_id != usuario_actual.id:
+            return jsonify({'error': 'No autorizado'}), 403
 
         data = request.get_json()
 
@@ -147,11 +311,14 @@ def actualizar_sintoma(sintoma_id):
 
 
 @app.route('/api/sintomas/<int:sintoma_id>', methods=['DELETE'])
-def eliminar_sintoma(sintoma_id):
+@token_requerido
+def eliminar_sintoma(usuario_actual, sintoma_id):
     try:
         sintoma = Sintoma.query.get(sintoma_id)
         if not sintoma:
             return jsonify({'error': 'Síntoma no encontrado'}), 404
+        if sintoma.usuario_id != usuario_actual.id:
+            return jsonify({'error': 'No autorizado'}), 403
 
         db.session.delete(sintoma)
         db.session.commit()
@@ -162,10 +329,11 @@ def eliminar_sintoma(sintoma_id):
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/sintomas/stats/<int:usuario_id>', methods=['GET'])
-def estadisticas_sintomas(usuario_id):
+@app.route('/api/sintomas/stats', methods=['GET'])
+@token_requerido
+def estadisticas_sintomas(usuario_actual):
     try:
-        sintomas = Sintoma.query.filter_by(usuario_id=usuario_id).all()
+        sintomas = Sintoma.query.filter_by(usuario_id=usuario_actual.id).all()
 
         if not sintomas:
             return jsonify({
@@ -199,4 +367,8 @@ def estadisticas_sintomas(usuario_id):
 
 @app.route('/api/health', methods=['GET'])
 def health():
-    return jsonify({'status': 'ok', 'database': 'postgresql' if 'postgresql' in app.config['SQLALCHEMY_DATABASE_URI'] else 'sqlite'}), 200
+    return jsonify({
+        'status': 'ok',
+        'database': 'postgresql' if 'postgresql' in app.config['SQLALCHEMY_DATABASE_URI'] else 'sqlite',
+        'auth': 'enabled'
+    }), 200
