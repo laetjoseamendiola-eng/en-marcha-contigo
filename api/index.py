@@ -96,6 +96,104 @@ class Sintoma(db.Model):
         }
 
 
+# =============================================
+# MODELO: MEDICAMENTOS PROGRAMADOS
+# =============================================
+
+class MedicamentoProgramado(db.Model):
+    """
+    Catálogo de medicamentos del usuario con sus horarios programados.
+    Pre-cargado para José Antonio con su receta real (02/07/2026, Dr. Yamil Matuk).
+    """
+    __tablename__ = 'medicamentos_programados'
+
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    nombre = db.Column(db.String(100), nullable=False)          # "Levodopa/Carbidopa"
+    principio_activo = db.Column(db.String(200))                # "Levodopa 250mg / Carbidopa 25mg"
+    dosis = db.Column(db.String(50), nullable=False)            # "½ tableta"
+    horarios = db.Column(db.Text, nullable=False)               # JSON: ["08:00","12:00","16:00","20:00"]
+    instrucciones = db.Column(db.Text)                          # "Separar al menos 1hr de comidas"
+    separacion_comida_min = db.Column(db.Integer, default=0)    # minutos de separación requerida (60 para Levodopa/Carbidopa)
+    activo = db.Column(db.Boolean, default=True)
+    fecha_inicio = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+    tomas = db.relationship('TomaRegistrada', backref='medicamento', lazy=True)
+
+    def to_dict(self):
+        import json
+        return {
+            'id': self.id,
+            'nombre': self.nombre,
+            'principio_activo': self.principio_activo,
+            'dosis': self.dosis,
+            'horarios': json.loads(self.horarios) if self.horarios else [],
+            'instrucciones': self.instrucciones,
+            'separacion_comida_min': self.separacion_comida_min,
+            'activo': self.activo,
+        }
+
+
+class TomaRegistrada(db.Model):
+    """
+    Registro de cada toma real con timestamp exacto.
+    Permite detectar adherencia, desvíos y correlacionar con estado motor.
+    """
+    __tablename__ = 'tomas_registradas'
+
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    medicamento_id = db.Column(db.Integer, db.ForeignKey('medicamentos_programados.id'), nullable=False)
+    horario_programado = db.Column(db.String(5), nullable=False)   # "08:00"
+    fecha_programada = db.Column(db.DateTime, nullable=False)      # fecha+hora programada
+    fecha_toma_real = db.Column(db.DateTime)                       # cuándo realmente se tomó (null = no tomada)
+    tomada = db.Column(db.Boolean, default=False)
+    omitida = db.Column(db.Boolean, default=False)
+    desvio_minutos = db.Column(db.Integer)                         # positivo=tarde, negativo=temprano
+    notas = db.Column(db.Text)
+    fecha_registro = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'medicamento_id': self.medicamento_id,
+            'medicamento_nombre': self.medicamento.nombre if self.medicamento else None,
+            'horario_programado': self.horario_programado,
+            'fecha_programada': self.fecha_programada.isoformat() if self.fecha_programada else None,
+            'fecha_toma_real': self.fecha_toma_real.isoformat() if self.fecha_toma_real else None,
+            'tomada': self.tomada,
+            'omitida': self.omitida,
+            'desvio_minutos': self.desvio_minutos,
+            'notas': self.notas,
+        }
+
+
+class FluctuacionMotora(db.Model):
+    """
+    Bitácora de estado motor tipo Diario de Hauser.
+    Bloques de 30 minutos a lo largo del día.
+    Estados: ON | OFF | ON_DISCINESIA_LEVE | ON_DISCINESIA_GRAVE | DORMIDO
+    """
+    __tablename__ = 'fluctuaciones_motoras'
+
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    fecha = db.Column(db.Date, nullable=False)
+    hora_bloque = db.Column(db.String(5), nullable=False)          # "08:00", "08:30", etc.
+    estado = db.Column(db.String(30), nullable=False)              # ON | OFF | ON_DISC_LEVE | ON_DISC_GRAVE | DORMIDO
+    notas = db.Column(db.Text)
+    fecha_registro = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'fecha': self.fecha.isoformat() if self.fecha else None,
+            'hora_bloque': self.hora_bloque,
+            'estado': self.estado,
+            'notas': self.notas,
+        }
+
+
 # Inicialización lazy de tablas: no crashear el módulo si la BD no está disponible al arrancar.
 _tables_initialized = False
 
@@ -476,6 +574,352 @@ def evolucion_sintomas(usuario_actual):
             'tipos_disponibles': sorted(list(tipos_encontrados)),
             'dias_consultados': dias,
             'total_registros': len(sintomas)
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# =============================================
+# MÓDULO DE FÁRMACOS
+# =============================================
+
+@app.route('/api/medicamentos', methods=['GET'])
+@token_requerido
+def listar_medicamentos(usuario_actual):
+    """Lista los medicamentos programados del usuario."""
+    try:
+        medicamentos = MedicamentoProgramado.query.filter_by(
+            usuario_id=usuario_actual.id, activo=True
+        ).all()
+        return jsonify([m.to_dict() for m in medicamentos]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/medicamentos/inicializar', methods=['POST'])
+@token_requerido
+def inicializar_medicamentos(usuario_actual):
+    """
+    Carga el esquema de medicación de la receta del Dr. Yamil Matuk (02/07/2026).
+    Solo crea si el usuario aún no tiene medicamentos registrados.
+    """
+    import json
+    try:
+        existentes = MedicamentoProgramado.query.filter_by(
+            usuario_id=usuario_actual.id
+        ).count()
+        if existentes > 0:
+            return jsonify({'mensaje': 'Medicamentos ya inicializados', 'total': existentes}), 200
+
+        receta = [
+            {
+                'nombre': 'Levodopa/Carbidopa',
+                'principio_activo': 'Levodopa 250mg / Carbidopa 25mg',
+                'dosis': '½ tableta',
+                'horarios': json.dumps(['08:00', '12:00', '16:00', '20:00']),
+                'instrucciones': 'No tomar junto con comida. Separar al menos 1 hora antes o después del alimento.',
+                'separacion_comida_min': 60,
+            },
+            {
+                'nombre': 'Rasagilina',
+                'principio_activo': 'Rasagilina 1mg',
+                'dosis': '1 tableta',
+                'horarios': json.dumps(['08:00']),
+                'instrucciones': 'Tomar 1 vez al día por la mañana, junto con Levodopa/Carbidopa.',
+                'separacion_comida_min': 0,
+            },
+        ]
+
+        for med in receta:
+            nuevo = MedicamentoProgramado(
+                usuario_id=usuario_actual.id,
+                **med
+            )
+            db.session.add(nuevo)
+
+        db.session.commit()
+        return jsonify({'mensaje': 'Medicamentos inicializados correctamente', 'total': len(receta)}), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/tomas/hoy', methods=['GET'])
+@token_requerido
+def tomas_hoy(usuario_actual):
+    """
+    Devuelve el estado de todas las tomas programadas para hoy.
+    Genera las tomas del día si aún no existen.
+    """
+    import json
+    try:
+        # Hora actual en zona horaria del servidor (UTC) — el frontend ajusta a local
+        ahora_utc = datetime.datetime.utcnow()
+        hoy = ahora_utc.date()
+
+        medicamentos = MedicamentoProgramado.query.filter_by(
+            usuario_id=usuario_actual.id, activo=True
+        ).all()
+
+        tomas_generadas = []
+        for med in medicamentos:
+            horarios = json.loads(med.horarios)
+            for horario in horarios:
+                hora, minuto = map(int, horario.split(':'))
+                fecha_prog = datetime.datetime(hoy.year, hoy.month, hoy.day, hora, minuto)
+
+                # Verificar si ya existe esta toma hoy
+                existente = TomaRegistrada.query.filter_by(
+                    usuario_id=usuario_actual.id,
+                    medicamento_id=med.id,
+                    horario_programado=horario,
+                ).filter(
+                    TomaRegistrada.fecha_programada >= datetime.datetime(hoy.year, hoy.month, hoy.day),
+                    TomaRegistrada.fecha_programada < datetime.datetime(hoy.year, hoy.month, hoy.day) + datetime.timedelta(days=1)
+                ).first()
+
+                if not existente:
+                    nueva_toma = TomaRegistrada(
+                        usuario_id=usuario_actual.id,
+                        medicamento_id=med.id,
+                        horario_programado=horario,
+                        fecha_programada=fecha_prog,
+                        tomada=False,
+                        omitida=False,
+                    )
+                    db.session.add(nueva_toma)
+                    tomas_generadas.append(nueva_toma)
+
+        if tomas_generadas:
+            db.session.commit()
+
+        # Recuperar todas las tomas de hoy ordenadas por hora
+        tomas = TomaRegistrada.query.filter(
+            TomaRegistrada.usuario_id == usuario_actual.id,
+            TomaRegistrada.fecha_programada >= datetime.datetime(hoy.year, hoy.month, hoy.day),
+            TomaRegistrada.fecha_programada < datetime.datetime(hoy.year, hoy.month, hoy.day) + datetime.timedelta(days=1)
+        ).order_by(TomaRegistrada.fecha_programada.asc()).all()
+
+        # Agrupar por horario (una entrada por bloque horario, con todos sus medicamentos)
+        bloques = {}
+        for t in tomas:
+            h = t.horario_programado
+            if h not in bloques:
+                bloques[h] = {
+                    'horario': h,
+                    'fecha_programada': t.fecha_programada.isoformat(),
+                    'tomas': [],
+                    'todas_tomadas': True,
+                    'alguna_omitida': False,
+                }
+            entrada = t.to_dict()
+            bloques[h]['tomas'].append(entrada)
+            if not t.tomada:
+                bloques[h]['todas_tomadas'] = False
+            if t.omitida:
+                bloques[h]['alguna_omitida'] = True
+
+        return jsonify({
+            'fecha': hoy.isoformat(),
+            'bloques': list(bloques.values()),
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/tomas/<int:toma_id>/tomar', methods=['POST'])
+@token_requerido
+def registrar_toma(usuario_actual, toma_id):
+    """
+    Marca una toma como tomada con timestamp real.
+    Calcula automáticamente el desvío respecto a la hora programada.
+    """
+    try:
+        toma = db.session.get(TomaRegistrada, toma_id)
+        if not toma or toma.usuario_id != usuario_actual.id:
+            return jsonify({'error': 'Toma no encontrada'}), 404
+
+        ahora = datetime.datetime.utcnow()
+        desvio = int((ahora - toma.fecha_programada).total_seconds() / 60)
+
+        toma.tomada = True
+        toma.omitida = False
+        toma.fecha_toma_real = ahora
+        toma.desvio_minutos = desvio
+
+        datos = request.get_json() or {}
+        if datos.get('notas'):
+            toma.notas = datos['notas']
+
+        db.session.commit()
+        return jsonify({
+            'mensaje': 'Toma registrada',
+            'toma': toma.to_dict(),
+            'desvio_minutos': desvio,
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/tomas/<int:toma_id>/omitir', methods=['POST'])
+@token_requerido
+def omitir_toma(usuario_actual, toma_id):
+    """Marca una toma como omitida."""
+    try:
+        toma = db.session.get(TomaRegistrada, toma_id)
+        if not toma or toma.usuario_id != usuario_actual.id:
+            return jsonify({'error': 'Toma no encontrada'}), 404
+
+        toma.omitida = True
+        toma.tomada = False
+        datos = request.get_json() or {}
+        if datos.get('notas'):
+            toma.notas = datos['notas']
+
+        db.session.commit()
+        return jsonify({'mensaje': 'Toma marcada como omitida', 'toma': toma.to_dict()}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/tomas/historial', methods=['GET'])
+@token_requerido
+def historial_tomas(usuario_actual):
+    """
+    Adherencia de los últimos N días.
+    Devuelve porcentaje de cumplimiento y desvío promedio por medicamento.
+    """
+    try:
+        dias = int(request.args.get('dias', 7))
+        fecha_inicio = datetime.datetime.utcnow() - datetime.timedelta(days=dias)
+
+        tomas = TomaRegistrada.query.filter(
+            TomaRegistrada.usuario_id == usuario_actual.id,
+            TomaRegistrada.fecha_programada >= fecha_inicio,
+            TomaRegistrada.fecha_programada <= datetime.datetime.utcnow()
+        ).order_by(TomaRegistrada.fecha_programada.asc()).all()
+
+        total = len(tomas)
+        tomadas = sum(1 for t in tomas if t.tomada)
+        omitidas = sum(1 for t in tomas if t.omitida)
+        pendientes = total - tomadas - omitidas
+
+        desvios = [t.desvio_minutos for t in tomas if t.tomada and t.desvio_minutos is not None]
+        desvio_promedio = round(sum(desvios) / len(desvios), 1) if desvios else 0
+
+        return jsonify({
+            'dias': dias,
+            'total_programadas': total,
+            'tomadas': tomadas,
+            'omitidas': omitidas,
+            'pendientes': pendientes,
+            'adherencia_pct': round(tomadas / total * 100, 1) if total > 0 else 0,
+            'desvio_promedio_min': desvio_promedio,
+            'tomas': [t.to_dict() for t in tomas],
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# =============================================
+# BITÁCORA DE FLUCTUACIONES (HAUSER)
+# =============================================
+
+@app.route('/api/fluctuaciones', methods=['POST'])
+@token_requerido
+def registrar_fluctuacion(usuario_actual):
+    """
+    Registra el estado motor en un bloque horario.
+    estados válidos: ON | OFF | ON_DISC_LEVE | ON_DISC_GRAVE | DORMIDO
+    """
+    try:
+        datos = request.get_json()
+        estado = datos.get('estado', '').upper()
+        estados_validos = {'ON', 'OFF', 'ON_DISC_LEVE', 'ON_DISC_GRAVE', 'DORMIDO'}
+
+        if estado not in estados_validos:
+            return jsonify({'error': f'Estado inválido. Usa: {", ".join(estados_validos)}'}), 400
+
+        hora_bloque = datos.get('hora_bloque')  # "08:00"
+        fecha_str = datos.get('fecha')           # "2026-10-08" o None → hoy
+
+        if fecha_str:
+            fecha = datetime.datetime.strptime(fecha_str, '%Y-%m-%d').date()
+        else:
+            fecha = datetime.datetime.utcnow().date()
+
+        if not hora_bloque:
+            # Calcular bloque de 30 min actual
+            ahora = datetime.datetime.utcnow()
+            minuto_redondeado = 0 if ahora.minute < 30 else 30
+            hora_bloque = f'{ahora.hour:02d}:{minuto_redondeado:02d}'
+
+        # Upsert: si ya existe ese bloque ese día, actualizar
+        existente = FluctuacionMotora.query.filter_by(
+            usuario_id=usuario_actual.id,
+            fecha=fecha,
+            hora_bloque=hora_bloque
+        ).first()
+
+        if existente:
+            existente.estado = estado
+            existente.notas = datos.get('notas', existente.notas)
+        else:
+            nueva = FluctuacionMotora(
+                usuario_id=usuario_actual.id,
+                fecha=fecha,
+                hora_bloque=hora_bloque,
+                estado=estado,
+                notas=datos.get('notas'),
+            )
+            db.session.add(nueva)
+
+        db.session.commit()
+        return jsonify({'mensaje': 'Estado motor registrado', 'hora_bloque': hora_bloque, 'estado': estado}), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/fluctuaciones', methods=['GET'])
+@token_requerido
+def listar_fluctuaciones(usuario_actual):
+    """Devuelve la bitácora de fluctuaciones de los últimos N días."""
+    try:
+        dias = int(request.args.get('dias', 7))
+        fecha_inicio = datetime.datetime.utcnow().date() - datetime.timedelta(days=dias)
+
+        registros = FluctuacionMotora.query.filter(
+            FluctuacionMotora.usuario_id == usuario_actual.id,
+            FluctuacionMotora.fecha >= fecha_inicio
+        ).order_by(FluctuacionMotora.fecha.asc(), FluctuacionMotora.hora_bloque.asc()).all()
+
+        # Agrupar por fecha
+        por_fecha = {}
+        conteo_estados = {'ON': 0, 'OFF': 0, 'ON_DISC_LEVE': 0, 'ON_DISC_GRAVE': 0, 'DORMIDO': 0}
+
+        for r in registros:
+            d = r.fecha.isoformat()
+            if d not in por_fecha:
+                por_fecha[d] = []
+            por_fecha[d].append(r.to_dict())
+            conteo_estados[r.estado] = conteo_estados.get(r.estado, 0) + 1
+
+        return jsonify({
+            'dias': dias,
+            'por_fecha': por_fecha,
+            'resumen_estados': conteo_estados,
+            'total_bloques': len(registros),
         }), 200
 
     except Exception as e:

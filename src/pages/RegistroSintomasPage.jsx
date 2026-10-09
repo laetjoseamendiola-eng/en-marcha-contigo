@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import './RegistroSintomasPage.css';
 import EvolucionPage from './EvolucionPage.jsx';
+import MiDiaPage from './MiDiaPage.jsx';
 
 const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
-  const [pestanaActiva, setPestanaActiva] = useState('registro'); // 'registro' | 'evolucion' | 'historial'
+  const [pestanaActiva, setPestanaActiva] = useState('midia'); // 'midia' | 'registro' | 'evolucion' | 'historial'
   const [formData, setFormData] = useState({
     tipo: '',
     intensidad: 3,
@@ -258,8 +259,11 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
         background: 'rgba(0,0,0,0.15)',
         gap: '4px'
       }}>
+        <button style={estiloPestana(pestanaActiva === 'midia')} onClick={() => setPestanaActiva('midia')}>
+          💊 Mi Día
+        </button>
         <button style={estiloPestana(pestanaActiva === 'registro')} onClick={() => setPestanaActiva('registro')}>
-          ✏️ Registrar
+          ✏️ Síntomas
         </button>
         <button style={estiloPestana(pestanaActiva === 'evolucion')} onClick={() => setPestanaActiva('evolucion')}>
           📈 Evolución
@@ -268,6 +272,11 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
           📋 Historial
         </button>
       </div>
+
+      {/* Pestaña Mi Día */}
+      {pestanaActiva === 'midia' && (
+        <MiDiaPage token={token} apiUrl={import.meta.env.VITE_API_URL || ''} />
+      )}
 
       {/* Pestaña Evolución */}
       {pestanaActiva === 'evolucion' && (
