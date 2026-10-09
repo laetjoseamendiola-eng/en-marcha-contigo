@@ -1,7 +1,7 @@
 {
   "name": "En Marcha Contigo",
   "short_name": "En Marcha",
-  "description": "Ruta de Acompañamiento Neurológico",
+  "description": "Ruta de Acompañamiento neurológico",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
