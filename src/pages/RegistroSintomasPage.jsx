@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './RegistroSintomasPage.css';
 import EvolucionPage from './EvolucionPage.jsx';
 import MiDiaPage from './MiDiaPage.jsx';
+import FluctuacionesPage from './FluctuacionesPage.jsx';
 
 const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
   const [pestanaActiva, setPestanaActiva] = useState('midia'); // 'midia' | 'registro' | 'evolucion' | 'historial'
@@ -268,6 +269,9 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
         <button style={estiloPestana(pestanaActiva === 'evolucion')} onClick={() => setPestanaActiva('evolucion')}>
           📈 Evolución
         </button>
+        <button style={estiloPestana(pestanaActiva === 'fluctuaciones')} onClick={() => setPestanaActiva('fluctuaciones')}>
+          🌡️ Estado
+        </button>
         <button style={estiloPestana(pestanaActiva === 'historial')} onClick={() => setPestanaActiva('historial')}>
           📋 Historial
         </button>
@@ -276,6 +280,11 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
       {/* Pestaña Mi Día */}
       {pestanaActiva === 'midia' && (
         <MiDiaPage token={token} apiUrl={import.meta.env.VITE_API_URL || ''} />
+      )}
+
+      {/* Pestaña Fluctuaciones */}
+      {pestanaActiva === 'fluctuaciones' && (
+        <FluctuacionesPage token={token} apiUrl={import.meta.env.VITE_API_URL || ''} />
       )}
 
       {/* Pestaña Evolución */}
