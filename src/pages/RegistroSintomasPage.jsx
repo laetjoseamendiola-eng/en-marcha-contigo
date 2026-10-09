@@ -133,7 +133,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
       });
 
       if (response.ok) {
-        setMensaje('✓ Síntoma registrado correctamente');
+        setMensaje('Síntoma registrado correctamente');
         setFormData({
           tipo: '',
           intensidad: 3,
@@ -168,7 +168,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
       });
 
       if (response.ok) {
-        setMensaje('✓ Síntoma eliminado');
+        setMensaje('Síntoma eliminado');
         cargarSintomas();
         setTimeout(() => setMensaje(''), 2000);
       } else if (response.status === 401) {
@@ -220,6 +220,11 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
       {/* Barra de usuario */}
       <div className="user-bar">
         <div className="user-info">
+          <img
+            src="/assets/logo-header.png"
+            alt="En Marcha Contigo"
+            className="user-bar-logo"
+          />
           <span className="user-greeting">Hola, {usuario.nombre}</span>
         </div>
         <button onClick={onLogout} className="btn-logout">
@@ -230,8 +235,8 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
       <div className="registro-sintomas-wrapper">
         {/* Sección del formulario */}
         <div className="registro-form-section">
-          <h1>📋 Registro de Síntomas</h1>
-          <p className="subtitle">Documenta tus síntomas de Parkinson para seguimiento médico</p>
+          <h1>Registro de Síntomas</h1>
+          <p className="subtitle">Documenta tus síntomas para seguimiento neurológico</p>
 
           {mensaje && (
             <div className={`mensaje ${mensaje.includes('Error') ? 'error' : 'exito'}`}>
@@ -260,7 +265,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
             {/* Intensidad */}
             <div className="form-group">
               <label htmlFor="intensidad">
-                Intensidad: {formData.intensidad} - {getIntensidadLabel(formData.intensidad)} *
+                Intensidad: {formData.intensidad} — {getIntensidadLabel(formData.intensidad)} *
               </label>
               <div className="intensidad-container">
                 <input
@@ -331,7 +336,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
             </div>
 
             <button type="submit" disabled={cargando} className="btn-submit">
-              {cargando ? 'Registrando...' : '✓ Registrar síntoma'}
+              {cargando ? 'Registrando...' : 'Registrar síntoma'}
             </button>
           </form>
         </div>
@@ -339,7 +344,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
         {/* Sección de estadísticas */}
         {estadisticas && (
           <div className="estadisticas-section">
-            <h2>📊 Estadísticas</h2>
+            <h2>Estadísticas</h2>
             <div className="stats-grid">
               <div className="stat-card">
                 <div className="stat-number">{estadisticas.total}</div>
@@ -355,7 +360,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
               </div>
               <div className="stat-card">
                 <div className="stat-label">Síntoma frecuente</div>
-                <div className="stat-number-small">{estadisticas.sintoma_mas_frecuente || '-'}</div>
+                <div className="stat-number-small">{estadisticas.sintoma_mas_frecuente || '—'}</div>
               </div>
             </div>
           </div>
@@ -364,7 +369,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
 
       {/* Sección del historial */}
       <div className="historial-section">
-        <h2>📈 Historial de síntomas</h2>
+        <h2>Historial de síntomas</h2>
 
         {sintomas.length === 0 ? (
           <div className="sin-datos">
@@ -386,21 +391,21 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
 
                 <div className="sintoma-details">
                   <div className="detail-item">
-                    <span className="detail-label">📍 Localización:</span>
+                    <span className="detail-label">Localización:</span>
                     <span className="detail-value">{sintoma.localizacion}</span>
                   </div>
                   <div className="detail-item">
-                    <span className="detail-label">⏱️ Duración:</span>
+                    <span className="detail-label">Duración:</span>
                     <span className="detail-value">{sintoma.duracion} minutos</span>
                   </div>
                   {sintoma.notas && (
                     <div className="detail-item">
-                      <span className="detail-label">📝 Notas:</span>
+                      <span className="detail-label">Notas:</span>
                       <span className="detail-value">{sintoma.notas}</span>
                     </div>
                   )}
                   <div className="detail-item">
-                    <span className="detail-label">🕐 Fecha:</span>
+                    <span className="detail-label">Fecha:</span>
                     <span className="detail-value">{formatearFecha(sintoma.fecha_registro)}</span>
                   </div>
                 </div>
@@ -409,7 +414,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
                   onClick={() => handleEliminar(sintoma.id)}
                   className="btn-eliminar"
                 >
-                  🗑️ Eliminar
+                  Eliminar
                 </button>
               </div>
             ))}

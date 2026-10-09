@@ -1,26 +1,43 @@
+/* =============================================
+   En Marcha Contigo — Registro de Síntomas
+   Paleta institucional:
+     Navy primario:  #1B3A5C
+     Teal primario:  #2AACB0
+     Navy oscuro:    #0F2640
+     Teal claro:     #35C4C8
+   ============================================= */
+
 .registro-sintomas-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(160deg, #0F2640 0%, #1B3A5C 40%, #2AACB0 100%);
   padding: 20px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
-/* Barra de usuario */
+/* ---- Barra de usuario ---- */
 .user-bar {
   max-width: 1200px;
   margin: 0 auto 20px auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
   padding: 12px 20px;
-  border-radius: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .user-info {
   display: flex;
   align-items: center;
+  gap: 12px;
+}
+
+.user-bar-logo {
+  height: 28px;
+  width: auto;
+  opacity: 0.9;
 }
 
 .user-greeting {
@@ -30,11 +47,11 @@
 }
 
 .btn-logout {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.18);
   color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 8px 16px;
-  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 8px 18px;
+  border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -43,7 +60,7 @@
 }
 
 .btn-logout:hover {
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .registro-sintomas-wrapper {
@@ -55,48 +72,50 @@
   margin-bottom: 40px;
 }
 
-/* Sección del formulario */
+/* ---- Formulario ---- */
 .registro-form-section {
   background: white;
-  border-radius: 12px;
-  padding: 30px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 12px 40px rgba(15, 38, 64, 0.25);
 }
 
 .registro-form-section h1 {
-  color: #333;
-  margin: 0 0 10px 0;
-  font-size: 24px;
+  color: #1B3A5C;
+  margin: 0 0 8px 0;
+  font-size: 22px;
+  font-weight: 700;
 }
 
 .subtitle {
-  color: #666;
-  margin: 0 0 30px 0;
+  color: #5a7082;
+  margin: 0 0 28px 0;
   font-size: 14px;
+  line-height: 1.5;
 }
 
-/* Mensajes */
+/* ---- Mensajes ---- */
 .mensaje {
   padding: 12px 16px;
-  border-radius: 8px;
+  border-radius: 10px;
   margin-bottom: 20px;
   font-size: 14px;
   font-weight: 500;
 }
 
 .mensaje.exito {
-  background-color: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
+  background-color: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
 }
 
 .mensaje.error {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
 }
 
-/* Formulario */
+/* ---- Campos del formulario ---- */
 .registro-form {
   display: flex;
   flex-direction: column;
@@ -110,7 +129,7 @@
 }
 
 .form-group label {
-  color: #333;
+  color: #1B3A5C;
   font-weight: 600;
   font-size: 14px;
 }
@@ -119,19 +138,22 @@
 .form-group select,
 .form-group textarea {
   padding: 10px 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+  border: 1.5px solid #d6dee5;
+  border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
-  transition: border-color 0.3s;
+  color: #1B3A5C;
+  background: #fafbfc;
+  transition: border-color 0.25s, box-shadow 0.25s;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #2AACB0;
+  box-shadow: 0 0 0 3px rgba(42, 172, 176, 0.12);
+  background: #fff;
 }
 
 .form-group textarea {
@@ -139,7 +161,7 @@
   min-height: 80px;
 }
 
-/* Slider de intensidad */
+/* ---- Slider de intensidad ---- */
 .intensidad-container {
   display: flex;
   flex-direction: column;
@@ -170,9 +192,9 @@
   height: 24px;
   border-radius: 50%;
   background: white;
-  border: 3px solid #667eea;
+  border: 3px solid #1B3A5C;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 6px rgba(15, 38, 64, 0.25);
 }
 
 .intensidad-slider::-moz-range-thumb {
@@ -180,83 +202,90 @@
   height: 24px;
   border-radius: 50%;
   background: white;
-  border: 3px solid #667eea;
+  border: 3px solid #1B3A5C;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 6px rgba(15, 38, 64, 0.25);
 }
 
 .intensidad-labels {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: #999;
+  color: #8899a6;
   font-weight: 500;
 }
 
-/* Botón submit */
+/* ---- Botón submit ---- */
 .btn-submit {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1B3A5C 0%, #2AACB0 100%);
   color: white;
   border: none;
-  padding: 12px 20px;
-  border-radius: 6px;
+  padding: 13px 20px;
+  border-radius: 10px;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
   margin-top: 10px;
+  font-family: inherit;
+  letter-spacing: 0.2px;
 }
 
 .btn-submit:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8px 24px rgba(27, 58, 92, 0.35);
+}
+
+.btn-submit:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .btn-submit:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
-/* Sección de estadísticas */
+/* ---- Estadísticas ---- */
 .estadisticas-section {
   background: white;
-  border-radius: 12px;
-  padding: 30px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 12px 40px rgba(15, 38, 64, 0.25);
   height: fit-content;
 }
 
 .estadisticas-section h2 {
-  color: #333;
+  color: #1B3A5C;
   margin: 0 0 20px 0;
   font-size: 20px;
+  font-weight: 700;
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 15px;
+  gap: 14px;
 }
 
 .stat-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1B3A5C 0%, #2AACB0 100%);
   color: white;
   padding: 20px;
-  border-radius: 8px;
+  border-radius: 12px;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 14px rgba(15, 38, 64, 0.2);
 }
 
 .stat-number {
-  font-size: 32px;
-  font-weight: bold;
-  margin-bottom: 8px;
+  font-size: 30px;
+  font-weight: 700;
+  margin-bottom: 6px;
 }
 
 .stat-number-small {
-  font-size: 18px;
-  font-weight: bold;
-  margin-top: 8px;
+  font-size: 17px;
+  font-weight: 600;
+  margin-top: 6px;
   word-break: break-word;
 }
 
@@ -266,26 +295,27 @@
   font-weight: 500;
 }
 
-/* Sección de historial */
+/* ---- Historial ---- */
 .historial-section {
   max-width: 1200px;
   margin: 0 auto;
   background: white;
-  border-radius: 12px;
-  padding: 30px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 12px 40px rgba(15, 38, 64, 0.25);
 }
 
 .historial-section h2 {
-  color: #333;
-  margin: 0 0 25px 0;
+  color: #1B3A5C;
+  margin: 0 0 24px 0;
   font-size: 20px;
+  font-weight: 700;
 }
 
 .sin-datos {
   text-align: center;
   padding: 60px 20px;
-  color: #999;
+  color: #8899a6;
 }
 
 .sin-datos p {
@@ -301,28 +331,28 @@
 
 .sintoma-card {
   background: white;
-  border-left: 4px solid #667eea;
-  border-radius: 8px;
+  border-left: 4px solid #2AACB0;
+  border-radius: 10px;
   padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 10px rgba(15, 38, 64, 0.08);
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .sintoma-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 24px rgba(15, 38, 64, 0.14);
 }
 
 .sintoma-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 14px;
   gap: 10px;
 }
 
 .sintoma-tipo {
-  color: #333;
+  color: #1B3A5C;
   font-weight: 600;
   font-size: 16px;
   flex: 1;
@@ -351,35 +381,36 @@
 }
 
 .detail-label {
-  color: #666;
+  color: #5a7082;
   font-weight: 500;
   min-width: 80px;
 }
 
 .detail-value {
-  color: #333;
+  color: #1B3A5C;
   flex: 1;
   word-break: break-word;
 }
 
 .btn-eliminar {
-  background: #ff6b6b;
+  background: #ef4444;
   color: white;
   border: none;
-  padding: 8px 12px;
-  border-radius: 4px;
+  padding: 8px 14px;
+  border-radius: 6px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
   align-self: flex-start;
+  font-family: inherit;
 }
 
 .btn-eliminar:hover {
-  background: #ff5252;
+  background: #dc2626;
 }
 
-/* Responsive */
+/* ---- Responsive ---- */
 @media (max-width: 1024px) {
   .registro-sintomas-wrapper {
     grid-template-columns: 1fr;
@@ -403,10 +434,11 @@
   .estadisticas-section,
   .historial-section {
     padding: 20px;
+    border-radius: 14px;
   }
 
   .registro-form-section h1 {
-    font-size: 20px;
+    font-size: 19px;
   }
 
   .stats-grid {
@@ -428,6 +460,19 @@
   .form-group input,
   .form-group select,
   .form-group textarea {
-    font-size: 13px;
+    font-size: 14px;
+  }
+
+  .user-bar {
+    padding: 10px 14px;
+    border-radius: 10px;
+  }
+
+  .user-greeting {
+    font-size: 14px;
+  }
+
+  .user-bar-logo {
+    height: 22px;
   }
 }

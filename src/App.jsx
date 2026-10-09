@@ -59,15 +59,23 @@ function App() {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(160deg, #0F2640 0%, #1B3A5C 40%, #2AACB0 100%)',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         color: 'white',
-        fontSize: '18px',
-        fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif'
+        fontFamily: "'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif",
+        gap: '16px'
       }}>
-        Cargando...
+        <img
+          src="/assets/logo-login.png"
+          alt="En Marcha Contigo"
+          style={{ width: '180px', height: 'auto', opacity: 0.9 }}
+        />
+        <span style={{ fontSize: '16px', opacity: 0.8, letterSpacing: '0.5px' }}>
+          Cargando...
+        </span>
       </div>
     );
   }

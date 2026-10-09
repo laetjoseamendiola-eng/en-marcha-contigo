@@ -85,8 +85,13 @@ const LoginPage = ({ onLoginExitoso }) => {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <h1>🚶 En Marcha Contigo</h1>
-          <p className="login-subtitle">Acompañamiento para personas con Parkinson</p>
+          <img
+            src="/assets/logo-login.png"
+            alt="En Marcha Contigo"
+            className="login-logo"
+          />
+          <h1>En Marcha Contigo</h1>
+          <p className="login-subtitle">Ruta de Acompañamiento Neurológico</p>
         </div>
 
         <div className="login-tabs">
