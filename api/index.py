@@ -194,6 +194,65 @@ class FluctuacionMotora(db.Model):
         }
 
 
+class RegistroDiario(db.Model):
+    """
+    Cuestionario diario de síntomas no motores.
+    Inspirado en dominios del MDS-UPDRS parte 1 (no motor) y experiencia clínica.
+    Registra cómo se siente el paciente en general ese día.
+    Escala 0-4 donde 0=sin problema y 4=muy grave (igual que MDS-UPDRS).
+    """
+    __tablename__ = 'registros_diarios'
+
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    fecha = db.Column(db.Date, nullable=False)
+
+    # Energía y fatiga (infografía: afecta 40-80% de pacientes)
+    energia = db.Column(db.Integer)          # 0=sin fatiga, 4=fatiga extrema
+    # Sueño nocturno (infografía: 6 tipos de alteraciones del sueño)
+    calidad_sueno = db.Column(db.Integer)    # 0=dormí bien, 4=noche muy mala
+    # Somnolencia diurna
+    somnolencia = db.Column(db.Integer)      # 0=sin somnolencia, 4=dormí en actividades
+    # Ánimo (depresión es síntoma prodromico y no motor frecuente)
+    animo = db.Column(db.Integer)            # 0=buen ánimo, 4=muy triste/sin motivación
+    # Ansiedad
+    ansiedad = db.Column(db.Integer)         # 0=tranquilo, 4=muy ansioso
+    # Digestión / estreñimiento (síntoma prodrónico común)
+    digestion = db.Column(db.Integer)        # 0=normal, 4=estreñimiento grave
+    # Náuseas (efecto secundario frecuente de medicamentos)
+    nauseas = db.Column(db.Integer)          # 0=sin náuseas, 4=náuseas todo el día
+    # Dolor general
+    dolor = db.Column(db.Integer)            # 0=sin dolor, 4=dolor intenso
+    # Apetito / olfato (hiposmia es síntoma prodrónico)
+    apetito = db.Column(db.Integer)          # 0=normal, 4=sin apetito
+    # Nota libre del día
+    nota_dia = db.Column(db.Text)
+
+    fecha_registro = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+    # Restricción única: un registro por usuario por día
+    __table_args__ = (
+        db.UniqueConstraint('usuario_id', 'fecha', name='uq_registro_diario_usuario_fecha'),
+    )
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'fecha': self.fecha.isoformat() if self.fecha else None,
+            'energia': self.energia,
+            'calidad_sueno': self.calidad_sueno,
+            'somnolencia': self.somnolencia,
+            'animo': self.animo,
+            'ansiedad': self.ansiedad,
+            'digestion': self.digestion,
+            'nauseas': self.nauseas,
+            'dolor': self.dolor,
+            'apetito': self.apetito,
+            'nota_dia': self.nota_dia,
+            'fecha_registro': self.fecha_registro.isoformat() if self.fecha_registro else None,
+        }
+
+
 # Inicialización lazy de tablas: no crashear el módulo si la BD no está disponible al arrancar.
 _tables_initialized = False
 
@@ -920,6 +979,199 @@ def listar_fluctuaciones(usuario_actual):
             'por_fecha': por_fecha,
             'resumen_estados': conteo_estados,
             'total_bloques': len(registros),
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# =============================================
+# ENDPOINTS: REGISTRO DIARIO (síntomas no motores)
+# =============================================
+
+@app.route('/api/registro-diario', methods=['POST'])
+@token_requerido
+def crear_registro_diario(usuario_actual):
+    """
+    Crea o actualiza el registro diario de síntomas no motores.
+    Si ya existe un registro para hoy, lo actualiza (upsert).
+    Escala 0-4: 0=sin problema, 4=muy grave.
+    """
+    try:
+        datos = request.get_json()
+        if not datos:
+            return jsonify({'error': 'No se recibieron datos'}), 400
+
+        # Fecha: hoy por defecto, o la que viene en el payload
+        if 'fecha' in datos:
+            from datetime import date
+            fecha = date.fromisoformat(datos['fecha'])
+        else:
+            fecha = datetime.datetime.utcnow().date()
+
+        # Buscar si ya existe un registro para ese día
+        registro = RegistroDiario.query.filter_by(
+            usuario_id=usuario_actual.id,
+            fecha=fecha
+        ).first()
+
+        campos = ['energia', 'calidad_sueno', 'somnolencia', 'animo',
+                  'ansiedad', 'digestion', 'nauseas', 'dolor', 'apetito', 'nota_dia']
+
+        if registro:
+            # Actualizar campos que vienen en el payload
+            for campo in campos:
+                if campo in datos:
+                    setattr(registro, campo, datos[campo])
+            registro.fecha_registro = datetime.datetime.utcnow()
+        else:
+            registro = RegistroDiario(
+                usuario_id=usuario_actual.id,
+                fecha=fecha,
+            )
+            for campo in campos:
+                if campo in datos:
+                    setattr(registro, campo, datos[campo])
+            db.session.add(registro)
+
+        db.session.commit()
+        return jsonify(registro.to_dict()), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/registro-diario/hoy', methods=['GET'])
+@token_requerido
+def registro_diario_hoy(usuario_actual):
+    """Devuelve el registro de hoy, o null si no existe."""
+    try:
+        hoy = datetime.datetime.utcnow().date()
+        registro = RegistroDiario.query.filter_by(
+            usuario_id=usuario_actual.id,
+            fecha=hoy
+        ).first()
+        if registro:
+            return jsonify(registro.to_dict()), 200
+        return jsonify(None), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/registro-diario/historial', methods=['GET'])
+@token_requerido
+def historial_registro_diario(usuario_actual):
+    """
+    Últimos N días de registros diarios.
+    Query param: dias (default 14)
+    """
+    try:
+        dias = int(request.args.get('dias', 14))
+        desde = datetime.datetime.utcnow().date() - datetime.timedelta(days=dias)
+        registros = RegistroDiario.query.filter(
+            RegistroDiario.usuario_id == usuario_actual.id,
+            RegistroDiario.fecha >= desde
+        ).order_by(RegistroDiario.fecha.desc()).all()
+        return jsonify([r.to_dict() for r in registros]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/reporte', methods=['GET'])
+@token_requerido
+def generar_reporte(usuario_actual):
+    """
+    Endpoint de reporte consolidado para el neurólogo.
+    Devuelve un JSON con síntomas, adherencia, estado motor y registros diarios
+    de los últimos N días (default 30).
+    """
+    try:
+        dias = int(request.args.get('dias', 30))
+        desde = datetime.datetime.utcnow().date() - datetime.timedelta(days=dias)
+        desde_dt = datetime.datetime(desde.year, desde.month, desde.day)
+
+        # 1. Síntomas motores registrados
+        sintomas = Sintoma.query.filter(
+            Sintoma.usuario_id == usuario_actual.id,
+            Sintoma.fecha_registro >= desde_dt
+        ).order_by(Sintoma.fecha_registro.desc()).all()
+
+        # 2. Adherencia a medicamentos
+        tomas = TomaRegistrada.query.filter(
+            TomaRegistrada.usuario_id == usuario_actual.id,
+            TomaRegistrada.fecha_programada >= desde_dt
+        ).all()
+
+        total_tomas = len([t for t in tomas if not t.omitida or t.tomada])
+        tomas_tomadas = len([t for t in tomas if t.tomada])
+        tomas_omitidas = len([t for t in tomas if t.omitida and not t.tomada])
+        adherencia_pct = round((tomas_tomadas / total_tomas * 100) if total_tomas > 0 else 0)
+
+        # 3. Estado motor (fluctuaciones ON/OFF) — últimos N días
+        fluctuaciones = FluctuacionMotora.query.filter(
+            FluctuacionMotora.usuario_id == usuario_actual.id,
+            FluctuacionMotora.fecha >= desde
+        ).all()
+
+        conteo_estados = {'ON': 0, 'OFF': 0, 'ON_DISC_LEVE': 0, 'ON_DISC_GRAVE': 0, 'DORMIDO': 0}
+        for f in fluctuaciones:
+            if f.estado in conteo_estados:
+                conteo_estados[f.estado] += 1
+
+        # Convertir a horas (bloques de 30 min = 0.5h)
+        horas_estados = {k: round(v * 0.5, 1) for k, v in conteo_estados.items()}
+
+        # 4. Registros diarios (síntomas no motores)
+        registros_diarios = RegistroDiario.query.filter(
+            RegistroDiario.usuario_id == usuario_actual.id,
+            RegistroDiario.fecha >= desde
+        ).order_by(RegistroDiario.fecha.asc()).all()
+
+        # Promedios de registros diarios
+        campos_no_motor = ['energia', 'calidad_sueno', 'somnolencia', 'animo',
+                           'ansiedad', 'digestion', 'nauseas', 'dolor', 'apetito']
+        promedios_no_motor = {}
+        for campo in campos_no_motor:
+            valores = [getattr(r, campo) for r in registros_diarios if getattr(r, campo) is not None]
+            promedios_no_motor[campo] = round(sum(valores) / len(valores), 1) if valores else None
+
+        # 5. Síntomas más frecuentes
+        from collections import Counter
+        tipo_counter = Counter([s.tipo for s in sintomas])
+        sintomas_frecuentes = [{'tipo': t, 'conteo': c} for t, c in tipo_counter.most_common(5)]
+
+        return jsonify({
+            'paciente': {
+                'nombre': usuario_actual.nombre,
+                'email': usuario_actual.email,
+            },
+            'periodo': {
+                'dias': dias,
+                'desde': desde.isoformat(),
+                'hasta': datetime.datetime.utcnow().date().isoformat(),
+            },
+            'adherencia': {
+                'total_programadas': total_tomas,
+                'tomadas': tomas_tomadas,
+                'omitidas': tomas_omitidas,
+                'porcentaje': adherencia_pct,
+            },
+            'estado_motor': {
+                'total_bloques': len(fluctuaciones),
+                'conteo': conteo_estados,
+                'horas': horas_estados,
+            },
+            'sintomas_motores': {
+                'total': len(sintomas),
+                'frecuentes': sintomas_frecuentes,
+                'registros': [s.to_dict() for s in sintomas[:20]],  # últimos 20
+            },
+            'no_motor': {
+                'dias_registrados': len(registros_diarios),
+                'promedios': promedios_no_motor,
+                'registros': [r.to_dict() for r in registros_diarios],
+            },
         }), 200
 
     except Exception as e:

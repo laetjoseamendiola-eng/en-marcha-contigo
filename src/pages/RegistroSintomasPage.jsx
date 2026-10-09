@@ -3,6 +3,8 @@ import './RegistroSintomasPage.css';
 import EvolucionPage from './EvolucionPage.jsx';
 import MiDiaPage from './MiDiaPage.jsx';
 import FluctuacionesPage from './FluctuacionesPage.jsx';
+import RegistroDiarioPage from './RegistroDiarioPage.jsx';
+import ReportePage from './ReportePage.jsx';
 
 const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
   const [pestanaActiva, setPestanaActiva] = useState('midia'); // 'midia' | 'registro' | 'evolucion' | 'historial'
@@ -275,7 +277,23 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
         <button style={estiloPestana(pestanaActiva === 'historial')} onClick={() => setPestanaActiva('historial')}>
           📋 Historial
         </button>
+        <button style={estiloPestana(pestanaActiva === 'diario')} onClick={() => setPestanaActiva('diario')}>
+          🌿 Mi día
+        </button>
+        <button style={estiloPestana(pestanaActiva === 'reporte')} onClick={() => setPestanaActiva('reporte')}>
+          📄 Reporte
+        </button>
       </div>
+
+      {/* Pestaña Reporte */}
+      {pestanaActiva === 'reporte' && (
+        <ReportePage token={token} apiUrl={import.meta.env.VITE_API_URL || ''} />
+      )}
+
+      {/* Pestaña Diario síntomas no motores */}
+      {pestanaActiva === 'diario' && (
+        <RegistroDiarioPage token={token} apiUrl={import.meta.env.VITE_API_URL || ''} />
+      )}
 
       {/* Pestaña Mi Día */}
       {pestanaActiva === 'midia' && (
