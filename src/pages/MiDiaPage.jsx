@@ -236,7 +236,7 @@ export default function MiDiaPage({ token, apiUrl }) {
       const res = await fetch(`${apiUrl}/api/tomas/hoy`, { headers });
       if (res.ok) {
         const data = await res.json();
-        setBloques(data);
+        setBloques(data.bloques || []);
       } else if (res.status === 404) {
         // No hay medicamentos configurados
         setBloques([]);
