@@ -90,8 +90,6 @@ const LoginPage = ({ onLoginExitoso }) => {
             alt="En Marcha Contigo"
             className="login-logo"
           />
-          <h1>En Marcha Contigo</h1>
-          <p className="login-subtitle">Ruta de Acompañamiento Neurológico</p>
         </div>
 
         <div className="login-tabs">

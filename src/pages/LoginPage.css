@@ -31,14 +31,14 @@
 /* ---- Header con logo ---- */
 .login-header {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
 }
 
 .login-logo {
-  width: 220px;
-  max-width: 80%;
+  width: 300px;
+  max-width: 90%;
   height: auto;
-  margin-bottom: 14px;
+  margin-bottom: 6px;
 }
 
 .login-header h1 {
@@ -209,7 +209,7 @@
   }
 
   .login-logo {
-    width: 180px;
+    width: 240px;
   }
 
   .login-header h1 {
