@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import LoginPage from './pages/LoginPage.jsx'
 import RegistroSintomasPage from './pages/RegistroSintomasPage.jsx'
+import { ErrorBoundary } from './ErrorBoundary.jsx'
 
 function App() {
   const [usuario, setUsuario] = useState(null);
@@ -87,13 +88,13 @@ function App() {
 
   // Si hay sesión, mostrar la app
   return (
-    <div>
+    <ErrorBoundary>
       <RegistroSintomasPage
         usuario={usuario}
         token={token}
         onLogout={handleLogout}
       />
-    </div>
+    </ErrorBoundary>
   );
 }
 
