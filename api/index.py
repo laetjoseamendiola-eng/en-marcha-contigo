@@ -399,7 +399,7 @@ def estadisticas_sintomas(usuario_actual):
 
 @app.route('/api/health', methods=['GET'])
 def health():
-    """Endpoint de salud que verifica la conexión a la base de datos."""
+    """Endpoint de salud que verifica la conexión a la base de datos y el entorno."""
     db_status = 'unknown'
     db_type = 'sqlite'
 
