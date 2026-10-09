@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './RegistroSintomasPage.css';
+import EvolucionPage from './EvolucionPage.jsx';
 
 const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
+  const [pestanaActiva, setPestanaActiva] = useState('registro'); // 'registro' | 'evolucion' | 'historial'
   const [formData, setFormData] = useState({
     tipo: '',
     intensidad: 3,
@@ -215,6 +217,21 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
     return fecha.toLocaleDateString('es-MX') + ' ' + fecha.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
   };
 
+  // Estilos de pestañas inline para no tocar el CSS existente
+  const estiloPestana = (activa) => ({
+    padding: '10px 20px',
+    border: 'none',
+    borderBottom: activa ? '3px solid #2AACB0' : '3px solid transparent',
+    background: 'transparent',
+    color: activa ? '#2AACB0' : 'rgba(255,255,255,0.5)',
+    fontSize: '15px',
+    fontWeight: activa ? '600' : '400',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    fontFamily: 'inherit',
+    whiteSpace: 'nowrap'
+  });
+
   return (
     <div className="registro-sintomas-container">
       {/* Barra de usuario */}
@@ -232,6 +249,83 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
         </button>
       </div>
 
+      {/* Navegación por pestañas */}
+      <div style={{
+        display: 'flex',
+        borderBottom: '1px solid rgba(42,172,176,0.2)',
+        padding: '0 16px',
+        overflowX: 'auto',
+        background: 'rgba(0,0,0,0.15)',
+        gap: '4px'
+      }}>
+        <button style={estiloPestana(pestanaActiva === 'registro')} onClick={() => setPestanaActiva('registro')}>
+          ✏️ Registrar
+        </button>
+        <button style={estiloPestana(pestanaActiva === 'evolucion')} onClick={() => setPestanaActiva('evolucion')}>
+          📈 Evolución
+        </button>
+        <button style={estiloPestana(pestanaActiva === 'historial')} onClick={() => setPestanaActiva('historial')}>
+          📋 Historial
+        </button>
+      </div>
+
+      {/* Pestaña Evolución */}
+      {pestanaActiva === 'evolucion' && (
+        <div style={{ padding: '0 16px', maxWidth: '900px', margin: '0 auto' }}>
+          <EvolucionPage token={token} apiUrl={import.meta.env.VITE_API_URL || ''} />
+        </div>
+      )}
+
+      {/* Pestaña Historial */}
+      {pestanaActiva === 'historial' && (
+        <div className="historial-section" style={{ padding: '20px 16px' }}>
+          <h2>Historial de síntomas</h2>
+          {sintomas.length === 0 ? (
+            <div className="sin-datos">
+              <p>No hay síntomas registrados aún</p>
+            </div>
+          ) : (
+            <div className="sintomas-list">
+              {sintomas.map(sintoma => (
+                <div key={sintoma.id} className="sintoma-card">
+                  <div className="sintoma-header">
+                    <span className="sintoma-tipo">{sintoma.tipo}</span>
+                    <span className="intensidad-badge" style={{ backgroundColor: getIntensidadColor(sintoma.intensidad) }}>
+                      {sintoma.intensidad}/5
+                    </span>
+                  </div>
+                  <div className="sintoma-details">
+                    <div className="detail-item">
+                      <span className="detail-label">Localización:</span>
+                      <span className="detail-value">{sintoma.localizacion}</span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="detail-label">Duración:</span>
+                      <span className="detail-value">{sintoma.duracion} minutos</span>
+                    </div>
+                    {sintoma.notas && (
+                      <div className="detail-item">
+                        <span className="detail-label">Notas:</span>
+                        <span className="detail-value">{sintoma.notas}</span>
+                      </div>
+                    )}
+                    <div className="detail-item">
+                      <span className="detail-label">Fecha:</span>
+                      <span className="detail-value">{formatearFecha(sintoma.fecha_registro)}</span>
+                    </div>
+                  </div>
+                  <button onClick={() => handleEliminar(sintoma.id)} className="btn-eliminar">
+                    Eliminar
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Pestaña Registro (contenido existente) */}
+      {pestanaActiva === 'registro' && (
       <div className="registro-sintomas-wrapper">
         {/* Sección del formulario */}
         <div className="registro-form-section">
@@ -366,61 +460,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
           </div>
         )}
       </div>
-
-      {/* Sección del historial */}
-      <div className="historial-section">
-        <h2>Historial de síntomas</h2>
-
-        {sintomas.length === 0 ? (
-          <div className="sin-datos">
-            <p>No hay síntomas registrados aún</p>
-          </div>
-        ) : (
-          <div className="sintomas-list">
-            {sintomas.map(sintoma => (
-              <div key={sintoma.id} className="sintoma-card">
-                <div className="sintoma-header">
-                  <span className="sintoma-tipo">{sintoma.tipo}</span>
-                  <span
-                    className="intensidad-badge"
-                    style={{ backgroundColor: getIntensidadColor(sintoma.intensidad) }}
-                  >
-                    {sintoma.intensidad}/5
-                  </span>
-                </div>
-
-                <div className="sintoma-details">
-                  <div className="detail-item">
-                    <span className="detail-label">Localización:</span>
-                    <span className="detail-value">{sintoma.localizacion}</span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Duración:</span>
-                    <span className="detail-value">{sintoma.duracion} minutos</span>
-                  </div>
-                  {sintoma.notas && (
-                    <div className="detail-item">
-                      <span className="detail-label">Notas:</span>
-                      <span className="detail-value">{sintoma.notas}</span>
-                    </div>
-                  )}
-                  <div className="detail-item">
-                    <span className="detail-label">Fecha:</span>
-                    <span className="detail-value">{formatearFecha(sintoma.fecha_registro)}</span>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => handleEliminar(sintoma.id)}
-                  className="btn-eliminar"
-                >
-                  Eliminar
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      )} {/* fin pestaña registro */}
     </div>
   );
 };

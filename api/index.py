@@ -397,6 +397,91 @@ def estadisticas_sintomas(usuario_actual):
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/sintomas/evolucion', methods=['GET'])
+@token_requerido
+def evolucion_sintomas(usuario_actual):
+    """
+    Devuelve datos de evolución temporal agrupados por día.
+    Query params:
+      - dias: número de días hacia atrás (default 30)
+      - tipo: filtrar por tipo de síntoma (opcional)
+    """
+    try:
+        dias = int(request.args.get('dias', 30))
+        tipo_filtro = request.args.get('tipo', None)
+
+        fecha_inicio = datetime.datetime.utcnow() - datetime.timedelta(days=dias)
+
+        query = Sintoma.query.filter(
+            Sintoma.usuario_id == usuario_actual.id,
+            Sintoma.fecha_registro >= fecha_inicio
+        )
+
+        if tipo_filtro:
+            query = query.filter(Sintoma.tipo == tipo_filtro)
+
+        sintomas = query.order_by(Sintoma.fecha_registro.asc()).all()
+
+        # Agrupar por fecha (día)
+        datos_por_dia = {}
+        tipos_encontrados = set()
+
+        for s in sintomas:
+            dia = s.fecha_registro.strftime('%Y-%m-%d')
+            tipos_encontrados.add(s.tipo)
+
+            if dia not in datos_por_dia:
+                datos_por_dia[dia] = {
+                    'fecha': dia,
+                    'intensidad_promedio': [],
+                    'duracion_promedio': [],
+                    'total_registros': 0,
+                    'por_tipo': {}
+                }
+
+            datos_por_dia[dia]['intensidad_promedio'].append(s.intensidad)
+            datos_por_dia[dia]['duracion_promedio'].append(s.duracion)
+            datos_por_dia[dia]['total_registros'] += 1
+
+            if s.tipo not in datos_por_dia[dia]['por_tipo']:
+                datos_por_dia[dia]['por_tipo'][s.tipo] = {
+                    'intensidades': [],
+                    'count': 0
+                }
+            datos_por_dia[dia]['por_tipo'][s.tipo]['intensidades'].append(s.intensidad)
+            datos_por_dia[dia]['por_tipo'][s.tipo]['count'] += 1
+
+        # Calcular promedios
+        serie_temporal = []
+        for dia, datos in sorted(datos_por_dia.items()):
+            entrada = {
+                'fecha': dia,
+                'intensidad_promedio': round(
+                    sum(datos['intensidad_promedio']) / len(datos['intensidad_promedio']), 1
+                ),
+                'duracion_promedio': round(
+                    sum(datos['duracion_promedio']) / len(datos['duracion_promedio']), 1
+                ),
+                'total_registros': datos['total_registros']
+            }
+            # Intensidad promedio por tipo ese día
+            for tipo, info in datos['por_tipo'].items():
+                entrada[f'intensidad_{tipo}'] = round(
+                    sum(info['intensidades']) / len(info['intensidades']), 1
+                )
+            serie_temporal.append(entrada)
+
+        return jsonify({
+            'serie_temporal': serie_temporal,
+            'tipos_disponibles': sorted(list(tipos_encontrados)),
+            'dias_consultados': dias,
+            'total_registros': len(sintomas)
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/health', methods=['GET'])
 def health():
     """Endpoint de salud que verifica la conexión a la base de datos y el entorno."""
