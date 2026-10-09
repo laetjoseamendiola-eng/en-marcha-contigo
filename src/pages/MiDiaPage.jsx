@@ -66,7 +66,7 @@ function VentanaAyuno({ horario, estado }) {
 }
 
 function TarjetaToma({ bloque, onTomar, onOmitir, cargando }) {
-  const { horario, medicamentos, tomas, id_principal } = bloque;
+  const { horario, medicamentos = [], tomas = [], id_principal } = bloque;
   const estado = getEstadoBloque(tomas, horario);
   const tomaHora = tomas.find(t => t.tomada)?.fecha_toma_real;
   const tieneLevodopa = medicamentos.some(m =>
