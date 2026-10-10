@@ -5,6 +5,7 @@ import MiDiaPage from './MiDiaPage.jsx';
 import FluctuacionesPage from './FluctuacionesPage.jsx';
 import RegistroDiarioPage from './RegistroDiarioPage.jsx';
 import ReportePage from './ReportePage.jsx';
+import ConfiguracionPage from './ConfiguracionPage.jsx';
 
 const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
   const [pestanaActiva, setPestanaActiva] = useState('midia'); // 'midia' | 'registro' | 'evolucion' | 'historial'
@@ -354,9 +355,16 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
         <button style={estiloPestana(pestanaActiva === 'reporte')} onClick={() => setPestanaActiva('reporte')}>
           📄 Reporte
         </button>
+        <button style={estiloPestana(pestanaActiva === 'config')} onClick={() => setPestanaActiva('config')}>
+          ⚙️ Configuración
+        </button>
       </div>
 
       {/* Pestaña Reporte */}
+      {pestanaActiva === 'config' && (
+        <ConfiguracionPage />
+      )}
+
       {pestanaActiva === 'reporte' && (
         <ReportePage token={token} apiUrl={import.meta.env.VITE_API_URL || ''} />
       )}
