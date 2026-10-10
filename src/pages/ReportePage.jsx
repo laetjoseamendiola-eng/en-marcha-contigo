@@ -206,7 +206,7 @@ export default function ReportePage({ token, apiUrl }) {
           gap: '16px',
         }}>
           <div>
-            <div style={{ display: 'inline-block', background: 'rgba(255,255,255,0.18)', borderRadius: '10px', padding: '6px 12px', marginBottom: '12px' }}>
+            <div style={{ display: 'inline-block', background: '#ffffff', borderRadius: '999px', padding: '6px 18px', marginBottom: '12px' }}>
               <img
                 src="/assets/Logo_En_Marcha_Contigo_Fondo_Transparente.png"
                 alt="En Marcha Contigo"

@@ -295,6 +295,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
             src="/assets/Logo_En_Marcha_Contigo_Fondo_Transparente.png"
             alt="En Marcha Contigo"
             className="user-bar-logo"
+            style={{ background: '#ffffff', borderRadius: '999px', padding: '4px 14px', boxSizing: 'content-box' }}
           />
           <span className="user-greeting">Hola, {usuario.nombre}</span>
         </div>
