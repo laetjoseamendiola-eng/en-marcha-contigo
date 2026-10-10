@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 // Claves de almacenamiento local (por navegador)
 const CLAVE_RELOJ = 'cfg_reloj';            // { modo: 'dispositivo' | 'manual', zonaManual: 'America/Mexico_City' }
 const CLAVE_ULTIMO = 'cfg_reloj_ultimo';    // { zona, offset } último estado conocido
-const CLAVE_LOG = 'cfg_reloj_log';          // [{ fecha, zonaAnterior, offsetAnterior, zonaNueva, offsetNueva }]
+const CLAVE_LOG = 'cfg_reloj_log';          // [{ fecha, tipo, zonaAnterior, offsetAnterior, zonaNueva, offsetNueva }]
 
 const zonasManual = [
   'America/Mexico_City',
@@ -54,15 +54,24 @@ const formatoOffset = (min) => {
   return `UTC${signo}${String(Math.floor(a / 60)).padStart(2, '0')}:${String(a % 60).padStart(2, '0')}`;
 };
 
+const guardarEntrada = (entrada) => {
+  const nuevoLog = [entrada, ...leer(CLAVE_LOG, [])].slice(0, 30);
+  escribir(CLAVE_LOG, nuevoLog);
+  return nuevoLog;
+};
+
 const ConfiguracionPage = () => {
-  const [config, setConfig] = useState(() => leer(CLAVE_RELOJ, { modo: 'dispositivo', zonaManual: 'America/Mexico_City' }));
+  // Configuración guardada (la que usa la app)
+  const [guardada, setGuardada] = useState(() => leer(CLAVE_RELOJ, { modo: 'dispositivo', zonaManual: 'America/Mexico_City' }));
+  // Borrador: lo que el usuario está editando, todavía no guardado
+  const [borrador, setBorrador] = useState(guardada);
   const [log, setLog] = useState(() => leer(CLAVE_LOG, []));
   const [avisoCambio, setAvisoCambio] = useState(null);
+  const [mensajeGuardado, setMensajeGuardado] = useState('');
   const [ahora, setAhora] = useState(new Date());
 
   // Al abrir la pantalla: solo en modo manual se compara con el último estado conocido.
-  // En modo automático el celular ajusta la hora solo (incluye los cambios de horario de cada zona),
-  // así que no se avisa nada.
+  // En modo automático el celular ajusta la hora solo, así que no se avisa nada.
   useEffect(() => {
     const zonaAct = zonaDispositivo();
     const offsetAct = offsetDispositivo();
@@ -72,14 +81,13 @@ const ConfiguracionPage = () => {
     if (modoGuardado === 'manual' && previo && (previo.zona !== zonaAct || previo.offset !== offsetAct)) {
       const entrada = {
         fecha: new Date().toISOString(),
+        tipo: 'cambio del dispositivo',
         zonaAnterior: previo.zona,
         offsetAnterior: formatoOffset(previo.offset),
         zonaNueva: zonaAct,
         offsetNueva: formatoOffset(offsetAct),
       };
-      const nuevoLog = [entrada, ...leer(CLAVE_LOG, [])].slice(0, 30);
-      escribir(CLAVE_LOG, nuevoLog);
-      setLog(nuevoLog);
+      setLog(guardarEntrada(entrada));
       setAvisoCambio(entrada);
     }
     escribir(CLAVE_ULTIMO, { zona: zonaAct, offset: offsetAct });
@@ -89,32 +97,29 @@ const ConfiguracionPage = () => {
     return () => clearInterval(id);
   }, []);
 
-  const cambiarModo = (modo) => {
-    const nuevo = { ...config, modo };
-    setConfig(nuevo);
-    escribir(CLAVE_RELOJ, nuevo);
-    if (modo === 'manual') {
-      // Al pasar a manual se deja constancia; a partir de aquí la app ya no sigue el reloj del dispositivo
+  // Guardar: solo aquí se aplica la configuración. Si es manual, queda constancia de que el usuario aceptó el riesgo.
+  const guardarConfiguracion = () => {
+    escribir(CLAVE_RELOJ, borrador);
+    setGuardada(borrador);
+    if (borrador.modo === 'manual') {
       const entrada = {
         fecha: new Date().toISOString(),
+        tipo: 'zona manual aceptada',
         zonaAnterior: zonaDispositivo(),
         offsetAnterior: formatoOffset(offsetDispositivo()),
-        zonaNueva: config.zonaManual,
+        zonaNueva: borrador.zonaManual,
         offsetNueva: 'manual',
       };
-      const nuevoLog = [entrada, ...leer(CLAVE_LOG, [])].slice(0, 30);
-      escribir(CLAVE_LOG, nuevoLog);
-      setLog(nuevoLog);
+      setLog(guardarEntrada(entrada));
+      setMensajeGuardado(`Guardado. Aceptaste usar la zona ${borrador.zonaManual}; la hora puede no coincidir con tu dispositivo.`);
+    } else {
+      setMensajeGuardado('Guardado. La app usa la hora del dispositivo.');
     }
   };
 
-  const cambiarZona = (zonaManual) => {
-    const nuevo = { ...config, zonaManual };
-    setConfig(nuevo);
-    escribir(CLAVE_RELOJ, nuevo);
-  };
+  const hayCambios = JSON.stringify(borrador) !== JSON.stringify(guardada);
 
-  const zonaUsada = config.modo === 'manual' ? config.zonaManual : zonaDispositivo();
+  const zonaUsada = guardada.modo === 'manual' ? guardada.zonaManual : zonaDispositivo();
   let horaUsada;
   try {
     horaUsada = ahora.toLocaleString('es-MX', { timeZone: zonaUsada, dateStyle: 'medium', timeStyle: 'medium' });
@@ -123,10 +128,12 @@ const ConfiguracionPage = () => {
   }
 
   const tarjeta = { margin: '12px 16px', padding: '14px', borderRadius: '8px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(42,172,176,0.3)', color: '#ffffff' };
+  const boton = { marginTop: '12px', padding: '8px 18px', borderRadius: '6px', border: 'none', background: '#2AACB0', color: '#ffffff', cursor: 'pointer', fontWeight: 'bold' };
 
   return (
     <div className="cfg-page" style={{ padding: '8px 0' }}>
-      <style>{'.cfg-page, .cfg-page * { color: #ffffff !important; }'}</style>
+      <style>{'.cfg-page, .cfg-page * { color: #ffffff !important; } .cfg-page select, .cfg-page select option { color: #000000 !important; background: #ffffff !important; }'}</style>
+
       {avisoCambio && (
         <div style={{ ...tarjeta, borderColor: 'rgba(230,180,60,0.7)' }}>
           <strong>Aviso:</strong> estás en zona manual y el reloj del dispositivo cambió
@@ -144,24 +151,31 @@ const ConfiguracionPage = () => {
         <p style={{ margin: '0 0 6px 0' }}>Zona del dispositivo: {zonaDispositivo()} ({formatoOffset(offsetDispositivo())})</p>
 
         <label style={{ display: 'block', marginTop: '10px' }}>
-          <input type="radio" name="modo-reloj" checked={config.modo === 'dispositivo'} onChange={() => cambiarModo('dispositivo')} />
+          <input type="radio" name="modo-reloj" checked={borrador.modo === 'dispositivo'} onChange={() => setBorrador({ ...borrador, modo: 'dispositivo' })} />
           {' '}Usar la hora del dispositivo (recomendado)
         </label>
         <label style={{ display: 'block', marginTop: '6px' }}>
-          <input type="radio" name="modo-reloj" checked={config.modo === 'manual'} onChange={() => cambiarModo('manual')} />
+          <input type="radio" name="modo-reloj" checked={borrador.modo === 'manual'} onChange={() => setBorrador({ ...borrador, modo: 'manual' })} />
           {' '}Elegir una zona manualmente
         </label>
 
-        {config.modo === 'manual' && (
+        {borrador.modo === 'manual' && (
           <div style={{ marginTop: '8px' }}>
-            <select value={config.zonaManual} onChange={(e) => cambiarZona(e.target.value)}>
+            <select value={borrador.zonaManual} onChange={(e) => setBorrador({ ...borrador, zonaManual: e.target.value })}>
               {zonasManual.map(z => <option key={z} value={z}>{z}</option>)}
             </select>
             <p style={{ margin: '8px 0 0 0', fontSize: '0.9em' }}>
-              Aviso: con zona manual, la hora mostrada puede no coincidir con la de tu dispositivo. Esta opción aún no cambia la hora que guarda el servidor (se guarda en UTC).
+              Aviso: con zona manual, la hora mostrada puede no coincidir con la de tu dispositivo. Esta opción aún no cambia la hora que guarda el servidor (se guarda en UTC). Al presionar Guardar aceptas este riesgo.
             </p>
           </div>
         )}
+
+        <div>
+          <button style={{ ...boton, opacity: hayCambios ? 1 : 0.5 }} disabled={!hayCambios} onClick={guardarConfiguracion}>
+            Guardar configuración
+          </button>
+          {mensajeGuardado && <p style={{ margin: '8px 0 0 0', fontSize: '0.9em' }}>{mensajeGuardado}</p>}
+        </div>
       </div>
 
       <div style={tarjeta}>
@@ -169,7 +183,7 @@ const ConfiguracionPage = () => {
         {log.length === 0 && <p style={{ margin: 0 }}>Sin cambios registrados en este dispositivo.</p>}
         {log.map((e, i) => (
           <p key={i} style={{ margin: '0 0 6px 0', fontSize: '0.9em' }}>
-            {new Date(e.fecha).toLocaleString('es-MX')}: {e.zonaAnterior} {e.offsetAnterior} → {e.zonaNueva} {e.offsetNueva}
+            {new Date(e.fecha).toLocaleString('es-MX')} ({e.tipo}): {e.zonaAnterior} {e.offsetAnterior} → {e.zonaNueva} {e.offsetNueva}
           </p>
         ))}
         <p style={{ margin: '8px 0 0 0', fontSize: '0.85em' }}>
