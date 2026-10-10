@@ -292,7 +292,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
       <div className="user-bar">
         <div className="user-info">
           <img
-            src="/assets/logo-header.png"
+            src="/assets/Logo_En_Marcha_Contigo_Fondo_Transparente.png"
             alt="En Marcha Contigo"
             className="user-bar-logo"
           />

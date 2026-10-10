@@ -210,7 +210,7 @@ export default function ReportePage({ token, apiUrl }) {
               <img
                 src="/assets/Logo_En_Marcha_Contigo_Fondo_Transparente.png"
                 alt="En Marcha Contigo"
-                style={{ height: '56px', display: 'block' }}
+                style={{ height: '76px', display: 'block' }}
                 onError={e => { e.target.style.display = 'none'; }}
               />
             </div>

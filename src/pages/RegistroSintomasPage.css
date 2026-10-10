@@ -35,7 +35,7 @@
 }
 
 .user-bar-logo {
-  height: 28px;
+  height: 48px;
   width: auto;
   opacity: 0.9;
 }
@@ -473,6 +473,6 @@
   }
 
   .user-bar-logo {
-    height: 22px;
+    height: 38px;
   }
 }
