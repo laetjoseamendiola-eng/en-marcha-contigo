@@ -25,16 +25,6 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
     'Todavía presente'
   ];
 
-  const hoyLocal = (() => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  })();
-
-  // Síntomas de días anteriores que siguen marcados como "Todavía presente"
-  const sintomasAbiertos = sintomas.filter(
-    s => s.duracion === 'Todavía presente' && s.fecha_registro && s.fecha_registro.slice(0, 10) < hoyLocal
-  );
-
   const actualizarDuracion = async (id, valor) => {
     try {
       const response = await fetch(`${apiUrl}/api/sintomas/${id}`, {
@@ -57,6 +47,16 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState('');
   const [menuTipoAbierto, setMenuTipoAbierto] = useState(false);
+
+  const hoyLocal = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  })();
+
+  // Síntomas de días anteriores que siguen marcados como "Todavía presente"
+  const sintomasAbiertos = sintomas.filter(
+    s => s.duracion === 'Todavía presente' && s.fecha_registro && s.fecha_registro.slice(0, 10) < hoyLocal
+  );
 
   const apiUrl = import.meta.env.VITE_API_URL || '';
 
