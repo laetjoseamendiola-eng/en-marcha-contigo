@@ -61,6 +61,14 @@ class Usuario(db.Model):
     activo = db.Column(db.Boolean, default=True)
 
     sintomas = db.relationship('Sintoma', backref='usuario', lazy=True)
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'nombre': self.nombre,
+            'email': self.email,
+            'fecha_registro': self.fecha_registro.isoformat() if self.fecha_registro else None,
+            'activo': self.activo
+        }
 
 
 class CodigoTester(db.Model):
@@ -71,15 +79,6 @@ class CodigoTester(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     codigo_hash = db.Column(db.String(64), unique=True, nullable=False)
     fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'nombre': self.nombre,
-            'email': self.email,
-            'fecha_registro': self.fecha_registro.isoformat() if self.fecha_registro else None,
-            'activo': self.activo
-        }
 
 
 class Sintoma(db.Model):
