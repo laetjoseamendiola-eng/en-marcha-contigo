@@ -59,6 +59,8 @@ function BarraAdherencia({ pct }) {
   );
 }
 
+const plural = (n, singular, pluralTxt) => `${n} ${n === 1 ? singular : pluralTxt}`;
+
 export default function ReportePage({ token, apiUrl }) {
   const [reporte, setReporte] = useState(null);
   const [cargando, setCargando] = useState(true);
@@ -122,20 +124,30 @@ export default function ReportePage({ token, apiUrl }) {
       {/* Estilos de impresión */}
       <style>{`
         @media print {
-          body { background: white !important; }
-          .no-print { display: none !important; }
+          html, body { background: white !important; overflow: visible !important; height: auto !important; }
+          /* Solo se imprime el reporte: menú, pestañas, botón flotante y barra quedan ocultos */
+          body * { visibility: hidden !important; }
+          .reporte-contenido, .reporte-contenido * { visibility: visible !important; }
           .reporte-contenido {
-            color: #1a1a2e !important;
-            background: white !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            max-width: none !important;
             padding: 0 !important;
+            background: white !important;
+          }
+          .no-print { display: none !important; }
+          /* Texto oscuro sobre papel blanco para que se lea en blanco y negro */
+          .reporte-contenido, .reporte-contenido * {
+            color: #1a1a2e !important;
+            -webkit-text-fill-color: #1a1a2e !important;
           }
           .tarjeta-reporte {
             border: 1px solid #ddd !important;
             break-inside: avoid;
             background: white !important;
           }
-          .texto-reporte { color: #333 !important; }
-          .subtexto-reporte { color: #666 !important; }
         }
       `}</style>
 
@@ -215,7 +227,7 @@ export default function ReportePage({ token, apiUrl }) {
               {new Date(periodo.hasta + 'T12:00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}
             </div>
             <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '4px' }}>
-              {periodo.dias} días · {no_motor.dias_registrados} días con registro completo
+              {periodo.dias} días · {plural(no_motor.dias_registrados, 'día', 'días')} con registro completo
             </div>
           </div>
         </div>
@@ -303,7 +315,7 @@ export default function ReportePage({ token, apiUrl }) {
               🌿 Síntomas No Motores — Promedio del Período
             </div>
             <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '12px' }}>
-              Escala 0–4 · 0 = sin problema · 4 = severo · Basado en {no_motor.dias_registrados} días con registro
+              Escala 0–4 · 0 = sin problema · 4 = severo · Basado en {plural(no_motor.dias_registrados, 'día', 'días')} con registro
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {Object.entries(NO_MOTOR_LABELS).map(([key, def]) => {
