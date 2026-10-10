@@ -122,10 +122,10 @@ const ConfiguracionPage = () => {
     horaUsada = 'Zona no válida';
   }
 
-  const tarjeta = { margin: '12px 16px', padding: '14px', borderRadius: '8px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(42,172,176,0.3)' };
+  const tarjeta = { margin: '12px 16px', padding: '14px', borderRadius: '8px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(42,172,176,0.3)', color: '#ffffff' };
 
   return (
-    <div style={{ padding: '8px 0' }}>
+    <div style={{ padding: '8px 0', color: '#ffffff' }}>
       {avisoCambio && (
         <div style={{ ...tarjeta, borderColor: 'rgba(230,180,60,0.7)' }}>
           <strong>Aviso:</strong> estás en zona manual y el reloj del dispositivo cambió
