@@ -102,6 +102,8 @@ const ConfiguracionPage = () => {
   const guardarConfiguracion = () => {
     escribir(CLAVE_RELOJ, borrador);
     setGuardada(borrador);
+    // Avisa a la franja de hora (BarraHora) que la configuración cambió
+    window.dispatchEvent(new Event('cfg-reloj-cambio'));
     if (borrador.modo === 'manual') {
       const entrada = {
         fecha: new Date().toISOString(),

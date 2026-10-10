@@ -12,13 +12,19 @@ const leerConfig = () => {
 
 const BarraHora = () => {
   const [ahora, setAhora] = useState(new Date());
-  const config = leerConfig();
+  const [config, setConfig] = useState(leerConfig);
   const esManual = config.modo === 'manual';
   const zona = esManual ? config.zonaManual : (Intl.DateTimeFormat().resolvedOptions().timeZone || 'desconocida');
 
   useEffect(() => {
     const id = setInterval(() => setAhora(new Date()), 15000);
-    return () => clearInterval(id);
+    // Se actualiza al instante cuando Configuración guarda un cambio
+    const alCambiar = () => setConfig(leerConfig());
+    window.addEventListener('cfg-reloj-cambio', alCambiar);
+    return () => {
+      clearInterval(id);
+      window.removeEventListener('cfg-reloj-cambio', alCambiar);
+    };
   }, []);
 
   let texto;
