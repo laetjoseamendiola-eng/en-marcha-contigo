@@ -5,19 +5,20 @@ const CLAVE_RELOJ = 'cfg_reloj';            // { modo: 'dispositivo' | 'manual',
 const CLAVE_ULTIMO = 'cfg_reloj_ultimo';    // { zona, offset } último estado conocido
 const CLAVE_LOG = 'cfg_reloj_log';          // [{ fecha, tipo, zonaAnterior, offsetAnterior, zonaNueva, offsetNueva }]
 
+// Zonas manuales con su huso de referencia en UTC. "verano" = la zona cambia de horario en verano.
 const zonasManual = [
-  'America/Mexico_City',
-  'America/Monterrey',
-  'America/Tijuana',
-  'America/Cancun',
-  'America/Bogota',
-  'America/Lima',
-  'America/Santiago',
-  'America/Argentina/Buenos_Aires',
-  'America/Los_Angeles',
-  'America/New_York',
-  'Europe/Madrid',
-  'UTC',
+  { zona: 'America/Cancun', etiqueta: 'UTC-5', verano: false },
+  { zona: 'America/Mexico_City', etiqueta: 'UTC-6', verano: false },
+  { zona: 'America/Monterrey', etiqueta: 'UTC-6', verano: false },
+  { zona: 'America/Tijuana', etiqueta: 'UTC-8; UTC-7 en horario de verano', verano: true },
+  { zona: 'America/Bogota', etiqueta: 'UTC-5', verano: false },
+  { zona: 'America/Lima', etiqueta: 'UTC-5', verano: false },
+  { zona: 'America/Santiago', etiqueta: 'UTC-4; UTC-3 en horario de verano', verano: true },
+  { zona: 'America/Argentina/Buenos_Aires', etiqueta: 'UTC-3', verano: false },
+  { zona: 'America/Los_Angeles', etiqueta: 'UTC-8; UTC-7 en horario de verano', verano: true },
+  { zona: 'America/New_York', etiqueta: 'UTC-5; UTC-4 en horario de verano', verano: true },
+  { zona: 'Europe/Madrid', etiqueta: 'UTC+1; UTC+2 en horario de verano', verano: true },
+  { zona: 'UTC', etiqueta: 'UTC+0', verano: false },
 ];
 
 // Lectura/escritura protegida: el navegador puede bloquear localStorage
@@ -162,11 +163,16 @@ const ConfiguracionPage = () => {
         {borrador.modo === 'manual' && (
           <div style={{ marginTop: '8px' }}>
             <select value={borrador.zonaManual} onChange={(e) => setBorrador({ ...borrador, zonaManual: e.target.value })}>
-              {zonasManual.map(z => <option key={z} value={z}>{z}</option>)}
+              {zonasManual.map(z => <option key={z.zona} value={z.zona}>{z.zona} ({z.etiqueta})</option>)}
             </select>
             <p style={{ margin: '8px 0 0 0', fontSize: '0.9em' }}>
               Aviso: con zona manual, la hora mostrada puede no coincidir con la de tu dispositivo. Esta opción aún no cambia la hora que guarda el servidor (se guarda en UTC). Al presionar Guardar aceptas este riesgo.
             </p>
+            {zonasManual.find(z => z.zona === borrador.zonaManual)?.verano && (
+              <p style={{ margin: '8px 0 0 0', fontSize: '0.9em' }}>
+                Esta zona cambia su horario en verano; la hora mostrada se ajusta sola.
+              </p>
+            )}
           </div>
         )}
 
