@@ -29,23 +29,24 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
     'Authorization': `Bearer ${token}`
   };
 
+  // Nombre médico (se guarda) + descripción coloquial (solo se muestra)
   const tiposSintomas = [
-    'Temblor',
-    'Rigidez',
-    'Bradicinesia',
-    'Inestabilidad postural',
-    'Congelamiento de la marcha',
-    'Distonía',
-    'Discinesia',
-    'Alucinaciones',
-    'Depresión',
-    'Ansiedad',
-    'Insomnio',
-    'Fatiga',
-    'Dolor',
-    'Estreñimiento',
-    'Disfagia',
-    'Problemas de visión'
+    { nombre: 'Temblor', descripcion: 'en reposo' },
+    { nombre: 'Rigidez', descripcion: 'músculos tensos o duros' },
+    { nombre: 'Bradicinesia', descripcion: 'movimientos lentos' },
+    { nombre: 'Inestabilidad postural', descripcion: 'pierdo el equilibrio' },
+    { nombre: 'Congelamiento de la marcha', descripcion: 'Freezing o FOG' },
+    { nombre: 'Distonía', descripcion: 'músculos que se contraen solos' },
+    { nombre: 'Discinesia', descripcion: 'movimientos involuntarios' },
+    { nombre: 'Alucinaciones', descripcion: 'veo o escucho cosas que no están' },
+    { nombre: 'Depresión', descripcion: 'tristeza o desánimo persistente' },
+    { nombre: 'Ansiedad', descripcion: 'nervios o preocupación constante' },
+    { nombre: 'Insomnio', descripcion: 'no puedo dormir' },
+    { nombre: 'Fatiga', descripcion: 'cansancio sin razón clara' },
+    { nombre: 'Dolor', descripcion: 'molestia o ardor' },
+    { nombre: 'Estreñimiento', descripcion: 'dificultad para evacuar' },
+    { nombre: 'Disfagia', descripcion: 'dificultad para tragar' },
+    { nombre: 'Disfunción visual', descripcion: 'problemas de la vista' }
   ];
 
   const localizaciones = [
@@ -53,8 +54,18 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
     'Mano derecha',
     'Brazo izquierdo',
     'Brazo derecho',
+    'Hombro izquierdo',
+    'Hombro derecho',
     'Pierna izquierda',
     'Pierna derecha',
+    'Rodilla izquierda',
+    'Rodilla derecha',
+    'Pie izquierdo',
+    'Pie derecho',
+    'Tobillo izquierdo',
+    'Tobillo derecho',
+    'Dedos del pie izquierdo',
+    'Dedos del pie derecho',
     'Cabeza',
     'Cara',
     'Cuello',
@@ -386,10 +397,15 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
                 required
               >
                 <option value="">Selecciona un síntoma</option>
-                {tiposSintomas.map(tipo => (
-                  <option key={tipo} value={tipo}>{tipo}</option>
+                {tiposSintomas.map(t => (
+                  <option key={t.nombre} value={t.nombre}>{t.nombre} ({t.descripcion})</option>
                 ))}
               </select>
+              {formData.tipo === 'Disfunción visual' && (
+                <p className="subtitle" style={{ fontSize: '14px', marginTop: '6px' }}>
+                  Anota aquí la sintomatología específica en Notas adicionales.
+                </p>
+              )}
             </div>
 
             {/* Intensidad */}
