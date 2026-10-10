@@ -6,6 +6,7 @@ import FluctuacionesPage from './FluctuacionesPage.jsx';
 import RegistroDiarioPage from './RegistroDiarioPage.jsx';
 import ReportePage from './ReportePage.jsx';
 import ConfiguracionPage from './ConfiguracionPage.jsx';
+import BarraHora from './BarraHora.jsx';
 
 const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
   const [pestanaActiva, setPestanaActiva] = useState('midia'); // 'midia' | 'registro' | 'evolucion' | 'historial'
@@ -301,6 +302,9 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
           Cerrar sesión
         </button>
       </div>
+
+      {/* Hora que usa la app */}
+      <BarraHora />
 
       {/* Recordatorio de síntomas abiertos de días anteriores */}
       {sintomasAbiertos.length > 0 && (
