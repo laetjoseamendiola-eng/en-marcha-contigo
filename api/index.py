@@ -688,46 +688,10 @@ def inicializar_medicamentos(usuario_actual):
     Carga el esquema de medicación de la receta del Dr. Yamil Matuk (02/07/2026).
     Solo crea si el usuario aún no tiene medicamentos registrados.
     """
-    import json
-    try:
-        existentes = MedicamentoProgramado.query.filter_by(
-            usuario_id=usuario_actual.id
-        ).count()
-        if existentes > 0:
-            return jsonify({'mensaje': 'Medicamentos ya inicializados', 'total': existentes}), 200
-
-        receta = [
-            {
-                'nombre': 'Levodopa/Carbidopa',
-                'principio_activo': 'Levodopa 250mg / Carbidopa 25mg',
-                'dosis': '½ tableta',
-                'horarios': json.dumps(['08:00', '12:00', '16:00', '20:00']),
-                'instrucciones': 'No tomar junto con comida. Separar al menos 1 hora antes o después del alimento.',
-                'separacion_comida_min': 60,
-            },
-            {
-                'nombre': 'Rasagilina',
-                'principio_activo': 'Rasagilina 1mg',
-                'dosis': '1 tableta',
-                'horarios': json.dumps(['08:00']),
-                'instrucciones': 'Tomar 1 vez al día por la mañana, junto con Levodopa/Carbidopa.',
-                'separacion_comida_min': 0,
-            },
-        ]
-
-        for med in receta:
-            nuevo = MedicamentoProgramado(
-                usuario_id=usuario_actual.id,
-                **med
-            )
-            db.session.add(nuevo)
-
-        db.session.commit()
-        return jsonify({'mensaje': 'Medicamentos inicializados correctamente', 'total': len(receta)}), 201
-
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+    # Ya no se carga ninguna receta fija. Cada persona registra sus propios medicamentos.
+    return jsonify({
+        'mensaje': 'La receta ya no se carga automáticamente. Registra tus medicamentos y dosis.',
+    }), 410
 
 
 @app.route('/api/tomas/hoy', methods=['GET'])
@@ -799,6 +763,12 @@ def tomas_hoy(usuario_actual):
                     'alguna_omitida': False,
                 }
             entrada = t.to_dict()
+            # Datos del medicamento de esta toma (nombre, dosis y sustancia activa)
+            med_t = next((m for m in medicamentos if m.id == t.medicamento_id), None)
+            entrada['medicamento_nombre'] = med_t.nombre if med_t else None
+            entrada['medicamento_dosis'] = med_t.dosis if med_t else None
+            entrada['principio_activo'] = med_t.principio_activo if med_t else None
+            entrada['separacion_comida_min'] = med_t.separacion_comida_min if med_t else 0
             bloques[h]['tomas'].append(entrada)
             if not t.tomada:
                 bloques[h]['todas_tomadas'] = False

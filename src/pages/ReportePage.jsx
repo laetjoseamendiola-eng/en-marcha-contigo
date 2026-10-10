@@ -400,7 +400,8 @@ export default function ReportePage({ token, apiUrl }) {
           <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)', lineHeight: '1.7' }}>
             Reporte generado por <strong style={{ color: '#2AACB0' }}>En Marcha Contigo</strong> · {new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}<br/>
             Este documento es informativo. No diagnostica ni prescribe tratamiento.<br/>
-            Los datos fueron registrados directamente por el paciente en la aplicación.
+            Los datos fueron registrados directamente por el paciente en la aplicación.<br/>
+            El Reporte refleja registros compartidos por el usuario de manera manual, diaria y voluntaria. No son producto de análisis clínicos.
           </div>
         </div>
 

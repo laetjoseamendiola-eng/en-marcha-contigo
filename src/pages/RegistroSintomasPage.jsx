@@ -355,7 +355,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
           📋 Historial
         </button>
         <button style={estiloPestana(pestanaActiva === 'diario')} onClick={() => setPestanaActiva('diario')}>
-          🌿 Mi día
+          🌿 Hábitos diarios
         </button>
         <button style={estiloPestana(pestanaActiva === 'reporte')} onClick={() => setPestanaActiva('reporte')}>
           📄 Reporte

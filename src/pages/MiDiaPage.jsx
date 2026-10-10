@@ -66,13 +66,20 @@ function VentanaAyuno({ horario, estado }) {
 }
 
 function TarjetaToma({ bloque, onTomar, onOmitir, cargando }) {
-  const { horario, medicamentos = [], tomas = [], id_principal } = bloque;
+  const { horario, tomas = [] } = bloque;
+  // Medicamentos del bloque, tomados de cada toma (nombre y sustancia activa)
+  const medicamentos = tomas.map(t => ({
+    id: t.id,
+    nombre: t.medicamento_nombre,
+    dosis: t.medicamento_dosis,
+    principio_activo: t.principio_activo,
+    separacion_comida_min: t.separacion_comida_min
+  }));
   const estado = getEstadoBloque(tomas, horario);
   const tomaHora = tomas.find(t => t.tomada)?.fecha_toma_real;
-  const tieneLevodopa = medicamentos.some(m =>
-    m.nombre?.toLowerCase().includes('levodopa') ||
-    m.principio_activo?.toLowerCase().includes('levodopa')
-  );
+  // Ids de las tomas que aún no están marcadas (cada toma tiene su propio id)
+  const idsPendientes = tomas.filter(t => !t.tomada && !t.omitida).map(t => t.id);
+  const tieneAyuno = medicamentos.some(m => (m.separacion_comida_min || 0) > 0);
 
   const colorBorde = {
     tomada: 'rgba(40,167,69,0.5)',
@@ -129,8 +136,8 @@ function TarjetaToma({ bloque, onTomar, onOmitir, cargando }) {
             </div>
           )}
 
-          {/* Ventana ayuno solo para Cloisone */}
-          {tieneLevodopa && (
+          {/* Ventana de ayuno: sólo si el medicamento lo requiere (dato de su registro) */}
+          {tieneAyuno && (
             <VentanaAyuno horario={horario} estado={estado} />
           )}
         </div>
@@ -139,7 +146,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, cargando }) {
         {(estado === 'pendiente') && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginLeft: '12px' }}>
             <button
-              onClick={() => onTomar(id_principal)}
+              onClick={() => onTomar(idsPendientes)}
               disabled={cargando}
               style={{
                 background: '#2AACB0',
@@ -158,7 +165,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, cargando }) {
               Tomé ✓
             </button>
             <button
-              onClick={() => onOmitir(id_principal)}
+              onClick={() => onOmitir(idsPendientes)}
               disabled={cargando}
               style={{
                 background: 'transparent',
@@ -224,7 +231,6 @@ export default function MiDiaPage({ token, apiUrl }) {
   const [cargando, setCargando] = useState(true);
   const [accionCargando, setAccionCargando] = useState(false);
   const [mensaje, setMensaje] = useState('');
-  const [inicializado, setInicializado] = useState(false);
 
   const headers = {
     'Content-Type': 'application/json',
@@ -248,61 +254,42 @@ export default function MiDiaPage({ token, apiUrl }) {
     }
   }, [apiUrl, token]);
 
-  const inicializarMedicamentos = async () => {
-    try {
-      const res = await fetch(`${apiUrl}/api/medicamentos/inicializar`, {
-        method: 'POST',
-        headers
-      });
-      if (res.ok) {
-        setInicializado(true);
-        await cargarTomas();
-      }
-    } catch (e) {
-      console.error('Error inicializando:', e);
-    }
-  };
-
   useEffect(() => {
     cargarTomas();
   }, [cargarTomas]);
 
-  const handleTomar = async (tomaId) => {
+  // Marca cada toma del bloque (una petición por toma). Si alguna falla, lo dice.
+  const marcarTomas = async (ids, accion) => {
+    if (!ids || ids.length === 0) return false;
     setAccionCargando(true);
+    let todoBien = true;
     try {
-      const res = await fetch(`${apiUrl}/api/tomas/${tomaId}/tomar`, {
-        method: 'POST',
-        headers
-      });
-      if (res.ok) {
-        setMensaje('✓ Toma registrada');
-        await cargarTomas();
-        setTimeout(() => setMensaje(''), 2500);
+      for (const id of ids) {
+        const res = await fetch(`${apiUrl}/api/tomas/${id}/${accion}`, {
+          method: 'POST',
+          headers
+        });
+        if (!res.ok) todoBien = false;
       }
+      await cargarTomas();
     } catch (e) {
-      setMensaje('Error al registrar');
+      todoBien = false;
     } finally {
       setAccionCargando(false);
     }
+    return todoBien;
   };
 
-  const handleOmitir = async (tomaId) => {
-    setAccionCargando(true);
-    try {
-      const res = await fetch(`${apiUrl}/api/tomas/${tomaId}/omitir`, {
-        method: 'POST',
-        headers
-      });
-      if (res.ok) {
-        setMensaje('Toma marcada como omitida');
-        await cargarTomas();
-        setTimeout(() => setMensaje(''), 2500);
-      }
-    } catch (e) {
-      setMensaje('Error al omitir');
-    } finally {
-      setAccionCargando(false);
-    }
+  const handleTomar = async (ids) => {
+    const ok = await marcarTomas(ids, 'tomar');
+    setMensaje(ok ? '✓ Toma registrada' : 'Error al registrar la toma');
+    setTimeout(() => setMensaje(''), 2500);
+  };
+
+  const handleOmitir = async (ids) => {
+    const ok = await marcarTomas(ids, 'omitir');
+    setMensaje(ok ? 'Toma marcada como omitida' : 'Error al omitir la toma');
+    setTimeout(() => setMensaje(''), 2500);
   };
 
   const hoy = new Date().toLocaleDateString('es-MX', {
@@ -320,8 +307,8 @@ export default function MiDiaPage({ token, apiUrl }) {
     );
   }
 
-  // Sin medicamentos configurados
-  if (bloques.length === 0 && !inicializado) {
+  // Sin medicamentos registrados: se pide registrarlos (ya no se carga ninguna receta fija)
+  if (bloques.length === 0) {
     return (
       <div style={{ padding: '24px 16px', maxWidth: '600px', margin: '0 auto' }}>
         <div style={{
@@ -332,31 +319,21 @@ export default function MiDiaPage({ token, apiUrl }) {
           textAlign: 'center'
         }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>💊</div>
-          <h3 style={{ color: '#2AACB0', margin: '0 0 12px' }}>Configura tu tratamiento</h3>
-          <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px', marginBottom: '24px', lineHeight: '1.6' }}>
-            Carga tu receta con Levodopa/Carbidopa ½ tab (08:00, 12:00, 16:00, 20:00)
-            y Rasagilina 1mg (08:00) para empezar a registrar tus tomas.
+          <h3 style={{ color: '#2AACB0', margin: '0 0 12px' }}>Aún no hay medicamentos registrados</h3>
+          <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '14px', lineHeight: '1.6' }}>
+            Agrega tus medicamentos, dosis y horarios en <strong>Registro de medicamentos y dosis</strong> para ver tus tomas del día.
           </p>
-          <button
-            onClick={inicializarMedicamentos}
-            style={{
-              background: '#2AACB0',
-              color: 'white',
-              border: 'none',
-              borderRadius: '12px',
-              padding: '14px 28px',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              fontFamily: 'inherit'
-            }}
-          >
-            Cargar mi receta
-          </button>
         </div>
       </div>
     );
   }
+
+  // Sustancias activas del día (para el pie de la ventana de ayuno), sin nombres comerciales
+  const sustanciasAyuno = [...new Set(
+    bloques.flatMap(b => (b.tomas || []))
+      .filter(t => (t.separacion_comida_min || 0) > 0 && t.principio_activo)
+      .map(t => t.principio_activo)
+  )];
 
   return (
     <div style={{ padding: '16px 16px 32px', maxWidth: '600px', margin: '0 auto', color: 'white' }}>
@@ -389,27 +366,7 @@ export default function MiDiaPage({ token, apiUrl }) {
       {/* Resumen adherencia */}
       <ResumenDia tomas={todasLasTomas} />
 
-      {/* Tarjeta de rutina matutina */}
-      <div style={{
-        background: 'rgba(255,255,255,0.04)',
-        border: '1px solid rgba(255,255,255,0.08)',
-        borderRadius: '12px',
-        padding: '12px 16px',
-        marginBottom: '16px',
-        fontSize: '13px',
-        color: 'rgba(255,255,255,0.75)',
-        display: 'flex',
-        gap: '8px',
-        alignItems: 'flex-start'
-      }}>
-        <span>🌅</span>
-        <span>
-          7:30 despertar → estiramientos → medicamento 8:00 → actividades.<br/>
-          <span style={{ color: 'rgba(255,193,7,0.7)' }}>Ayuno 7:00–9:00</span> · caminata libre después de las 9:00
-        </span>
-      </div>
-
-      {/* Bloques de toma */}
+      {/* Bloques de toma (la rutina del día la escribe cada persona; ya no hay texto fijo) */}
       {bloques.map((bloque) => (
         <TarjetaToma
           key={bloque.horario}
@@ -420,16 +377,18 @@ export default function MiDiaPage({ token, apiUrl }) {
         />
       ))}
 
-      {/* Nota informativa */}
-      <div style={{
-        marginTop: '8px',
-        fontSize: '12px',
-        color: 'rgba(255,255,255,0.75)',
-        textAlign: 'center',
-        lineHeight: '1.6'
-      }}>
-        🍽️ Ventana de ayuno: 1 hora antes y 1 hora después de cada toma de Cloisone
-      </div>
+      {/* Nota informativa: sustancia activa, no nombre comercial */}
+      {sustanciasAyuno.length > 0 && (
+        <div style={{
+          marginTop: '8px',
+          fontSize: '12px',
+          color: 'rgba(255,255,255,0.75)',
+          textAlign: 'center',
+          lineHeight: '1.6'
+        }}>
+          🍽️ Ventana de ayuno: 1 hora antes y 1 hora después de cada toma de {sustanciasAyuno.join(', ')}
+        </div>
+      )}
     </div>
   );
 }
