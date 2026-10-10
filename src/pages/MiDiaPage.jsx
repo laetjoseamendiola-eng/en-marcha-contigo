@@ -226,7 +226,188 @@ function ResumenDia({ tomas }) {
   );
 }
 
+// Menú único de medicamentos: ver, agregar, modificar y eliminar
+const campoEstilo = {
+  width: '100%', padding: '10px', borderRadius: '8px', marginTop: '4px',
+  border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)',
+  color: 'white', fontFamily: 'inherit', fontSize: '14px', boxSizing: 'border-box'
+};
+
+function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
+  const [lista, setLista] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [mensaje, setMensaje] = useState('');
+  const [editando, setEditando] = useState(null);     // id del medicamento en edición
+  const [confirmarEliminar, setConfirmarEliminar] = useState(null);
+  const [agregando, setAgregando] = useState(false);
+  const vacio = { nombre: '', principio_activo: '', dosis: '', horarios: '', instrucciones: '', separacion_comida_min: 0 };
+  const [form, setForm] = useState(vacio);
+
+  const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+
+  const cargar = useCallback(async () => {
+    try {
+      const res = await fetch(`${apiUrl}/api/medicamentos`, { headers });
+      const data = await res.json();
+      setLista(Array.isArray(data) ? data : []);
+    } catch (e) {
+      setMensaje('No se pudo cargar la lista');
+    } finally {
+      setCargando(false);
+    }
+  }, [apiUrl, token]);
+
+  useEffect(() => { cargar(); }, [cargar]);
+
+  const horariosDesdeTexto = (txt) => txt.split(',').map(s => s.trim()).filter(Boolean);
+
+  const guardarNuevo = async () => {
+    setMensaje('');
+    const body = { ...form, horarios: horariosDesdeTexto(form.horarios) };
+    const res = await fetch(`${apiUrl}/api/medicamentos`, { method: 'POST', headers, body: JSON.stringify(body) });
+    const data = await res.json();
+    if (res.ok) {
+      setForm(vacio); setAgregando(false); setMensaje('Medicamento agregado');
+      await cargar(); onCambio && onCambio();
+    } else {
+      setMensaje(data.error || 'No se pudo agregar');
+    }
+  };
+
+  const guardarEdicion = async (id) => {
+    setMensaje('');
+    const body = {
+      nombre: form.nombre, principio_activo: form.principio_activo,
+      instrucciones: form.instrucciones, separacion_comida_min: form.separacion_comida_min
+    };
+    const res = await fetch(`${apiUrl}/api/medicamentos/${id}`, { method: 'PUT', headers, body: JSON.stringify(body) });
+    const data = await res.json();
+    if (res.ok) {
+      setEditando(null); setMensaje('Cambios guardados');
+      await cargar(); onCambio && onCambio();
+    } else {
+      setMensaje(data.error || 'No se pudo guardar');
+    }
+  };
+
+  const eliminar = async (id) => {
+    const res = await fetch(`${apiUrl}/api/medicamentos/${id}`, { method: 'DELETE', headers });
+    const data = await res.json();
+    setConfirmarEliminar(null);
+    setMensaje(res.ok ? (data.mensaje || 'Medicamento eliminado') : (data.error || 'No se pudo eliminar'));
+    await cargar(); onCambio && onCambio();
+  };
+
+  const boton = (color) => ({
+    background: color, color: 'white', border: 'none', borderRadius: '8px',
+    padding: '8px 14px', fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit'
+  });
+
+  const formulario = (onGuardar, onCancelar, esNuevo) => (
+    <div style={{ marginTop: '10px', padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.04)' }}>
+      <label style={{ display: 'block', fontSize: '13px' }}>Nombre del medicamento
+        <input style={campoEstilo} value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} />
+      </label>
+      <label style={{ display: 'block', fontSize: '13px', marginTop: '8px' }}>Sustancia activa
+        <input style={campoEstilo} value={form.principio_activo} placeholder="Ej. Levodopa 250 mg / Carbidopa 25 mg" onChange={e => setForm({ ...form, principio_activo: e.target.value })} />
+      </label>
+      {esNuevo && (
+        <>
+          <label style={{ display: 'block', fontSize: '13px', marginTop: '8px' }}>Dosis
+            <input style={campoEstilo} value={form.dosis} placeholder="Ej. 1 tableta" onChange={e => setForm({ ...form, dosis: e.target.value })} />
+          </label>
+          <label style={{ display: 'block', fontSize: '13px', marginTop: '8px' }}>Horarios (separados por coma)
+            <input style={campoEstilo} value={form.horarios} placeholder="Ej. 08:00, 16:00" onChange={e => setForm({ ...form, horarios: e.target.value })} />
+          </label>
+        </>
+      )}
+      <label style={{ display: 'block', fontSize: '13px', marginTop: '8px' }}>Instrucciones
+        <input style={campoEstilo} value={form.instrucciones} onChange={e => setForm({ ...form, instrucciones: e.target.value })} />
+      </label>
+      <label style={{ display: 'block', fontSize: '13px', marginTop: '8px' }}>Minutos que debe separarse de la comida (0 si no aplica)
+        <input type="number" min="0" style={campoEstilo} value={form.separacion_comida_min} onChange={e => setForm({ ...form, separacion_comida_min: e.target.value })} />
+      </label>
+      <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+        <button style={boton('#2AACB0')} onClick={onGuardar}>Guardar</button>
+        <button style={boton('transparent')} onClick={onCancelar}>Cancelar</button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div role="dialog" aria-label="Mis medicamentos" style={{
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000,
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px'
+    }}>
+      <div style={{
+        background: '#14304f', borderRadius: '16px', padding: '20px', width: '100%',
+        maxWidth: '520px', maxHeight: '90vh', overflowY: 'auto', color: 'white'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3 style={{ margin: 0 }}>Mis medicamentos</h3>
+          <button style={boton('transparent')} onClick={onCerrar}>Cerrar</button>
+        </div>
+
+        {mensaje && <p style={{ fontSize: '13px', color: '#5dde83', margin: '10px 0 0' }}>{mensaje}</p>}
+        {cargando && <p style={{ fontSize: '14px' }}>Cargando...</p>}
+        {!cargando && lista.length === 0 && !agregando && (
+          <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.75)' }}>Aún no tienes medicamentos registrados.</p>
+        )}
+
+        {lista.map(m => (
+          <div key={m.id} style={{ marginTop: '12px', padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)' }}>
+            <div style={{ fontWeight: 600 }}>{m.nombre}</div>
+            <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)' }}>
+              {m.dosis} · {(m.horarios || []).join(', ')}
+            </div>
+            {m.principio_activo && <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>{m.principio_activo}</div>}
+
+            {editando === m.id ? (
+              <>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', margin: '8px 0 0' }}>
+                  La dosis y los horarios se cambian cuando esté activo el historial de cambios.
+                </p>
+                {formulario(() => guardarEdicion(m.id), () => setEditando(null), false)}
+              </>
+            ) : confirmarEliminar === m.id ? (
+              <div style={{ marginTop: '10px', padding: '10px', borderRadius: '8px', background: 'rgba(220,53,69,0.15)' }}>
+                <p style={{ fontSize: '13px', margin: '0 0 8px' }}>
+                  Vas a eliminar <strong>{m.nombre}</strong> de tu lista. Su historial se conserva. ¿Confirmas?
+                </p>
+                <button style={boton('#dc3545')} onClick={() => eliminar(m.id)}>Sí, eliminar</button>{' '}
+                <button style={boton('transparent')} onClick={() => setConfirmarEliminar(null)}>No</button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                <button style={boton('#2AACB0')} onClick={() => {
+                  setEditando(m.id);
+                  setForm({ ...vacio, ...m, horarios: (m.horarios || []).join(', ') });
+                  setMensaje('');
+                }}>Modificar</button>
+                <button style={boton('#dc3545')} onClick={() => setConfirmarEliminar(m.id)}>Eliminar</button>
+              </div>
+            )}
+          </div>
+        ))}
+
+        {agregando ? (
+          <>
+            <h4 style={{ margin: '16px 0 0' }}>Nuevo medicamento</h4>
+            {formulario(guardarNuevo, () => { setAgregando(false); setForm(vacio); }, true)}
+          </>
+        ) : (
+          <button style={{ ...boton('#2AACB0'), marginTop: '16px', width: '100%' }}
+            onClick={() => { setAgregando(true); setForm(vacio); setMensaje(''); }}>
+            + Agregar medicamento
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function MiDiaPage({ token, apiUrl }) {
+  const [menuAbierto, setMenuAbierto] = useState(false);
   const [bloques, setBloques] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [accionCargando, setAccionCargando] = useState(false);
@@ -321,9 +502,26 @@ export default function MiDiaPage({ token, apiUrl }) {
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>💊</div>
           <h3 style={{ color: '#2AACB0', margin: '0 0 12px' }}>Aún no hay medicamentos registrados</h3>
           <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '14px', lineHeight: '1.6' }}>
-            Agrega tus medicamentos, dosis y horarios en <strong>Registro de medicamentos y dosis</strong> para ver tus tomas del día.
+            Agrega tus medicamentos, dosis y horarios para ver tus tomas del día.
           </p>
+          <button
+            onClick={() => setMenuAbierto(true)}
+            style={{
+              background: '#2AACB0', color: 'white', border: 'none', borderRadius: '12px',
+              padding: '12px 24px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit'
+            }}
+          >
+            Editar medicamentos
+          </button>
         </div>
+        {menuAbierto && (
+          <MenuMedicamentos
+            token={token}
+            apiUrl={apiUrl}
+            onCerrar={() => setMenuAbierto(false)}
+            onCambio={cargarTomas}
+          />
+        )}
       </div>
     );
   }
@@ -343,10 +541,30 @@ export default function MiDiaPage({ token, apiUrl }) {
         <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)', textTransform: 'capitalize' }}>
           {hoy}
         </div>
-        <div style={{ fontSize: '20px', fontWeight: '600', color: 'white', marginTop: '2px' }}>
-          Mi plan de tomas
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginTop: '2px' }}>
+          <div style={{ fontSize: '20px', fontWeight: '600', color: 'white' }}>
+            Mi plan de tomas
+          </div>
+          <button
+            onClick={() => setMenuAbierto(true)}
+            style={{
+              background: 'transparent', color: '#2AACB0', border: '1px solid #2AACB0',
+              borderRadius: '8px', padding: '6px 12px', fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit'
+            }}
+          >
+            Editar
+          </button>
         </div>
       </div>
+
+      {menuAbierto && (
+        <MenuMedicamentos
+          token={token}
+          apiUrl={apiUrl}
+          onCerrar={() => setMenuAbierto(false)}
+          onCambio={cargarTomas}
+        />
+      )}
 
       {/* Mensaje de feedback */}
       {mensaje && (

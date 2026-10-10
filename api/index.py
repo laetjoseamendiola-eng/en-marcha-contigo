@@ -681,6 +681,83 @@ def listar_medicamentos(usuario_actual):
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/medicamentos', methods=['POST'])
+@token_requerido
+def crear_medicamento(usuario_actual):
+    """Agrega un medicamento registrado por el propio usuario."""
+    import json
+    data = request.get_json(silent=True) or {}
+    nombre = (data.get('nombre') or '').strip()
+    dosis = (data.get('dosis') or '').strip()
+    horarios = data.get('horarios') or []
+    if not nombre or not dosis or not horarios:
+        return jsonify({'error': 'Nombre, dosis y al menos un horario son obligatorios'}), 400
+    try:
+        horarios_limpios = sorted({h.strip() for h in horarios if h and ':' in h})
+        if not horarios_limpios:
+            return jsonify({'error': 'Horario con formato HH:MM'}), 400
+        nuevo = MedicamentoProgramado(
+            usuario_id=usuario_actual.id,
+            nombre=nombre,
+            principio_activo=(data.get('principio_activo') or '').strip() or None,
+            dosis=dosis,
+            horarios=json.dumps(horarios_limpios),
+            instrucciones=(data.get('instrucciones') or '').strip() or None,
+            separacion_comida_min=int(data.get('separacion_comida_min') or 0),
+            activo=True,
+        )
+        db.session.add(nuevo)
+        db.session.commit()
+        return jsonify(nuevo.to_dict()), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/medicamentos/<int:med_id>', methods=['PUT'])
+@token_requerido
+def editar_medicamento(usuario_actual, med_id):
+    """Edita un medicamento. Dosis y horarios quedan bloqueados hasta tener historial de cambios."""
+    import json
+    med = MedicamentoProgramado.query.filter_by(id=med_id, usuario_id=usuario_actual.id, activo=True).first()
+    if not med:
+        return jsonify({'error': 'Medicamento no encontrado'}), 404
+    data = request.get_json(silent=True) or {}
+    if ('dosis' in data and data['dosis'] != med.dosis) or ('horarios' in data):
+        # Cada cambio de dosis u horario debe quedar con fecha (historial). Se habilita tras la migración.
+        return jsonify({'error': 'Cambiar dosis u horarios requiere el historial de cambios (pendiente de autorización)'}), 423
+    try:
+        if 'nombre' in data and data['nombre'].strip():
+            med.nombre = data['nombre'].strip()
+        if 'principio_activo' in data:
+            med.principio_activo = (data['principio_activo'] or '').strip() or None
+        if 'instrucciones' in data:
+            med.instrucciones = (data['instrucciones'] or '').strip() or None
+        if 'separacion_comida_min' in data:
+            med.separacion_comida_min = int(data['separacion_comida_min'] or 0)
+        db.session.commit()
+        return jsonify(med.to_dict()), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/medicamentos/<int:med_id>', methods=['DELETE'])
+@token_requerido
+def eliminar_medicamento(usuario_actual, med_id):
+    """'Elimina' un medicamento sin borrar su historial: lo desactiva."""
+    med = MedicamentoProgramado.query.filter_by(id=med_id, usuario_id=usuario_actual.id, activo=True).first()
+    if not med:
+        return jsonify({'error': 'Medicamento no encontrado'}), 404
+    try:
+        med.activo = False
+        db.session.commit()
+        return jsonify({'mensaje': 'Medicamento eliminado de tu lista (su historial se conserva)'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/medicamentos/inicializar', methods=['POST'])
 @token_requerido
 def inicializar_medicamentos(usuario_actual):
