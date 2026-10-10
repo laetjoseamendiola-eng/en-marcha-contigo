@@ -20,6 +20,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
   const [estadisticas, setEstadisticas] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState('');
+  const [menuTipoAbierto, setMenuTipoAbierto] = useState(false);
 
   const apiUrl = import.meta.env.VITE_API_URL || '';
 
@@ -389,18 +390,64 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
             {/* Tipo de síntoma */}
             <div className="form-group">
               <label htmlFor="tipo">Tipo de síntoma *</label>
-              <select
-                id="tipo"
-                name="tipo"
-                value={formData.tipo}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Selecciona un síntoma</option>
-                {tiposSintomas.map(t => (
-                  <option key={t.nombre} value={t.nombre}>{t.nombre} ({t.descripcion})</option>
-                ))}
-              </select>
+              <div style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  id="tipo"
+                  aria-haspopup="listbox"
+                  aria-expanded={menuTipoAbierto}
+                  onClick={() => setMenuTipoAbierto(!menuTipoAbierto)}
+                  style={{
+                    width: '100%', textAlign: 'left', padding: '12px 14px',
+                    background: '#fff', color: '#0D2C4D',
+                    border: '1px solid #BFE6E6', borderRadius: '8px',
+                    fontSize: '16px', fontFamily: 'inherit', cursor: 'pointer'
+                  }}
+                >
+                  {(() => {
+                    const seleccionado = tiposSintomas.find(t => t.nombre === formData.tipo);
+                    if (!seleccionado) return 'Selecciona un síntoma';
+                    return (
+                      <>
+                        {seleccionado.nombre}{' '}
+                        <span style={{ fontSize: '13px', opacity: 0.75 }}>({seleccionado.descripcion})</span>
+                      </>
+                    );
+                  })()}
+                </button>
+                {menuTipoAbierto && (
+                  <ul
+                    role="listbox"
+                    style={{
+                      position: 'absolute', zIndex: 20, left: 0, right: 0, top: '100%',
+                      margin: '4px 0 0', padding: 0, listStyle: 'none',
+                      background: '#fff', border: '1px solid #BFE6E6', borderRadius: '8px',
+                      maxHeight: '60vh', overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.25)'
+                    }}
+                  >
+                    {tiposSintomas.map(t => (
+                      <li key={t.nombre} role="option" aria-selected={formData.tipo === t.nombre}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFormData(prev => ({ ...prev, tipo: t.nombre }));
+                            setMenuTipoAbierto(false);
+                          }}
+                          style={{
+                            width: '100%', textAlign: 'left', padding: '14px',
+                            background: formData.tipo === t.nombre ? '#E6F6F6' : 'transparent',
+                            color: '#0D2C4D', border: 'none', borderBottom: '1px solid #eee',
+                            fontSize: '16px', fontFamily: 'inherit', cursor: 'pointer', lineHeight: 1.35
+                          }}
+                        >
+                          {t.nombre}{' '}
+                          <span style={{ fontSize: '13px', opacity: 0.75 }}>({t.descripcion})</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
               {formData.tipo === 'Disfunción visual' && (
                 <p className="subtitle" style={{ fontSize: '14px', marginTop: '6px' }}>
                   Anota aquí la sintomatología específica en Notas adicionales.
