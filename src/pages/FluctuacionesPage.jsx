@@ -160,7 +160,7 @@ function GrillaDia({ fluctuaciones, bloqueActualStr }) {
           '18h', '19h', '20h', '21h', '22h', '23h'].map(h => (
           <div key={h} style={{
             fontSize: '9px',
-            color: 'rgba(255,255,255,0.3)',
+            color: 'rgba(255,255,255,0.75)',
             textAlign: 'center'
           }}>{h}</div>
         ))}
@@ -175,7 +175,7 @@ function GrillaDia({ fluctuaciones, bloqueActualStr }) {
               borderRadius: '3px',
               background: e.color
             }} />
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>{e.label}</span>
+            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)' }}>{e.label}</span>
           </div>
         ))}
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -185,7 +185,7 @@ function GrillaDia({ fluctuaciones, bloqueActualStr }) {
             background: COLOR_POR_ESTADO.vacio,
             border: '1px solid rgba(255,255,255,0.15)'
           }} />
-          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>Sin registro</span>
+          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)' }}>Sin registro</span>
         </div>
       </div>
     </div>
@@ -300,7 +300,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
         <>
           {/* Bloque horario actual */}
           <div style={{ ...estiloTarjeta, textAlign: 'center', paddingBottom: '16px' }}>
-            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Bloque actual
             </div>
             <div style={{ fontSize: '36px', fontWeight: 'bold', color: 'white', marginBottom: '4px' }}>
@@ -367,7 +367,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
                     <div style={{ fontSize: '20px', fontWeight: '600', color: estado.color }}>
                       {estado.label}
                     </div>
-                    <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginTop: '2px' }}>
+                    <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)', marginTop: '2px' }}>
                       {estado.descripcion}
                     </div>
                   </div>
@@ -404,7 +404,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
           </h3>
 
           {cargando ? (
-            <div style={{ textAlign: 'center', padding: '30px', color: 'rgba(255,255,255,0.4)' }}>
+            <div style={{ textAlign: 'center', padding: '30px', color: 'rgba(255,255,255,0.75)' }}>
               Cargando...
             </div>
           ) : (
@@ -437,7 +437,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
                       <div style={{ fontSize: '18px', fontWeight: 'bold', color: e.color }}>
                         {count * 30}m
                       </div>
-                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>
+                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)' }}>
                         {e.label}
                       </div>
                     </div>
@@ -448,7 +448,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
           )}
 
           {fluctuaciones.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '20px', color: 'rgba(255,255,255,0.35)', fontSize: '14px' }}>
+            <div style={{ textAlign: 'center', padding: '20px', color: 'rgba(255,255,255,0.75)', fontSize: '14px' }}>
               Sin registros hoy todavía.<br/>
               <span style={{ fontSize: '12px' }}>Usa "⚡ Ahora" para agregar el primero.</span>
             </div>

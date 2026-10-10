@@ -296,7 +296,7 @@ export default function ReportePage({ token, apiUrl }) {
                   }}>
                     <div style={{ fontSize: '20px', marginBottom: '4px' }}>{def.emoji}</div>
                     <div className="texto-reporte" style={{ fontSize: '18px', fontWeight: 'bold', color: def.color }}>{h}h</div>
-                    <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>{def.label} · {pct}%</div>
+                    <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)' }}>{def.label} · {pct}%</div>
                   </div>
                 );
               })}

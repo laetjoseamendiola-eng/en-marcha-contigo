@@ -277,7 +277,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
     border: 'none',
     borderBottom: activa ? '3px solid #2AACB0' : '3px solid transparent',
     background: 'transparent',
-    color: activa ? '#2AACB0' : 'rgba(255,255,255,0.5)',
+    color: activa ? '#2AACB0' : 'rgba(255,255,255,0.75)',
     fontSize: '15px',
     fontWeight: activa ? '600' : '400',
     cursor: 'pointer',

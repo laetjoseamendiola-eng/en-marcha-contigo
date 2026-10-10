@@ -144,7 +144,7 @@ function TarjetaPregunta({ pregunta, valor, onChange }) {
         <span style={{ fontSize: '24px' }}>{pregunta.emoji}</span>
         <div>
           <div style={{ fontSize: '15px', fontWeight: '600', color: 'white' }}>{pregunta.titulo}</div>
-          <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>{pregunta.pregunta}</div>
+          <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>{pregunta.pregunta}</div>
         </div>
         {valor !== null && valor !== undefined && (
           <div style={{
@@ -199,7 +199,7 @@ function TarjetaPregunta({ pregunta, valor, onChange }) {
                 <div style={{ fontSize: '13px', fontWeight: seleccionada ? '600' : '400', color: seleccionada ? 'white' : 'rgba(255,255,255,0.7)' }}>
                   {op.label}
                 </div>
-                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '1px' }}>
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)', marginTop: '1px' }}>
                   {op.desc}
                 </div>
               </div>
@@ -235,7 +235,7 @@ function MiniRadar({ registro }) {
           textAlign: 'center',
         }}>
           <div style={{ fontSize: '20px' }}>{d.label}</div>
-          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>
+          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)', marginTop: '2px' }}>
             {d.titulo.split(' ')[0]}
           </div>
           {d.valor !== null ? (
@@ -243,7 +243,7 @@ function MiniRadar({ registro }) {
               {d.valor}
             </div>
           ) : (
-            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.2)', marginTop: '2px' }}>—</div>
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', marginTop: '2px' }}>—</div>
           )}
         </div>
       ))}
@@ -363,7 +363,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
 
   if (cargando) {
     return (
-      <div style={{ textAlign: 'center', padding: '60px 20px', color: 'rgba(255,255,255,0.4)' }}>
+      <div style={{ textAlign: 'center', padding: '60px 20px', color: 'rgba(255,255,255,0.75)' }}>
         Cargando...
       </div>
     );
@@ -387,13 +387,13 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
         <>
           {/* Encabezado */}
           <div style={{ marginBottom: '16px' }}>
-            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', textTransform: 'capitalize' }}>
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', textTransform: 'capitalize' }}>
               {hoy}
             </div>
             <div style={{ fontSize: '18px', fontWeight: '600', color: 'white', marginTop: '2px' }}>
               ¿Cómo te sientes hoy?
             </div>
-            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '4px', lineHeight: '1.5' }}>
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', marginTop: '4px', lineHeight: '1.5' }}>
               Escala 0–4 · 0 = sin problema · 4 = muy grave
             </div>
           </div>
@@ -497,7 +497,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
             {guardando ? 'Guardando...' : (registroExistente ? 'Actualizar registro' : 'Guardar registro del día')}
           </button>
 
-          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.2)', textAlign: 'center', marginTop: '14px', lineHeight: '1.6' }}>
+          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)', textAlign: 'center', marginTop: '14px', lineHeight: '1.6' }}>
             Puedes responder solo las preguntas que apliquen.<br/>
             Este registro es tuyo — ayuda a ver patrones con el tiempo.
           </div>
@@ -507,14 +507,14 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
       {/* ── VISTA HISTORIAL ───────────────────────── */}
       {vista === 'historial' && (
         <>
-          <div style={{ marginBottom: '16px', fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>
+          <div style={{ marginBottom: '16px', fontSize: '14px', color: 'rgba(255,255,255,0.75)' }}>
             Últimas 2 semanas de registros diarios
           </div>
           {historial.length === 0 ? (
             <div style={{
               textAlign: 'center',
               padding: '40px 20px',
-              color: 'rgba(255,255,255,0.3)',
+              color: 'rgba(255,255,255,0.75)',
               fontSize: '14px',
             }}>
               Sin registros aún.<br/>
@@ -541,7 +541,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
                       <div style={{ fontSize: '14px', fontWeight: '600', color: 'white' }}>
                         {fecha.toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' })}
                       </div>
-                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginTop: '2px' }}>
+                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)', marginTop: '2px' }}>
                         {dominiosRespondidos.length}/8 dominios registrados
                       </div>
                     </div>
@@ -588,7 +588,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
                     <div style={{
                       marginTop: '10px',
                       fontSize: '12px',
-                      color: 'rgba(255,255,255,0.45)',
+                      color: 'rgba(255,255,255,0.75)',
                       fontStyle: 'italic',
                       borderTop: '1px solid rgba(255,255,255,0.06)',
                       paddingTop: '8px',

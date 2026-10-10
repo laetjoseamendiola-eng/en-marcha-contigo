@@ -117,7 +117,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, cargando }) {
               }}>
                 <span>💊</span>
                 <span style={{ fontWeight: '500' }}>{med.nombre}</span>
-                <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px' }}>{med.dosis}</span>
+                <span style={{ color: 'rgba(255,255,255,0.75)', fontSize: '12px' }}>{med.dosis}</span>
               </div>
             ))}
           </div>
@@ -162,7 +162,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, cargando }) {
               disabled={cargando}
               style={{
                 background: 'transparent',
-                color: 'rgba(255,255,255,0.4)',
+                color: 'rgba(255,255,255,0.75)',
                 border: '1px solid rgba(255,255,255,0.15)',
                 borderRadius: '12px',
                 padding: '8px 16px',
@@ -200,7 +200,7 @@ function ResumenDia({ tomas }) {
       alignItems: 'center'
     }}>
       <div>
-        <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '2px' }}>
+        <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)', marginBottom: '2px' }}>
           Adherencia hoy
         </div>
         <div style={{ fontSize: '22px', fontWeight: 'bold', color: pct >= 80 ? '#28a745' : '#ffc107' }}>
@@ -208,11 +208,11 @@ function ResumenDia({ tomas }) {
         </div>
       </div>
       <div style={{ textAlign: 'right' }}>
-        <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '2px' }}>
+        <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)', marginBottom: '2px' }}>
           Tomas
         </div>
         <div style={{ fontSize: '18px', color: 'white' }}>
-          {tomadas}/{total} <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>completadas</span>
+          {tomadas}/{total} <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.75)' }}>completadas</span>
         </div>
       </div>
     </div>
@@ -314,7 +314,7 @@ export default function MiDiaPage({ token, apiUrl }) {
 
   if (cargando) {
     return (
-      <div style={{ textAlign: 'center', padding: '60px 20px', color: 'rgba(255,255,255,0.5)' }}>
+      <div style={{ textAlign: 'center', padding: '60px 20px', color: 'rgba(255,255,255,0.75)' }}>
         Cargando plan de tomas...
       </div>
     );
@@ -363,7 +363,7 @@ export default function MiDiaPage({ token, apiUrl }) {
 
       {/* Fecha */}
       <div style={{ marginBottom: '16px' }}>
-        <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', textTransform: 'capitalize' }}>
+        <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)', textTransform: 'capitalize' }}>
           {hoy}
         </div>
         <div style={{ fontSize: '20px', fontWeight: '600', color: 'white', marginTop: '2px' }}>
@@ -397,7 +397,7 @@ export default function MiDiaPage({ token, apiUrl }) {
         padding: '12px 16px',
         marginBottom: '16px',
         fontSize: '13px',
-        color: 'rgba(255,255,255,0.45)',
+        color: 'rgba(255,255,255,0.75)',
         display: 'flex',
         gap: '8px',
         alignItems: 'flex-start'
@@ -424,7 +424,7 @@ export default function MiDiaPage({ token, apiUrl }) {
       <div style={{
         marginTop: '8px',
         fontSize: '12px',
-        color: 'rgba(255,255,255,0.3)',
+        color: 'rgba(255,255,255,0.75)',
         textAlign: 'center',
         lineHeight: '1.6'
       }}>

@@ -132,7 +132,7 @@ export default function EvolucionPage({ token, apiUrl }) {
       <div style={{ ...estiloTarjeta, display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
         {/* Período */}
         <div style={{ flex: 1, minWidth: '200px' }}>
-          <p style={{ margin: '0 0 8px', fontSize: '12px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <p style={{ margin: '0 0 8px', fontSize: '12px', color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Período
           </p>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -147,7 +147,7 @@ export default function EvolucionPage({ token, apiUrl }) {
         {/* Tipo de síntoma */}
         {datos?.tipos_disponibles?.length > 0 && (
           <div style={{ flex: 1, minWidth: '200px' }}>
-            <p style={{ margin: '0 0 8px', fontSize: '12px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <p style={{ margin: '0 0 8px', fontSize: '12px', color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Síntoma
             </p>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -168,7 +168,7 @@ export default function EvolucionPage({ token, apiUrl }) {
 
         {/* Vista */}
         <div>
-          <p style={{ margin: '0 0 8px', fontSize: '12px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <p style={{ margin: '0 0 8px', fontSize: '12px', color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Vista
           </p>
           <div style={{ display: 'flex', gap: '8px' }}>
@@ -184,7 +184,7 @@ export default function EvolucionPage({ token, apiUrl }) {
 
       {/* ─── Estado cargando ─────────────────────────────────────── */}
       {cargando && (
-        <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.5)' }}>
+        <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.75)' }}>
           Cargando evolución...
         </div>
       )}
@@ -204,7 +204,7 @@ export default function EvolucionPage({ token, apiUrl }) {
               <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#2AACB0' }}>
                 {datos.total_registros}
               </div>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginTop: '4px' }}>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', marginTop: '4px' }}>
                 Registros totales
               </div>
             </div>
@@ -217,7 +217,7 @@ export default function EvolucionPage({ token, apiUrl }) {
                     ) / 10
                   : '—'}
               </div>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginTop: '4px' }}>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', marginTop: '4px' }}>
                 Intensidad media
               </div>
             </div>
@@ -225,7 +225,7 @@ export default function EvolucionPage({ token, apiUrl }) {
               <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#8E44AD' }}>
                 {datos.serie_temporal.length}
               </div>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginTop: '4px' }}>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', marginTop: '4px' }}>
                 Días con registro
               </div>
             </div>
