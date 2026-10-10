@@ -81,6 +81,16 @@ class CodigoTester(db.Model):
     fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
 
+DURACIONES_VALIDAS = [
+    'Menos de 30 min',
+    '30 min a 4 h',
+    '4 a 12 h',
+    '12 h a 1 día',
+    'Más de 1 día',
+    'Todavía presente',
+]
+
+
 class Sintoma(db.Model):
     __tablename__ = 'sintomas'
 
@@ -88,7 +98,7 @@ class Sintoma(db.Model):
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     tipo = db.Column(db.String(50), nullable=False)
     intensidad = db.Column(db.Integer, nullable=False)
-    duracion = db.Column(db.Integer, nullable=False)
+    duracion = db.Column(db.String(30), nullable=False)
     localizacion = db.Column(db.String(100), nullable=False)
     notas = db.Column(db.Text)
     fecha_registro = db.Column(db.DateTime, default=datetime.datetime.utcnow)
@@ -436,8 +446,8 @@ def crear_sintoma(usuario_actual):
             return jsonify({'error': 'tipo es requerido'}), 400
         if not isinstance(data.get('intensidad'), int) or data['intensidad'] < 1 or data['intensidad'] > 5:
             return jsonify({'error': 'intensidad debe ser un número entre 1 y 5'}), 400
-        if not data.get('duracion') or data['duracion'] < 1:
-            return jsonify({'error': 'duracion debe ser mayor a 0'}), 400
+        if data.get('duracion') not in DURACIONES_VALIDAS:
+            return jsonify({'error': 'duracion no es una opción válida'}), 400
         if not data.get('localizacion'):
             return jsonify({'error': 'localizacion es requerida'}), 400
 
@@ -502,8 +512,8 @@ def actualizar_sintoma(usuario_actual, sintoma_id):
                 return jsonify({'error': 'intensidad debe ser un número entre 1 y 5'}), 400
             sintoma.intensidad = data['intensidad']
         if 'duracion' in data:
-            if data['duracion'] < 1:
-                return jsonify({'error': 'duracion debe ser mayor a 0'}), 400
+            if data['duracion'] not in DURACIONES_VALIDAS:
+                return jsonify({'error': 'duracion no es una opción válida'}), 400
             sintoma.duracion = data['duracion']
         if 'localizacion' in data:
             sintoma.localizacion = data['localizacion']
@@ -548,11 +558,12 @@ def estadisticas_sintomas(usuario_actual):
                 'total': 0,
                 'promedio_intensidad': 0,
                 'sintoma_mas_frecuente': None,
-                'duracion_promedio': 0
+                'duracion_frecuente': None
             }), 200
 
         intensidades = [s.intensidad for s in sintomas]
         duraciones = [s.duracion for s in sintomas]
+        duracion_frecuente = max(set(duraciones), key=duraciones.count)
         tipos = [s.tipo for s in sintomas]
 
         sintoma_mas_frecuente = max(set(tipos), key=tipos.count) if tipos else None
@@ -561,7 +572,7 @@ def estadisticas_sintomas(usuario_actual):
             'total': len(sintomas),
             'promedio_intensidad': round(sum(intensidades) / len(intensidades), 2),
             'sintoma_mas_frecuente': sintoma_mas_frecuente,
-            'duracion_promedio': round(sum(duraciones) / len(duraciones), 2),
+            'duracion_frecuente': duracion_frecuente,
             'registros_por_tipo': {}
         }
 
@@ -610,13 +621,11 @@ def evolucion_sintomas(usuario_actual):
                 datos_por_dia[dia] = {
                     'fecha': dia,
                     'intensidad_promedio': [],
-                    'duracion_promedio': [],
                     'total_registros': 0,
                     'por_tipo': {}
                 }
 
             datos_por_dia[dia]['intensidad_promedio'].append(s.intensidad)
-            datos_por_dia[dia]['duracion_promedio'].append(s.duracion)
             datos_por_dia[dia]['total_registros'] += 1
 
             if s.tipo not in datos_por_dia[dia]['por_tipo']:
@@ -634,9 +643,6 @@ def evolucion_sintomas(usuario_actual):
                 'fecha': dia,
                 'intensidad_promedio': round(
                     sum(datos['intensidad_promedio']) / len(datos['intensidad_promedio']), 1
-                ),
-                'duracion_promedio': round(
-                    sum(datos['duracion_promedio']) / len(datos['duracion_promedio']), 1
                 ),
                 'total_registros': datos['total_registros']
             }

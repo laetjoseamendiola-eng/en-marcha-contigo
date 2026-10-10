@@ -11,10 +11,46 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
   const [formData, setFormData] = useState({
     tipo: '',
     intensidad: 3,
-    duracion: 30,
+    duracion: '',
     localizacion: '',
     notas: ''
   });
+
+  const opcionesDuracion = [
+    'Menos de 30 min',
+    '30 min a 4 h',
+    '4 a 12 h',
+    '12 h a 1 día',
+    'Más de 1 día',
+    'Todavía presente'
+  ];
+
+  const hoyLocal = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  })();
+
+  // Síntomas de días anteriores que siguen marcados como "Todavía presente"
+  const sintomasAbiertos = sintomas.filter(
+    s => s.duracion === 'Todavía presente' && s.fecha_registro && s.fecha_registro.slice(0, 10) < hoyLocal
+  );
+
+  const actualizarDuracion = async (id, valor) => {
+    try {
+      const response = await fetch(`${apiUrl}/api/sintomas/${id}`, {
+        method: 'PUT',
+        headers: authHeaders,
+        body: JSON.stringify({ duracion: valor })
+      });
+      if (response.ok) {
+        cargarSintomas();
+      } else if (response.status === 401) {
+        onLogout();
+      }
+    } catch (error) {
+      console.error('Error actualizando duración:', error);
+    }
+  };
 
   const [sintomas, setSintomas] = useState([]);
   const [estadisticas, setEstadisticas] = useState(null);
@@ -114,7 +150,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'intensidad' || name === 'duracion' ? parseInt(value) : value
+      [name]: name === 'intensidad' ? parseInt(value) : value
     }));
   };
 
@@ -131,8 +167,8 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
       return;
     }
 
-    if (formData.duracion < 1) {
-      setMensaje('La duración debe ser mayor a 0');
+    if (!formData.duracion) {
+      setMensaje('Selecciona la duración');
       return;
     }
 
@@ -155,7 +191,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
         setFormData({
           tipo: '',
           intensidad: 3,
-          duracion: 30,
+          duracion: '',
           localizacion: '',
           notas: ''
         });
@@ -265,6 +301,29 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
         </button>
       </div>
 
+      {/* Recordatorio de síntomas abiertos de días anteriores */}
+      {sintomasAbiertos.length > 0 && (
+        <div style={{ margin: '12px 16px', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(42,172,176,0.4)' }}>
+          <p style={{ margin: '0 0 8px 0' }}>
+            Tienes {sintomasAbiertos.length} síntoma(s) de días anteriores marcados como "Todavía presente". ¿Cuánto duró?
+          </p>
+          {sintomasAbiertos.map(s => (
+            <div key={s.id} style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '6px' }}>
+              <span>{s.tipo} ({s.fecha_registro.slice(0, 10)})</span>
+              <select
+                defaultValue=""
+                onChange={(e) => e.target.value && actualizarDuracion(s.id, e.target.value)}
+              >
+                <option value="">Selecciona</option>
+                {opcionesDuracion.filter(op => op !== 'Todavía presente').map(op => (
+                  <option key={op} value={op}>{op}</option>
+                ))}
+              </select>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Navegación por pestañas */}
       <div style={{
         display: 'flex',
@@ -349,7 +408,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
                     </div>
                     <div className="detail-item">
                       <span className="detail-label">Duración:</span>
-                      <span className="detail-value">{sintoma.duracion} minutos</span>
+                      <span className="detail-value">{sintoma.duracion}</span>
                     </div>
                     {sintoma.notas && (
                       <div className="detail-item">
@@ -486,16 +545,19 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
 
             {/* Duración */}
             <div className="form-group">
-              <label htmlFor="duracion">Duración (minutos) *</label>
-              <input
-                type="number"
+              <label htmlFor="duracion">Duración *</label>
+              <select
                 id="duracion"
                 name="duracion"
                 value={formData.duracion}
                 onChange={handleChange}
-                min="1"
                 required
-              />
+              >
+                <option value="">Selecciona una duración</option>
+                {opcionesDuracion.map(op => (
+                  <option key={op} value={op}>{op}</option>
+                ))}
+              </select>
             </div>
 
             {/* Localización */}
@@ -548,8 +610,8 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
                 <div className="stat-label">Intensidad promedio</div>
               </div>
               <div className="stat-card">
-                <div className="stat-number">{estadisticas.duracion_promedio}m</div>
-                <div className="stat-label">Duración promedio</div>
+                <div className="stat-number-small">{estadisticas.duracion_frecuente || '—'}</div>
+                <div className="stat-label">Duración más frecuente</div>
               </div>
               <div className="stat-card">
                 <div className="stat-label">Síntoma frecuente</div>
