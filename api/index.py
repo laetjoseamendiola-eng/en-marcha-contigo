@@ -1,5 +1,6 @@
 import os
 import sys
+import hashlib
 import jwt
 import datetime
 from functools import wraps
@@ -60,6 +61,16 @@ class Usuario(db.Model):
     activo = db.Column(db.Boolean, default=True)
 
     sintomas = db.relationship('Sintoma', backref='usuario', lazy=True)
+
+
+class CodigoTester(db.Model):
+    # Guarda solo el hash SHA-256 del código, nunca el código en texto.
+    # Cada código sirve una vez: al crear la cuenta, la fila se borra.
+    __tablename__ = 'codigos_tester'
+
+    id = db.Column(db.Integer, primary_key=True)
+    codigo_hash = db.Column(db.String(64), unique=True, nullable=False)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
     def to_dict(self):
         return {
@@ -334,6 +345,14 @@ def registro():
         if not data.get('password') or len(data.get('password', '')) < 6:
             return jsonify({'error': 'La contraseña debe tener al menos 6 caracteres'}), 400
 
+        codigo = (data.get('codigo') or '').strip()
+        if not codigo:
+            return jsonify({'error': 'El código de tester es requerido'}), 400
+        codigo_hash = hashlib.sha256(codigo.encode('utf-8')).hexdigest()
+        codigo_row = CodigoTester.query.filter_by(codigo_hash=codigo_hash).first()
+        if not codigo_row:
+            return jsonify({'error': 'Código inválido o ya utilizado'}), 403
+
         email = data['email'].strip().lower()
         nombre = data['nombre'].strip()
 
@@ -350,6 +369,7 @@ def registro():
         )
 
         db.session.add(nuevo_usuario)
+        db.session.delete(codigo_row)  # el código se descarta al usarse
         db.session.commit()
 
         token = generar_token(nuevo_usuario)

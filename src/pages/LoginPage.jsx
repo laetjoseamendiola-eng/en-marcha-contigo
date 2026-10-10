@@ -7,7 +7,8 @@ const LoginPage = ({ onLoginExitoso }) => {
     nombre: '',
     email: '',
     password: '',
-    confirmarPassword: ''
+    confirmarPassword: '',
+    codigo: ''
   });
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
@@ -43,6 +44,10 @@ const LoginPage = ({ onLoginExitoso }) => {
         setError('Las contraseñas no coinciden');
         return;
       }
+      if (!formData.codigo.trim()) {
+        setError('El código de tester es requerido');
+        return;
+      }
     }
 
     setCargando(true);
@@ -51,7 +56,7 @@ const LoginPage = ({ onLoginExitoso }) => {
       const endpoint = modo === 'login' ? '/api/auth/login' : '/api/auth/registro';
       const body = modo === 'login'
         ? { email: formData.email, password: formData.password }
-        : { nombre: formData.nombre, email: formData.email, password: formData.password };
+        : { nombre: formData.nombre, email: formData.email, password: formData.password, codigo: formData.codigo.trim() };
 
       const response = await fetch(`${apiUrl}${endpoint}`, {
         method: 'POST',
@@ -78,7 +83,7 @@ const LoginPage = ({ onLoginExitoso }) => {
   const cambiarModo = () => {
     setModo(modo === 'login' ? 'registro' : 'login');
     setError('');
-    setFormData({ nombre: '', email: '', password: '', confirmarPassword: '' });
+    setFormData({ nombre: '', email: '', password: '', confirmarPassword: '', codigo: '' });
   };
 
   return (
@@ -158,6 +163,22 @@ const LoginPage = ({ onLoginExitoso }) => {
               autoComplete={modo === 'login' ? 'current-password' : 'new-password'}
             />
           </div>
+
+          {modo === 'registro' && (
+            <div className="login-form-group">
+              <label htmlFor="codigo">Código de tester</label>
+              <input
+                type="text"
+                id="codigo"
+                name="codigo"
+                value={formData.codigo}
+                onChange={handleChange}
+                placeholder="Código de 8 caracteres"
+                autoComplete="off"
+                autoCapitalize="none"
+              />
+            </div>
+          )}
 
           {modo === 'registro' && (
             <div className="login-form-group">
