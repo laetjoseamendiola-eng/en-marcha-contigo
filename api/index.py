@@ -687,23 +687,23 @@ def crear_medicamento(usuario_actual):
     """Agrega un medicamento registrado por el propio usuario."""
     import json
     data = request.get_json(silent=True) or {}
-    nombre = (data.get('nombre') or '').strip()
+    # Tres datos: sustancia activa, dosis y horarios
+    sustancia = (data.get('principio_activo') or '').strip()
     dosis = (data.get('dosis') or '').strip()
     horarios = data.get('horarios') or []
-    if not nombre or not dosis or not horarios:
-        return jsonify({'error': 'Nombre, dosis y al menos un horario son obligatorios'}), 400
+    if not sustancia or not dosis or not horarios:
+        return jsonify({'error': 'Sustancia activa, dosis y al menos un horario son obligatorios'}), 400
     try:
         horarios_limpios = sorted({h.strip() for h in horarios if h and ':' in h})
         if not horarios_limpios:
             return jsonify({'error': 'Horario con formato HH:MM'}), 400
         nuevo = MedicamentoProgramado(
             usuario_id=usuario_actual.id,
-            nombre=nombre,
-            principio_activo=(data.get('principio_activo') or '').strip() or None,
+            nombre=sustancia,               # el nombre visible es la sustancia activa
+            principio_activo=sustancia,
             dosis=dosis,
             horarios=json.dumps(horarios_limpios),
-            instrucciones=(data.get('instrucciones') or '').strip() or None,
-            separacion_comida_min=int(data.get('separacion_comida_min') or 0),
+            separacion_comida_min=0,
             activo=True,
         )
         db.session.add(nuevo)
@@ -727,14 +727,10 @@ def editar_medicamento(usuario_actual, med_id):
         # Cada cambio de dosis u horario debe quedar con fecha (historial). Se habilita tras la migración.
         return jsonify({'error': 'Cambiar dosis u horarios requiere el historial de cambios (pendiente de autorización)'}), 423
     try:
-        if 'nombre' in data and data['nombre'].strip():
-            med.nombre = data['nombre'].strip()
-        if 'principio_activo' in data:
-            med.principio_activo = (data['principio_activo'] or '').strip() or None
-        if 'instrucciones' in data:
-            med.instrucciones = (data['instrucciones'] or '').strip() or None
-        if 'separacion_comida_min' in data:
-            med.separacion_comida_min = int(data['separacion_comida_min'] or 0)
+        if 'principio_activo' in data and (data['principio_activo'] or '').strip():
+            nueva = data['principio_activo'].strip()
+            med.principio_activo = nueva
+            med.nombre = nueva
         db.session.commit()
         return jsonify(med.to_dict()), 200
     except Exception as e:
