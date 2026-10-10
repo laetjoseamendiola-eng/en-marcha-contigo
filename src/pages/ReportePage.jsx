@@ -99,7 +99,7 @@ export default function ReportePage({ token, apiUrl }) {
 
   if (cargando) {
     return (
-      <div style={{ textAlign: 'center', padding: '60px 20px', color: 'rgba(255,255,255,0.4)' }}>
+      <div style={{ textAlign: 'center', padding: '60px 20px', color: 'rgba(255,255,255,0.75)' }}>
         Generando reporte...
       </div>
     );
@@ -209,7 +209,7 @@ export default function ReportePage({ token, apiUrl }) {
             <img
               src="/assets/logo-header.png"
               alt="En Marcha Contigo"
-              style={{ height: '48px', marginBottom: '12px', display: 'block' }}
+              style={{ height: '48px', marginBottom: '12px', display: 'block', background: '#ffffff', padding: '6px 10px', borderRadius: '8px', boxSizing: 'content-box' }}
               onError={e => { e.target.style.display = 'none'; }}
             />
             <div className="texto-reporte" style={{ fontSize: '18px', fontWeight: 'bold', color: 'white' }}>
@@ -220,13 +220,13 @@ export default function ReportePage({ token, apiUrl }) {
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>Período analizado</div>
+            <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>Período analizado</div>
             <div className="texto-reporte" style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)', fontWeight: '600', marginTop: '2px' }}>
               {new Date(periodo.desde + 'T12:00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })}
               {' – '}
               {new Date(periodo.hasta + 'T12:00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}
             </div>
-            <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '4px' }}>
+            <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)', marginTop: '4px' }}>
               {periodo.dias} días · {plural(no_motor.dias_registrados, 'día', 'días')} con registro completo
             </div>
           </div>
@@ -260,7 +260,7 @@ export default function ReportePage({ token, apiUrl }) {
                 textAlign: 'center',
               }}>
                 <div className="texto-reporte" style={{ fontSize: '22px', fontWeight: 'bold', color: item.color }}>{item.valor}</div>
-                <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>{item.label}</div>
+                <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)', marginTop: '2px' }}>{item.label}</div>
               </div>
             ))}
           </div>
@@ -314,7 +314,7 @@ export default function ReportePage({ token, apiUrl }) {
             <div style={{ fontSize: '14px', fontWeight: '600', color: '#2AACB0', marginBottom: '14px' }}>
               🌿 Síntomas No Motores — Promedio del Período
             </div>
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '12px' }}>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)', marginBottom: '12px' }}>
               Escala 0–4 · 0 = sin problema · 4 = severo · Basado en {plural(no_motor.dias_registrados, 'día', 'días')} con registro
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -395,7 +395,7 @@ export default function ReportePage({ token, apiUrl }) {
           paddingTop: '16px',
           borderTop: '1px solid rgba(255,255,255,0.06)',
         }}>
-          <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', lineHeight: '1.7' }}>
+          <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)', lineHeight: '1.7' }}>
             Reporte generado por <strong style={{ color: '#2AACB0' }}>En Marcha Contigo</strong> · {new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}<br/>
             Este documento es informativo. No diagnostica ni prescribe tratamiento.<br/>
             Los datos fueron registrados directamente por el paciente en la aplicación.
