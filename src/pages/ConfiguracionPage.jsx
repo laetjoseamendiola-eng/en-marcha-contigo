@@ -60,13 +60,16 @@ const ConfiguracionPage = () => {
   const [avisoCambio, setAvisoCambio] = useState(null);
   const [ahora, setAhora] = useState(new Date());
 
-  // Al abrir la pantalla: comparar con el último estado conocido y registrar cambios
+  // Al abrir la pantalla: solo en modo manual se compara con el último estado conocido.
+  // En modo automático el celular ajusta la hora solo (incluye los cambios de horario de cada zona),
+  // así que no se avisa nada.
   useEffect(() => {
     const zonaAct = zonaDispositivo();
     const offsetAct = offsetDispositivo();
     const previo = leer(CLAVE_ULTIMO, null);
+    const modoGuardado = leer(CLAVE_RELOJ, { modo: 'dispositivo' }).modo;
 
-    if (previo && (previo.zona !== zonaAct || previo.offset !== offsetAct)) {
+    if (modoGuardado === 'manual' && previo && (previo.zona !== zonaAct || previo.offset !== offsetAct)) {
       const entrada = {
         fecha: new Date().toISOString(),
         zonaAnterior: previo.zona,
@@ -90,6 +93,19 @@ const ConfiguracionPage = () => {
     const nuevo = { ...config, modo };
     setConfig(nuevo);
     escribir(CLAVE_RELOJ, nuevo);
+    if (modo === 'manual') {
+      // Al pasar a manual se deja constancia; a partir de aquí la app ya no sigue el reloj del dispositivo
+      const entrada = {
+        fecha: new Date().toISOString(),
+        zonaAnterior: zonaDispositivo(),
+        offsetAnterior: formatoOffset(offsetDispositivo()),
+        zonaNueva: config.zonaManual,
+        offsetNueva: 'manual',
+      };
+      const nuevoLog = [entrada, ...leer(CLAVE_LOG, [])].slice(0, 30);
+      escribir(CLAVE_LOG, nuevoLog);
+      setLog(nuevoLog);
+    }
   };
 
   const cambiarZona = (zonaManual) => {
@@ -112,9 +128,9 @@ const ConfiguracionPage = () => {
     <div style={{ padding: '8px 0' }}>
       {avisoCambio && (
         <div style={{ ...tarjeta, borderColor: 'rgba(230,180,60,0.7)' }}>
-          <strong>Aviso:</strong> se detectó un cambio de hora o zona en este dispositivo
+          <strong>Aviso:</strong> estás en zona manual y el reloj del dispositivo cambió
           ({avisoCambio.zonaAnterior} {avisoCambio.offsetAnterior} → {avisoCambio.zonaNueva} {avisoCambio.offsetNueva}).
-          Revisa que la hora sea la correcta. Si cambiaste la hora a propósito, es normal que aparezca este aviso.
+          La app seguirá usando la zona manual. Revisa que sea la zona que quieres.
           <div style={{ marginTop: '8px' }}>
             <button onClick={() => setAvisoCambio(null)}>Entendido</button>
           </div>
@@ -156,7 +172,7 @@ const ConfiguracionPage = () => {
           </p>
         ))}
         <p style={{ margin: '8px 0 0 0', fontSize: '0.85em' }}>
-          Limitación: la app detecta cambios de zona y de horario de verano, pero no puede saber si alguien solo cambió la hora a mano sin cambiar la zona.
+          En modo automático no se registran cambios: el celular ajusta la hora solo. En modo manual sí se registra cuando cambia la zona del dispositivo. Limitación: no se detecta si alguien solo cambió la hora a mano sin cambiar la zona.
         </p>
       </div>
     </div>
