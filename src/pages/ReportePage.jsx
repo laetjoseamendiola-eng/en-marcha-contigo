@@ -206,12 +206,14 @@ export default function ReportePage({ token, apiUrl }) {
           gap: '16px',
         }}>
           <div>
-            <img
-              src="/assets/logo-header.png"
-              alt="En Marcha Contigo"
-              style={{ height: '48px', marginBottom: '12px', display: 'block', background: '#ffffff', padding: '6px 10px', borderRadius: '8px', boxSizing: 'content-box' }}
-              onError={e => { e.target.style.display = 'none'; }}
-            />
+            <div style={{ display: 'inline-block', background: 'rgba(255,255,255,0.18)', borderRadius: '10px', padding: '6px 12px', marginBottom: '12px' }}>
+              <img
+                src="/assets/Logo_En_Marcha_Contigo_Fondo_Transparente.png"
+                alt="En Marcha Contigo"
+                style={{ height: '56px', display: 'block' }}
+                onError={e => { e.target.style.display = 'none'; }}
+              />
+            </div>
             <div className="texto-reporte" style={{ fontSize: '18px', fontWeight: 'bold', color: 'white' }}>
               Reporte de Seguimiento Neurológico
             </div>
