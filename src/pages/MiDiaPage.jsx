@@ -99,6 +99,9 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
   }));
   const estado = getEstadoBloque(tomas, horario);
   const tomaHora = tomas.find(t => t.tomada)?.fecha_toma_real;
+  // Ventana de ayuno: si ya se tomó, se centra en la hora real; si no, en la hora programada
+  const horaReal = tomaHora && /T(\d{2}:\d{2})/.exec(tomaHora);
+  const horaVentana = (estado === 'tomada' && horaReal) ? horaReal[1] : horario;
   // Ids de las tomas que aún no están marcadas (cada toma tiene su propio id)
   const idsPendientes = tomas.filter(t => !t.tomada && !t.omitida).map(t => t.id);
   // Separación de comida de este bloque: la mayor de sus medicamentos (minutos antes y después)
@@ -212,7 +215,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
 
           {/* Ventana de ayuno: sólo si el medicamento lo requiere (dato de su registro) */}
           {tieneAyuno && (
-            <VentanaAyuno horario={horario} estado={estado} minutos={minutosAyuno} />
+            <VentanaAyuno horario={horaVentana} estado={estado} minutos={minutosAyuno} />
           )}
         </div>
 
