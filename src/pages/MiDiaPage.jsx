@@ -84,7 +84,7 @@ function VentanaAyuno({ horario, estado, minutos }) {
   );
 }
 
-function TarjetaToma({ bloque, onTomar, onOmitir, cargando }) {
+function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
   const { horario, tomas = [] } = bloque;
   const [panelHora, setPanelHora] = useState(false);       // "¿A qué hora la tomó?"
   const [confirmarOmitir, setConfirmarOmitir] = useState(false);
@@ -215,6 +215,28 @@ function TarjetaToma({ bloque, onTomar, onOmitir, cargando }) {
             <VentanaAyuno horario={horario} estado={estado} minutos={minutosAyuno} />
           )}
         </div>
+
+        {/* Deshacer: regresa una toma marcada a pendiente */}
+        {(estado === 'tomada' || estado === 'omitida') && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginLeft: '12px' }}>
+            <button
+              onClick={() => onDeshacer(tomas.filter(t => t.tomada || t.omitida).map(t => t.id))}
+              disabled={cargando}
+              style={{
+                background: 'transparent',
+                color: 'rgba(255,255,255,0.85)',
+                border: '1px solid rgba(255,255,255,0.3)',
+                borderRadius: '12px',
+                padding: '8px 14px',
+                fontSize: '13px',
+                cursor: 'pointer',
+                fontFamily: 'inherit'
+              }}
+            >
+              Deshacer
+            </button>
+          </div>
+        )}
 
         {/* Botones acción */}
         {(estado === 'pendiente' || estado === 'futura') && (
@@ -636,6 +658,10 @@ export default function MiDiaPage({ token, apiUrl }) {
     setTimeout(() => setMensaje(''), 2500);
   };
 
+  const handleDeshacer = async (ids) => {
+    await marcarTomas(ids, 'deshacer');
+  };
+
   const handleOmitir = async (ids) => {
     const ok = await marcarTomas(ids, 'omitir');
     setMensaje(ok ? 'Toma marcada como omitida' : 'Error al omitir la toma');
@@ -762,6 +788,7 @@ export default function MiDiaPage({ token, apiUrl }) {
           bloque={bloque}
           onTomar={handleTomar}
           onOmitir={handleOmitir}
+          onDeshacer={handleDeshacer}
           cargando={accionCargando}
         />
       ))}

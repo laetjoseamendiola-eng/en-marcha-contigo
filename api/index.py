@@ -1004,6 +1004,25 @@ def registrar_toma(usuario_actual, toma_id):
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/tomas/<int:toma_id>/deshacer', methods=['POST'])
+@token_requerido
+def deshacer_toma(usuario_actual, toma_id):
+    """Regresa una toma marcada (tomada u omitida) a pendiente. No borra el medicamento ni el historial de dosis."""
+    try:
+        toma = db.session.get(TomaRegistrada, toma_id)
+        if not toma or toma.usuario_id != usuario_actual.id:
+            return jsonify({'error': 'Toma no encontrada'}), 404
+        toma.tomada = False
+        toma.omitida = False
+        toma.fecha_toma_real = None
+        toma.desvio_minutos = None
+        db.session.commit()
+        return jsonify({'mensaje': 'Toma regresada a pendiente', 'toma': toma.to_dict()}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/tomas/<int:toma_id>/omitir', methods=['POST'])
 @token_requerido
 def omitir_toma(usuario_actual, toma_id):
