@@ -1014,6 +1014,10 @@ def registrar_toma(usuario_actual, toma_id):
 
         datos = request.get_json(silent=True) or {}
         zona = zona_de_paciente(datos.get('zona'))
+        # P72: solo se puede registrar una toma de hoy o de ayer (hora de pared del paciente)
+        hoy_zona = datetime.datetime.now(datetime.timezone.utc).astimezone(zona).date()
+        if toma.fecha_programada.date() < hoy_zona - datetime.timedelta(days=1):
+            return jsonify({'error': 'Solo se pueden registrar tomas de hoy o de ayer'}), 403
         # Hora real en la zona del paciente (hora de pared). Si no llega una hora, es "ahora".
         if datos.get('hora_real'):
             hora_real = validar_hora_real(datos.get('hora_real'))
