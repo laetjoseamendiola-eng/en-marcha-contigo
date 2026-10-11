@@ -942,6 +942,24 @@ def tomas_hoy(usuario_actual):
         return jsonify({'error': str(e)}), 500
 
 
+def zona_de_paciente(nombre):
+    """Zona horaria que manda la app (IANA). Si no es válida, UTC."""
+    try:
+        from zoneinfo import ZoneInfo
+        return ZoneInfo(nombre) if nombre else ZoneInfo('UTC')
+    except Exception:
+        return datetime.timezone.utc
+
+
+def validar_hora_real(txt):
+    """'HH:MM' (24 h) a datetime.time. None si no es válida."""
+    import re
+    if not isinstance(txt, str) or not re.fullmatch(r'([01]\d|2[0-3]):[0-5]\d', txt.strip()):
+        return None
+    hh, mm = map(int, txt.strip().split(':'))
+    return datetime.time(hh, mm)
+
+
 @app.route('/api/tomas/<int:toma_id>/tomar', methods=['POST'])
 @token_requerido
 def registrar_toma(usuario_actual, toma_id):
@@ -954,7 +972,16 @@ def registrar_toma(usuario_actual, toma_id):
         if not toma or toma.usuario_id != usuario_actual.id:
             return jsonify({'error': 'Toma no encontrada'}), 404
 
-        ahora = datetime.datetime.utcnow()
+        datos = request.get_json(silent=True) or {}
+        zona = zona_de_paciente(datos.get('zona'))
+        # Hora real en la zona del paciente (hora de pared). Si no llega una hora, es "ahora".
+        if datos.get('hora_real'):
+            hora_real = validar_hora_real(datos.get('hora_real'))
+            if hora_real is None:
+                return jsonify({'error': 'La hora real debe tener formato HH:MM (24 horas)'}), 400
+            ahora = datetime.datetime.combine(toma.fecha_programada.date(), hora_real)
+        else:
+            ahora = datetime.datetime.now(datetime.timezone.utc).astimezone(zona).replace(tzinfo=None)
         desvio = int((ahora - toma.fecha_programada).total_seconds() / 60)
 
         toma.tomada = True
@@ -962,7 +989,6 @@ def registrar_toma(usuario_actual, toma_id):
         toma.fecha_toma_real = ahora
         toma.desvio_minutos = desvio
 
-        datos = request.get_json(silent=True) or {}
         if datos.get('notas'):
             toma.notas = datos['notas']
 

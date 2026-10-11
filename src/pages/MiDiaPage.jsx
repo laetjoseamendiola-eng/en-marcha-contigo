@@ -80,6 +80,9 @@ function VentanaAyuno({ horario, estado }) {
 
 function TarjetaToma({ bloque, onTomar, onOmitir, cargando }) {
   const { horario, tomas = [] } = bloque;
+  const [panelHora, setPanelHora] = useState(false);       // "¿A qué hora la tomó?"
+  const [confirmarOmitir, setConfirmarOmitir] = useState(false);
+  const [hr, setHr] = useState(horaAhoraEnZona());
   // Medicamentos del bloque, tomados de cada toma (nombre y sustancia activa)
   const medicamentos = tomas.map(t => ({
     id: t.id,
@@ -149,6 +152,56 @@ function TarjetaToma({ bloque, onTomar, onOmitir, cargando }) {
             </div>
           )}
 
+          {/* Toma antes de su hora: se pide la hora real */}
+          {panelHora && (
+            <div style={{ marginTop: '10px', padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)' }}>
+              <div style={{ fontSize: '13px', marginBottom: '6px' }}>¿A qué hora la tomó?</div>
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                <label style={{ fontSize: '12px' }}>Hora
+                  <select style={campoEstilo} value={hr.h} onChange={e => setHr({ ...hr, h: e.target.value })}>
+                    {HORAS_12.map(v => <option key={v} value={v} style={opcionEstilo}>{v}</option>)}
+                  </select>
+                </label>
+                <label style={{ fontSize: '12px' }}>Minutos
+                  <select style={campoEstilo} value={hr.m} onChange={e => setHr({ ...hr, m: e.target.value })}>
+                    {MINUTOS.map(v => <option key={v} value={v} style={opcionEstilo}>{v}</option>)}
+                  </select>
+                </label>
+                <label style={{ fontSize: '12px' }}>AM / PM
+                  <select style={campoEstilo} value={hr.ap} onChange={e => setHr({ ...hr, ap: e.target.value })}>
+                    <option value="AM" style={opcionEstilo}>AM</option>
+                    <option value="PM" style={opcionEstilo}>PM</option>
+                  </select>
+                </label>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                <button disabled={cargando} onClick={() => { setPanelHora(false); onTomar(idsPendientes, aHora24(hr)); }}
+                  style={{ background: '#2AACB0', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 14px', fontFamily: 'inherit', cursor: 'pointer' }}>
+                  Guardar toma
+                </button>
+                <button onClick={() => setPanelHora(false)}
+                  style={{ background: 'transparent', color: 'white', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '8px', padding: '8px 14px', fontFamily: 'inherit', cursor: 'pointer' }}>
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Omitir una toma que aún no llega: confirmar */}
+          {confirmarOmitir && (
+            <div style={{ marginTop: '10px', padding: '12px', borderRadius: '10px', background: 'rgba(220,53,69,0.15)' }}>
+              <div style={{ fontSize: '13px', marginBottom: '8px' }}>¿Omitir esta toma de {horario}?</div>
+              <button disabled={cargando} onClick={() => { setConfirmarOmitir(false); onOmitir(idsPendientes); }}
+                style={{ background: '#dc3545', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 14px', fontFamily: 'inherit', cursor: 'pointer' }}>
+                Sí, omitir
+              </button>{' '}
+              <button onClick={() => setConfirmarOmitir(false)}
+                style={{ background: 'transparent', color: 'white', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '8px', padding: '8px 14px', fontFamily: 'inherit', cursor: 'pointer' }}>
+                No
+              </button>
+            </div>
+          )}
+
           {/* Ventana de ayuno: sólo si el medicamento lo requiere (dato de su registro) */}
           {tieneAyuno && (
             <VentanaAyuno horario={horario} estado={estado} />
@@ -156,10 +209,10 @@ function TarjetaToma({ bloque, onTomar, onOmitir, cargando }) {
         </div>
 
         {/* Botones acción */}
-        {(estado === 'pendiente') && (
+        {(estado === 'pendiente' || estado === 'futura') && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginLeft: '12px' }}>
             <button
-              onClick={() => onTomar(idsPendientes)}
+              onClick={() => (estado === 'futura' ? setPanelHora(true) : onTomar(idsPendientes))}
               disabled={cargando}
               style={{
                 background: '#2AACB0',
@@ -178,7 +231,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, cargando }) {
               Tomé ✓
             </button>
             <button
-              onClick={() => onOmitir(idsPendientes)}
+              onClick={() => (estado === 'futura' ? setConfirmarOmitir(true) : onOmitir(idsPendientes))}
               disabled={cargando}
               style={{
                 background: 'transparent',
@@ -240,6 +293,17 @@ function ResumenDia({ tomas }) {
 }
 
 // Menú único de medicamentos: ver, agregar, modificar y eliminar
+// Hora actual en la zona del paciente, en formato de 12 horas.
+function horaAhoraEnZona() {
+  try {
+    const txt = new Date().toLocaleTimeString('en-GB', { timeZone: zonaDelPaciente(), hour: '2-digit', minute: '2-digit', hour12: false });
+    const [hh, mm] = txt.split(':').map(Number);
+    return { h: String(hh % 12 === 0 ? 12 : hh % 12), m: String(mm).padStart(2, '0'), ap: hh >= 12 ? 'PM' : 'AM' };
+  } catch (e) {
+    return { h: '8', m: '00', ap: 'AM' };
+  }
+}
+
 // Horarios en formato de 12 horas: hora (1-12), minutos (00-59) y AM/PM.
 const HORAS_12 = Array.from({ length: 12 }, (_, i) => String(i + 1));
 const MINUTOS = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
@@ -533,15 +597,19 @@ export default function MiDiaPage({ token, apiUrl }) {
   }, [cargarTomas]);
 
   // Marca cada toma del bloque (una petición por toma). Si alguna falla, lo dice.
-  const marcarTomas = async (ids, accion) => {
+  const marcarTomas = async (ids, accion, horaReal) => {
     if (!ids || ids.length === 0) return false;
     setAccionCargando(true);
     let todoBien = true;
     try {
       for (const id of ids) {
+        const cuerpo = accion === 'tomar'
+          ? { zona: zonaDelPaciente(), hora_real: horaReal || undefined }
+          : undefined;
         const res = await fetch(`${apiUrl}/api/tomas/${id}/${accion}`, {
           method: 'POST',
-          headers
+          headers,
+          body: cuerpo ? JSON.stringify(cuerpo) : undefined
         });
         if (!res.ok) todoBien = false;
       }
@@ -554,8 +622,8 @@ export default function MiDiaPage({ token, apiUrl }) {
     return todoBien;
   };
 
-  const handleTomar = async (ids) => {
-    const ok = await marcarTomas(ids, 'tomar');
+  const handleTomar = async (ids, horaReal) => {
+    const ok = await marcarTomas(ids, 'tomar', horaReal);
     setMensaje(ok ? '✓ Toma registrada' : 'Error al registrar la toma');
     setTimeout(() => setMensaje(''), 2500);
   };
