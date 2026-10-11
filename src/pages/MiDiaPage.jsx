@@ -449,7 +449,7 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
   };
 
   const eliminar = async (id) => {
-    const res = await fetch(`${apiUrl}/api/medicamentos/${id}`, { method: 'DELETE', headers });
+    const res = await fetch(`${apiUrl}/api/medicamentos/${id}?zona=${encodeURIComponent(zonaDelPaciente())}`, { method: 'DELETE', headers });
     const data = await res.json();
     setConfirmarEliminar(null);
     setMensaje(res.ok ? (data.mensaje || 'Medicamento eliminado') : (data.error || 'No se pudo eliminar'));

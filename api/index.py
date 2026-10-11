@@ -839,6 +839,16 @@ def eliminar_medicamento(usuario_actual, med_id):
     if not med:
         return jsonify({'error': 'Medicamento no encontrado'}), 404
     try:
+        # Hoy en la zona del paciente (la app manda ?zona=...; si no llega, UTC).
+        zona_quitar = zona_de_paciente(request.args.get('zona'))
+        ahora_quitar = datetime.datetime.now(datetime.timezone.utc).astimezone(zona_quitar).replace(tzinfo=None)
+        hoy_quitar = ahora_quitar.replace(hour=0, minute=0, second=0, microsecond=0)
+        # Quitar el medicamento también borra sus tomas pendientes de hoy (no tomadas ni omitidas).
+        from sqlalchemy import text
+        db.session.execute(text("""
+            DELETE FROM tomas_registradas
+            WHERE medicamento_id = :m AND tomada = false AND omitida = false AND fecha_programada >= :hoy
+        """), {'m': med.id, 'hoy': hoy_quitar})
         med.activo = False
         db.session.commit()
         return jsonify({'mensaje': 'Medicamento eliminado de tu lista (su historial se conserva)'}), 200
