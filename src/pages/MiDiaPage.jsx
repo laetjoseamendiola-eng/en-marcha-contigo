@@ -240,6 +240,25 @@ function ResumenDia({ tomas }) {
 }
 
 // Menú único de medicamentos: ver, agregar, modificar y eliminar
+// Horarios en formato de 12 horas: hora (1-12), minutos (00-59) y AM/PM.
+const HORAS_12 = Array.from({ length: 12 }, (_, i) => String(i + 1));
+const MINUTOS = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
+const horarioVacio = () => ({ h: '8', m: '00', ap: 'AM' });
+// Opciones con fondo oscuro para que se lean sobre el panel.
+const opcionEstilo = { background: '#14304f', color: 'white' };
+
+// Pasa de 12 horas a "HH:MM" (24 horas), que es lo que guarda el servidor.
+const aHora24 = ({ h, m, ap }) => {
+  const hora = (Number(h) % 12) + (ap === 'PM' ? 12 : 0);
+  return `${String(hora).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+};
+
+// Pasa de "HH:MM" (24 horas) a 12 horas para mostrar en el formulario.
+const desdeHora24 = (txt) => {
+  const [hh, mm] = String(txt).split(':').map(Number);
+  return { h: String(hh % 12 === 0 ? 12 : hh % 12), m: String(mm).padStart(2, '0'), ap: hh >= 12 ? 'PM' : 'AM' };
+};
+
 const campoEstilo = {
   width: '100%', padding: '10px', borderRadius: '8px', marginTop: '4px',
   border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)',
@@ -253,8 +272,19 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
   const [editando, setEditando] = useState(null);     // id del medicamento en edición
   const [confirmarEliminar, setConfirmarEliminar] = useState(null);
   const [agregando, setAgregando] = useState(false);
-  const vacio = { principio_activo: '', dosis: '', horarios: '' };
+  const vacio = {
+    principio_activo: '', dosis: '',
+    horarios: [horarioVacio()],          // uno o varios, en 12 horas
+    separa: false, sepH: '0', sepM: '00', // separación de la comida: horas y minutos
+  };
   const [form, setForm] = useState(vacio);
+
+  // Datos que se envían al servidor, a partir del formulario.
+  const cuerpoDesdeForm = () => {
+    const horarios = [...new Set(form.horarios.map(aHora24))].sort();
+    const separacion = form.separa ? (Number(form.sepH) || 0) * 60 + (Number(form.sepM) || 0) : 0;
+    return { principio_activo: form.principio_activo, dosis: form.dosis, horarios, separacion_comida_min: separacion };
+  };
 
   const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
 
@@ -272,11 +302,13 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
 
   useEffect(() => { cargar(); }, [cargar]);
 
-  const horariosDesdeTexto = (txt) => txt.split(',').map(s => s.trim()).filter(Boolean);
-
   const guardarNuevo = async () => {
     setMensaje('');
-    const body = { ...form, horarios: horariosDesdeTexto(form.horarios) };
+    if (form.separa && !(Number(form.sepH) || Number(form.sepM))) {
+      setMensaje('Indique cuántas horas y minutos antes y después de la comida');
+      return;
+    }
+    const body = cuerpoDesdeForm();
     const res = await fetch(`${apiUrl}/api/medicamentos`, { method: 'POST', headers, body: JSON.stringify(body) });
     const data = await res.json();
     if (res.ok) {
@@ -289,11 +321,11 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
 
   const guardarEdicion = async (id) => {
     setMensaje('');
-    const body = {
-      principio_activo: form.principio_activo,
-      dosis: form.dosis,
-      horarios: horariosDesdeTexto(form.horarios),
-    };
+    if (form.separa && !(Number(form.sepH) || Number(form.sepM))) {
+      setMensaje('Indique cuántas horas y minutos antes y después de la comida');
+      return;
+    }
+    const body = cuerpoDesdeForm();
     const res = await fetch(`${apiUrl}/api/medicamentos/${id}`, { method: 'PUT', headers, body: JSON.stringify(body) });
     const data = await res.json();
     if (res.ok) {
@@ -326,9 +358,55 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
       <label style={{ display: 'block', fontSize: '13px', marginTop: '8px' }}>Dosis
         <input style={campoEstilo} value={form.dosis} placeholder="Ej. 1 tableta" onChange={e => setForm({ ...form, dosis: e.target.value })} />
       </label>
-      <label style={{ display: 'block', fontSize: '13px', marginTop: '8px' }}>Horarios (separados por coma)
-        <input style={campoEstilo} value={form.horarios} placeholder="Ej. 08:00, 16:00" onChange={e => setForm({ ...form, horarios: e.target.value })} />
+      <fieldset style={{ border: 'none', padding: 0, margin: '12px 0 0' }}>
+        <legend style={{ fontSize: '13px', marginBottom: '4px' }}>Horarios</legend>
+        {form.horarios.map((hr, i) => (
+          <div key={i} style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '6px' }}>
+            <label style={{ fontSize: '12px' }}>Hora
+              <select style={campoEstilo} value={hr.h} onChange={e => setForm({ ...form, horarios: form.horarios.map((x, j) => j === i ? { ...x, h: e.target.value } : x) })}>
+                {HORAS_12.map(v => <option key={v} value={v} style={opcionEstilo}>{v}</option>)}
+              </select>
+            </label>
+            <label style={{ fontSize: '12px' }}>Minutos
+              <select style={campoEstilo} value={hr.m} onChange={e => setForm({ ...form, horarios: form.horarios.map((x, j) => j === i ? { ...x, m: e.target.value } : x) })}>
+                {MINUTOS.map(v => <option key={v} value={v} style={opcionEstilo}>{v}</option>)}
+              </select>
+            </label>
+            <label style={{ fontSize: '12px' }}>AM / PM
+              <select style={campoEstilo} value={hr.ap} onChange={e => setForm({ ...form, horarios: form.horarios.map((x, j) => j === i ? { ...x, ap: e.target.value } : x) })}>
+                <option value="AM" style={opcionEstilo}>AM</option>
+                <option value="PM" style={opcionEstilo}>PM</option>
+              </select>
+            </label>
+            {form.horarios.length > 1 && (
+              <button type="button" style={{ ...boton('transparent'), marginTop: '14px' }}
+                aria-label={`Quitar horario ${i + 1}`}
+                onClick={() => setForm({ ...form, horarios: form.horarios.filter((_, j) => j !== i) })}>Quitar</button>
+            )}
+          </div>
+        ))}
+        <button type="button" style={{ ...boton('transparent'), marginTop: '8px', border: '1px solid #2AACB0' }}
+          onClick={() => setForm({ ...form, horarios: [...form.horarios, horarioVacio()] })}>+ Agregar otro horario</button>
+      </fieldset>
+
+      <label style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '13px', marginTop: '12px' }}>
+        <input type="checkbox" checked={form.separa} onChange={e => setForm({ ...form, separa: e.target.checked })} />
+        Requiere separarse de la comida
       </label>
+      {form.separa && (
+        <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+          <label style={{ fontSize: '12px' }}>Horas
+            <select style={campoEstilo} value={form.sepH} onChange={e => setForm({ ...form, sepH: e.target.value })}>
+              {Array.from({ length: 13 }, (_, i) => String(i)).map(v => <option key={v} value={v} style={opcionEstilo}>{v}</option>)}
+            </select>
+          </label>
+          <label style={{ fontSize: '12px' }}>Minutos
+            <select style={campoEstilo} value={form.sepM} onChange={e => setForm({ ...form, sepM: e.target.value })}>
+              {MINUTOS.map(v => <option key={v} value={v} style={opcionEstilo}>{v}</option>)}
+            </select>
+          </label>
+        </div>
+      )}
       <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
         <button style={boton('#2AACB0')} onClick={onGuardar}>Guardar</button>
         <button style={boton('transparent')} onClick={onCancelar}>Cancelar</button>
@@ -379,11 +457,15 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
               <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
                 <button style={boton('#2AACB0')} onClick={() => {
                   setEditando(m.id);
+                  const sep = m.separacion_comida_min || 0;
                   setForm({
                     ...vacio,
                     principio_activo: m.principio_activo || '',
                     dosis: m.dosis || '',
-                    horarios: (m.horarios || []).join(', '),
+                    horarios: (m.horarios && m.horarios.length ? m.horarios : ['08:00']).map(desdeHora24),
+                    separa: sep > 0,
+                    sepH: String(Math.floor(sep / 60)),
+                    sepM: String(sep % 60).padStart(2, '0'),
                   });
                   setMensaje('');
                 }}>Editar</button>
