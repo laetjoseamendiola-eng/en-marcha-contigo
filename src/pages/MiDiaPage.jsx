@@ -30,6 +30,14 @@ function textoMinutos(total) {
   return `${m} min`;
 }
 
+// Muestra una hora "HH:MM" (24 h) en formato de 12 horas: 8:00 a.m., 4:00 p.m.
+function aHora12(hhmm) {
+  if (!hhmm) return '';
+  const [h, m] = hhmm.split(':').map(Number);
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${String(m).padStart(2, '0')} ${h >= 12 ? 'p.m.' : 'a.m.'}`;
+}
+
 function horaAMinutos(hora) {
   const [h, m] = hora.split(':').map(Number);
   return h * 60 + m;
@@ -64,7 +72,7 @@ function VentanaAyuno({ horario, estado, minutos }) {
   const fmtMin = (m) => {
     const h = Math.floor(((m % 1440) + 1440) % 1440 / 60);
     const min = ((m % 1440) + 1440) % 1440 % 60;
-    return `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+    return aHora12(`${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`);
   };
 
   // Mismo color para todas las tomas (pendientes, futuras, tomadas y omitidas) para que se distinga bien
@@ -134,7 +142,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '28px', fontWeight: 'bold', color: 'white' }}>{horaVentana}</span>
+            <span style={{ fontSize: '28px', fontWeight: 'bold', color: 'white' }}>{aHora12(horaVentana)}</span>
             <span style={{ fontSize: '22px' }}>{ESTADO_ICONS[estado]}</span>
           </div>
           {/* Lista de medicamentos */}
@@ -159,7 +167,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
           {estado === 'tomada' && tomaHora && (
             <div style={{ fontSize: '14px', color: '#5dde83', marginTop: '6px', fontWeight: 600 }}>
               ✓ Tomado a las {formatHora(tomaHora)}
-              {horaVentana !== horario && <span style={{ fontWeight: 400, color: 'rgba(255,255,255,0.8)' }}> (programada {horario})</span>}
+              {horaVentana !== horario && <span style={{ fontWeight: 400, color: 'rgba(255,255,255,0.8)' }}> (programada {aHora12(horario)})</span>}
             </div>
           )}
 
@@ -201,7 +209,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
           {/* Omitir una toma que aún no llega: confirmar */}
           {confirmarOmitir && (
             <div style={{ marginTop: '10px', padding: '12px', borderRadius: '10px', background: 'rgba(220,53,69,0.15)' }}>
-              <div style={{ fontSize: '13px', marginBottom: '8px' }}>¿Omitir esta toma de {horario}?</div>
+              <div style={{ fontSize: '13px', marginBottom: '8px' }}>¿Omitir esta toma de {aHora12(horario)}?</div>
               <button disabled={cargando} onClick={() => { setConfirmarOmitir(false); onOmitir(idsPendientes); }}
                 style={{ background: '#dc3545', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 14px', fontFamily: 'inherit', cursor: 'pointer' }}>
                 Sí, omitir
