@@ -1372,6 +1372,25 @@ def generar_reporte(usuario_actual):
             cambios_zona.append({'fecha_local': hora_mostrada, 'zona_anterior': f[1], 'zona_nueva': f[2],
                                  'offset_nuevo': f[3], 'tipo': f[4]})
 
+        # 7. Dosis y horarios vigentes en el período (P62).
+        # Filas anteriores al 10 oct 2026 21:18 están en UTC (decisión de Toño: no se convierten).
+        import json
+        CORTE_HORA_LOCAL = datetime.datetime(2026, 10, 10, 21, 18)
+        filas_dosis = db.session.execute(text("""
+            SELECT h.medicamento_id, m.nombre, h.dosis, h.horarios, h.fecha_inicio, h.fecha_fin
+            FROM historial_dosis h
+            JOIN medicamentos_programados m ON m.id = h.medicamento_id
+            WHERE m.usuario_id = :u AND (h.fecha_fin IS NULL OR h.fecha_fin >= :d)
+            ORDER BY h.medicamento_id, h.fecha_inicio
+        """), {'u': usuario_actual.id, 'd': desde_dt}).fetchall()
+        historial_dosis = [
+            {'medicamento_id': f[0], 'medicamento': f[1], 'dosis': f[2],
+             'horarios': json.loads(f[3] or '[]'),
+             'desde': f[4].isoformat(), 'hasta': f[5].isoformat() if f[5] else None,
+             'hora_utc': f[4] < CORTE_HORA_LOCAL}
+            for f in filas_dosis
+        ]
+
         return jsonify({
             'paciente': {
                 'nombre': usuario_actual.nombre,
@@ -1404,6 +1423,7 @@ def generar_reporte(usuario_actual):
                 'registros': [r.to_dict() for r in registros_diarios],
             },
             'cambios_zona': cambios_zona,
+            'historial_dosis': historial_dosis,
         }), 200
 
     except Exception as e:

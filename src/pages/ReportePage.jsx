@@ -390,6 +390,36 @@ export default function ReportePage({ token, apiUrl }) {
           </div>
         )}
 
+        {/* SECCIÓN: DOSIS Y HORARIOS VIGENTES EN EL PERÍODO (P62) */}
+        <div className="tarjeta-reporte" style={{
+          background: 'rgba(255,255,255,0.04)',
+          border: '1px solid rgba(42,172,176,0.15)',
+          borderRadius: '16px',
+          padding: '20px',
+          marginBottom: '14px',
+        }}>
+          <div style={{ fontSize: '14px', fontWeight: '600', color: '#2AACB0', marginBottom: '10px' }}>
+            💊 Dosis y horarios vigentes ({(reporte.historial_dosis || []).length})
+          </div>
+          {(reporte.historial_dosis || []).length === 0 && (
+            <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>
+              Sin registros de dosis en el período.
+            </div>
+          )}
+          {(reporte.historial_dosis || []).map((h, i) => (
+            <div key={i} className="texto-reporte" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginBottom: '8px' }}>
+              <strong>{h.medicamento}</strong>: {h.dosis}, a las {h.horarios.join(' y ')}
+              <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>
+                Desde {new Date(h.desde).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })}
+                {' · '}{h.hasta
+                  ? `hasta ${new Date(h.hasta).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })}`
+                  : 'vigente'}
+                {h.hora_utc ? ' · (hora UTC, registro anterior al 10 oct 9:18 p.m.)' : ''}
+              </div>
+            </div>
+          ))}
+        </div>
+
         {/* SECCIÓN: CAMBIOS DE ZONA HORARIA (para interpretar jetlag, dosis de más o de menos) */}
         <div className="tarjeta-reporte" style={{
           background: 'rgba(255,255,255,0.04)',
