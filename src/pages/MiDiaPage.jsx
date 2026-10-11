@@ -135,7 +135,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '28px', fontWeight: 'bold', color: 'white' }}>{horario}</span>
+            <span style={{ fontSize: '28px', fontWeight: 'bold', color: 'white' }}>{horaVentana}</span>
             <span style={{ fontSize: '22px' }}>{ESTADO_ICONS[estado]}</span>
           </div>
           {/* Lista de medicamentos */}
@@ -158,8 +158,9 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
 
           {/* Hora real de toma */}
           {estado === 'tomada' && tomaHora && (
-            <div style={{ fontSize: '12px', color: 'rgba(40,167,69,0.9)', marginTop: '6px' }}>
+            <div style={{ fontSize: '14px', color: '#5dde83', marginTop: '6px', fontWeight: 600 }}>
               ✓ Tomado a las {formatHora(tomaHora)}
+              {horaVentana !== horario && <span style={{ fontWeight: 400, color: 'rgba(255,255,255,0.8)' }}> (programada {horario})</span>}
             </div>
           )}
 
