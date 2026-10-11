@@ -1373,21 +1373,22 @@ def generar_reporte(usuario_actual):
                                  'offset_nuevo': f[3], 'tipo': f[4]})
 
         # 7. Dosis y horarios vigentes en el período (P62).
-        # Filas anteriores al 10 oct 2026 21:18 están en UTC (decisión de Toño: no se convierten).
+        # Filas con id <= ULTIMA_FILA_UTC se guardaron en UTC (antes del cambio a hora local, 10 oct 2026 20:53).
+        # Se marcan por número de fila porque las fechas de UTC y de hora local se mezclan en el tiempo.
         import json
-        CORTE_HORA_LOCAL = datetime.datetime(2026, 10, 10, 21, 18)
+        ULTIMA_FILA_UTC = 7
         filas_dosis = db.session.execute(text("""
-            SELECT h.medicamento_id, m.nombre, h.dosis, h.horarios, h.fecha_inicio, h.fecha_fin
+            SELECT h.id, h.medicamento_id, m.nombre, h.dosis, h.horarios, h.fecha_inicio, h.fecha_fin
             FROM historial_dosis h
             JOIN medicamentos_programados m ON m.id = h.medicamento_id
             WHERE m.usuario_id = :u AND (h.fecha_fin IS NULL OR h.fecha_fin >= :d)
             ORDER BY h.medicamento_id, h.fecha_inicio
         """), {'u': usuario_actual.id, 'd': desde_dt}).fetchall()
         historial_dosis = [
-            {'medicamento_id': f[0], 'medicamento': f[1], 'dosis': f[2],
-             'horarios': json.loads(f[3] or '[]'),
-             'desde': f[4].isoformat(), 'hasta': f[5].isoformat() if f[5] else None,
-             'hora_utc': f[4] < CORTE_HORA_LOCAL}
+            {'medicamento_id': f[1], 'medicamento': f[2], 'dosis': f[3],
+             'horarios': json.loads(f[4] or '[]'),
+             'desde': f[5].isoformat(), 'hasta': f[6].isoformat() if f[6] else None,
+             'hora_utc': f[0] <= ULTIMA_FILA_UTC}
             for f in filas_dosis
         ]
 
