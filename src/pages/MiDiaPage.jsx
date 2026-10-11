@@ -246,10 +246,10 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginLeft: '12px' }}>
             <button
               onClick={() => {
-                // Dentro de 30 minutos de la hora programada se registra con la hora de ahora.
-                // Fuera de ese margen (antes o después) se pregunta a qué hora se tomó.
-                const diferencia = Math.abs(ahora() - horaAMinutos(horario));
-                if (diferencia <= 30) onTomar(idsPendientes);
+                // Antes de la hora programada, o hasta 30 min después: se registra con la hora de ahora.
+                // Más de 30 min después de la hora programada: se pregunta a qué hora se tomó.
+                const minutosTarde = ahora() - horaAMinutos(horario);
+                if (minutosTarde <= 30) onTomar(idsPendientes);
                 else setPanelHora(true);
               }}
               disabled={cargando}
