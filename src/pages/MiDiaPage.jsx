@@ -265,8 +265,13 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
               onClick={() => {
                 // Antes de la hora programada, o hasta 30 min después: se registra con la hora de ahora.
                 // Más de 30 min después de la hora programada: se pregunta a qué hora se tomó.
+                // P72: si la toma es de otro día (por ejemplo, de ayer), siempre se pregunta la hora.
+                const fechaToma = bloque.tomas?.[0]?.fecha_programada;
+                const hoyLocal = new Date();
+                const hoyISO = `${hoyLocal.getFullYear()}-${String(hoyLocal.getMonth() + 1).padStart(2, '0')}-${String(hoyLocal.getDate()).padStart(2, '0')}`;
+                const esDeOtroDia = !!fechaToma && fechaToma.slice(0, 10) !== hoyISO;
                 const minutosTarde = ahora() - horaAMinutos(horario);
-                if (minutosTarde <= 30) onTomar(idsPendientes);
+                if (!esDeOtroDia && minutosTarde <= 30) onTomar(idsPendientes);
                 else setPanelHora(true);
               }}
               disabled={cargando}
