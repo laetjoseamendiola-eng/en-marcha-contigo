@@ -807,6 +807,16 @@ def editar_medicamento(usuario_actual, med_id):
             )
             med.dosis = nueva_dosis
             med.horarios = json.dumps(horarios_nuevos)
+            if cambia_horarios:
+                # Al quitar un horario, se borran sus tomas de HOY que siguen pendientes (no tomadas ni omitidas).
+                # Las tomas ya registradas no se tocan. Así no queda una toma pendiente de un horario que ya no existe (P69).
+                hoy_inicio = ahora_local.replace(hour=0, minute=0, second=0, microsecond=0)
+                for h_quitado in [h for h in horarios_actuales if h not in horarios_nuevos]:
+                    db.session.execute(text("""
+                        DELETE FROM tomas_registradas
+                        WHERE medicamento_id = :m AND horario_programado = :h
+                          AND tomada = false AND omitida = false AND fecha_programada >= :hoy
+                    """), {'m': med.id, 'h': h_quitado, 'hoy': hoy_inicio})
 
         if 'principio_activo' in data and (data['principio_activo'] or '').strip():
             nueva = data['principio_activo'].strip()
