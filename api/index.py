@@ -681,6 +681,28 @@ def listar_medicamentos(usuario_actual):
         return jsonify({'error': str(e)}), 500
 
 
+def validar_horarios(lista):
+    """Devuelve la lista de horarios HH:MM (24 h) válidos, ordenada y sin repetir. None si alguno no es válido."""
+    import re
+    if not isinstance(lista, list) or not lista:
+        return None
+    limpios = set()
+    for h in lista:
+        if not isinstance(h, str) or not re.fullmatch(r'([01]\d|2[0-3]):[0-5]\d', h.strip()):
+            return None
+        limpios.add(h.strip())
+    return sorted(limpios)
+
+
+def validar_separacion(valor):
+    """Minutos de separación de comida (0 a 1440). None si no es válido."""
+    try:
+        minutos = int(valor or 0)
+    except (TypeError, ValueError):
+        return None
+    return minutos if 0 <= minutos <= 1440 else None
+
+
 @app.route('/api/medicamentos', methods=['POST'])
 @token_requerido
 def crear_medicamento(usuario_actual):
@@ -693,17 +715,20 @@ def crear_medicamento(usuario_actual):
     horarios = data.get('horarios') or []
     if not sustancia or not dosis or not horarios:
         return jsonify({'error': 'Sustancia activa, dosis y al menos un horario son obligatorios'}), 400
+    horarios_limpios = validar_horarios(horarios)
+    if not horarios_limpios:
+        return jsonify({'error': 'Cada horario debe ser una hora real (HH:MM, 00:00 a 23:59)'}), 400
+    separacion = validar_separacion(data.get('separacion_comida_min', 0))
+    if separacion is None:
+        return jsonify({'error': 'El tiempo de separación debe ser entre 0 y 1440 minutos'}), 400
     try:
-        horarios_limpios = sorted({h.strip() for h in horarios if h and ':' in h})
-        if not horarios_limpios:
-            return jsonify({'error': 'Horario con formato HH:MM'}), 400
         nuevo = MedicamentoProgramado(
             usuario_id=usuario_actual.id,
             nombre=sustancia,               # el nombre visible es la sustancia activa
             principio_activo=sustancia,
             dosis=dosis,
             horarios=json.dumps(horarios_limpios),
-            separacion_comida_min=0,
+            separacion_comida_min=separacion,
             activo=True,
         )
         db.session.add(nuevo)
@@ -731,9 +756,16 @@ def editar_medicamento(usuario_actual, med_id):
     nueva_dosis = (data.get('dosis') if 'dosis' in data else med.dosis) or ''
     nueva_dosis = nueva_dosis.strip()
     if 'horarios' in data:
-        horarios_nuevos = sorted({h.strip() for h in (data.get('horarios') or []) if h and ':' in h})
+        horarios_nuevos = validar_horarios(data.get('horarios'))
+        if not horarios_nuevos:
+            return jsonify({'error': 'Cada horario debe ser una hora real (HH:MM, 00:00 a 23:59)'}), 400
     else:
         horarios_nuevos = json.loads(med.horarios or '[]')
+    separacion_nueva = None
+    if 'separacion_comida_min' in data:
+        separacion_nueva = validar_separacion(data.get('separacion_comida_min'))
+        if separacion_nueva is None:
+            return jsonify({'error': 'El tiempo de separación debe ser entre 0 y 1440 minutos'}), 400
     if 'principio_activo' in data and not (data.get('principio_activo') or '').strip():
         return jsonify({'error': 'La sustancia activa no puede quedar vacía'}), 400
     if not nueva_dosis or not horarios_nuevos:
@@ -774,6 +806,8 @@ def editar_medicamento(usuario_actual, med_id):
             nueva = data['principio_activo'].strip()
             med.principio_activo = nueva
             med.nombre = nueva
+        if separacion_nueva is not None:
+            med.separacion_comida_min = separacion_nueva
         db.session.commit()
         return jsonify(med.to_dict()), 200
     except Exception as e:
@@ -928,7 +962,7 @@ def registrar_toma(usuario_actual, toma_id):
         toma.fecha_toma_real = ahora
         toma.desvio_minutos = desvio
 
-        datos = request.get_json() or {}
+        datos = request.get_json(silent=True) or {}
         if datos.get('notas'):
             toma.notas = datos['notas']
 
@@ -955,7 +989,7 @@ def omitir_toma(usuario_actual, toma_id):
 
         toma.omitida = True
         toma.tomada = False
-        datos = request.get_json() or {}
+        datos = request.get_json(silent=True) or {}
         if datos.get('notas'):
             toma.notas = datos['notas']
 
