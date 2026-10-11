@@ -785,16 +785,17 @@ export default function MiDiaPage({ token, apiUrl }) {
       <ResumenDia tomas={todasLasTomas} />
 
       {/* Bloques de toma (la rutina del día la escribe cada persona; ya no hay texto fijo) */}
-      {bloques.map((bloque) => (
+      {/* Una tarjeta por medicamento, aunque sea a la misma hora (cada toma se marca por separado) */}
+      {bloques.flatMap((bloque) => (bloque.tomas || []).map((toma) => (
         <TarjetaToma
-          key={bloque.horario}
-          bloque={bloque}
+          key={`${bloque.horario}-${toma.id}`}
+          bloque={{ horario: bloque.horario, tomas: [toma] }}
           onTomar={handleTomar}
           onOmitir={handleOmitir}
           onDeshacer={handleDeshacer}
           cargando={accionCargando}
         />
-      ))}
+      )))}
 
       {/* Nota informativa: sustancia activa, no nombre comercial */}
       {sustanciasAyuno.length > 0 && (
