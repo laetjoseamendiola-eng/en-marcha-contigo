@@ -110,14 +110,14 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
 
   const colorBorde = {
     tomada: 'rgba(40,167,69,0.5)',
-    omitida: 'rgba(220,53,69,0.4)',
+    omitida: 'rgba(255,226,89,0.85)',
     pendiente: 'rgba(42,172,176,0.5)',
     futura: 'rgba(255,255,255,0.1)'
   }[estado];
 
   const colorFondo = {
     tomada: 'rgba(40,167,69,0.08)',
-    omitida: 'rgba(220,53,69,0.06)',
+    omitida: 'rgba(255,226,89,0.12)',
     pendiente: 'rgba(42,172,176,0.08)',
     futura: 'rgba(255,255,255,0.03)'
   }[estado];
