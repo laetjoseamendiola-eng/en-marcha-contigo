@@ -67,15 +67,14 @@ function VentanaAyuno({ horario, estado, minutos }) {
     return `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
   };
 
-  const activa = estado === 'pendiente' || estado === 'tomada';
-
+  // Mismo color para todas las tomas (pendientes, futuras, tomadas y omitidas) para que se distinga bien
   return (
     <div style={{
       display: 'flex',
       alignItems: 'center',
       gap: '6px',
       fontSize: '12px',
-      color: activa ? 'rgba(255,193,7,0.9)' : 'rgba(255,255,255,0.3)',
+      color: 'rgba(255,193,7,0.9)',
       marginTop: '4px'
     }}>
       <span>🍽️</span>
