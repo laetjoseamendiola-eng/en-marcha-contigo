@@ -8,6 +8,15 @@ const COLOR_ESTADO = {
   DORMIDO: { color: '#4A5568', label: 'Dormido', emoji: '😴' },
 };
 
+// Convierte "22:15" a "10:15 p.m." (12 horas, igual que "Mi día").
+function horaCorta12(hhmm) {
+  if (!hhmm) return '';
+  const [h, m] = String(hhmm).split(':').map(Number);
+  if (Number.isNaN(h)) return hhmm;
+  const d = new Date(2000, 0, 1, h, Number.isNaN(m) ? 0 : m);
+  return d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+}
+
 const NO_MOTOR_LABELS = {
   energia: { emoji: '⚡', label: 'Fatiga/Energía' },
   calidad_sueno: { emoji: '🌙', label: 'Sueño nocturno' },
@@ -408,7 +417,7 @@ export default function ReportePage({ token, apiUrl }) {
           )}
           {(reporte.historial_dosis || []).map((h, i) => (
             <div key={i} className="texto-reporte" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginBottom: '8px' }}>
-              <strong>{h.medicamento}</strong>: {h.dosis}, a las {h.horarios.join(' y ')}
+              <strong>{h.medicamento}</strong>: {h.dosis}, a las {h.horarios.map(horaCorta12).join(' y ')}
               <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>
                 Desde {new Date(h.desde).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })}{h.hora_utc ? ' UTC' : ''}
                 {' · '}{h.hasta
@@ -438,7 +447,7 @@ export default function ReportePage({ token, apiUrl }) {
           )}
           {(reporte.tomas_dosis || []).map((t, i) => (
             <div key={i} className="texto-reporte" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginBottom: '8px' }}>
-              <strong>{t.medicamento}</strong> · {t.horario} · {t.tomada ? 'tomada' : t.omitida ? 'omitida' : 'pendiente'}
+              <strong>{t.medicamento}</strong> · {horaCorta12(t.horario)} ·{t.tomada ? 'tomada' : t.omitida ? 'omitida' : 'pendiente'}
               <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>
                 {t.dosis_vigente
                   ? `Dosis vigente: ${t.dosis_vigente}${t.fuente === 'historial' ? '' : ' (dosis actual, sin cambios registrados)'}`

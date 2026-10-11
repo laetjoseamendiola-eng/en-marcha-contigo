@@ -54,6 +54,15 @@ function formatHora(isoStr) {
   return d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
 }
 
+// Convierte "22:15" a "10:15 p.m." (12 horas, igual que el reloj de la pantalla).
+function horaCorta12(hhmm) {
+  if (!hhmm) return '';
+  const [h, m] = String(hhmm).split(':').map(Number);
+  if (Number.isNaN(h)) return hhmm;
+  const d = new Date(2000, 0, 1, h, Number.isNaN(m) ? 0 : m);
+  return d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+}
+
 function getEstadoBloque(tomas, horario) {
   // Si alguna toma del bloque fue tomada
   if (tomas.some(t => t.tomada)) return 'tomada';
@@ -550,7 +559,7 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
           <div key={m.id} style={{ marginTop: '12px', padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)' }}>
             <div style={{ fontWeight: 600 }}>{m.principio_activo || 'Sin sustancia registrada'}</div>
             <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)' }}>
-              {m.dosis} · {(m.horarios || []).join(', ')}
+              {m.dosis} · {(m.horarios || []).map(horaCorta12).join(', ')}
             </div>
 
             {editando === m.id ? (
