@@ -420,6 +420,32 @@ export default function ReportePage({ token, apiUrl }) {
           ))}
         </div>
 
+        {/* SECCIÓN: DOSIS VIGENTE EN CADA TOMA (P62 por toma) */}
+        <div className="tarjeta-reporte" style={{
+          background: 'rgba(255,255,255,0.04)',
+          border: '1px solid rgba(42,172,176,0.15)',
+          borderRadius: '16px',
+          padding: '20px',
+          marginBottom: '14px',
+        }}>
+          <div style={{ fontSize: '14px', fontWeight: '600', color: '#2AACB0', marginBottom: '10px' }}>
+            🕒 Tomas y dosis vigente ({(reporte.tomas_dosis || []).length})
+          </div>
+          {(reporte.tomas_dosis || []).length === 0 && (
+            <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>
+              Sin tomas programadas en el período.
+            </div>
+          )}
+          {(reporte.tomas_dosis || []).map((t, i) => (
+            <div key={i} className="texto-reporte" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginBottom: '8px' }}>
+              <strong>{t.medicamento}</strong> · {t.horario} · {t.tomada ? 'tomada' : t.omitida ? 'omitida' : 'pendiente'}
+              <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>
+                Dosis vigente: {t.dosis_vigente || 'sin dato'}{t.fuente && t.fuente !== 'historial' ? ` (${t.fuente})` : ''}
+              </div>
+            </div>
+          ))}
+        </div>
+
         {/* SECCIÓN: CAMBIOS DE ZONA HORARIA (para interpretar jetlag, dosis de más o de menos) */}
         <div className="tarjeta-reporte" style={{
           background: 'rgba(255,255,255,0.04)',

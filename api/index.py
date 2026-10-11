@@ -1392,6 +1392,37 @@ def generar_reporte(usuario_actual):
             for f in filas_dosis
         ]
 
+        # 8. Dosis vigente en cada toma del período (P62 por toma).
+        # Filas id <= ULTIMA_FILA_UTC están en UTC: se pasan a hora local restando 6 horas (hora de CDMX en esa fecha).
+        # Si un medicamento no tiene filas de historial, se usa su dosis actual (no ha habido cambios registrados).
+        vigencias = []
+        for f in filas_dosis:
+            es_utc = f[0] <= ULTIMA_FILA_UTC
+            desde_loc = f[5] - datetime.timedelta(hours=6) if es_utc else f[5]
+            hasta_loc = None
+            if f[6]:
+                hasta_loc = f[6] - datetime.timedelta(hours=6) if es_utc else f[6]
+            vigencias.append((f[1], f[3], desde_loc, hasta_loc))
+        meds_con_historial = {v[0] for v in vigencias}
+        tomas_dosis = []
+        for t in sorted(tomas, key=lambda x: x.fecha_programada):
+            dosis_vigente, fuente = None, 'historial'
+            for med_id, dosis, desde_loc, hasta_loc in vigencias:
+                if med_id == t.medicamento_id and desde_loc <= t.fecha_programada and (hasta_loc is None or t.fecha_programada < hasta_loc):
+                    dosis_vigente = dosis
+                    break
+            if dosis_vigente is None and t.medicamento_id not in meds_con_historial and t.medicamento:
+                dosis_vigente, fuente = t.medicamento.dosis, 'dosis actual (sin cambios registrados)'
+            tomas_dosis.append({
+                'medicamento': t.medicamento.nombre if t.medicamento else None,
+                'horario': t.horario_programado,
+                'fecha_programada': t.fecha_programada.isoformat(),
+                'tomada': bool(t.tomada),
+                'omitida': bool(t.omitida),
+                'dosis_vigente': dosis_vigente,
+                'fuente': fuente if dosis_vigente else 'sin registro de dosis para esa hora',
+            })
+
         return jsonify({
             'paciente': {
                 'nombre': usuario_actual.nombre,
@@ -1425,6 +1456,7 @@ def generar_reporte(usuario_actual):
             },
             'cambios_zona': cambios_zona,
             'historial_dosis': historial_dosis,
+            'tomas_dosis': tomas_dosis,
         }), 200
 
     except Exception as e:
