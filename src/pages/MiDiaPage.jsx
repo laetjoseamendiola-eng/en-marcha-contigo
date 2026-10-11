@@ -22,7 +22,13 @@ const ESTADO_ICONS = {
 };
 
 // Ventana de ayuno en minutos antes y después de cada toma
-const AYUNO_MINUTOS = 60;
+// Texto del tiempo de separación: "45 min", "1 h", "1 h 30 min".
+function textoMinutos(total) {
+  const h = Math.floor(total / 60), m = total % 60;
+  if (h && m) return `${h} h ${m} min`;
+  if (h) return `${h} h`;
+  return `${m} min`;
+}
 
 function horaAMinutos(hora) {
   const [h, m] = hora.split(':').map(Number);
@@ -50,10 +56,10 @@ function getEstadoBloque(tomas, horario) {
   return 'pendiente';
 }
 
-function VentanaAyuno({ horario, estado }) {
+function VentanaAyuno({ horario, estado, minutos }) {
   const minHorario = horaAMinutos(horario);
-  const inicio = minHorario - AYUNO_MINUTOS;
-  const fin = minHorario + AYUNO_MINUTOS;
+  const inicio = minHorario - minutos;
+  const fin = minHorario + minutos;
 
   const fmtMin = (m) => {
     const h = Math.floor(((m % 1440) + 1440) % 1440 / 60);
@@ -95,7 +101,9 @@ function TarjetaToma({ bloque, onTomar, onOmitir, cargando }) {
   const tomaHora = tomas.find(t => t.tomada)?.fecha_toma_real;
   // Ids de las tomas que aún no están marcadas (cada toma tiene su propio id)
   const idsPendientes = tomas.filter(t => !t.tomada && !t.omitida).map(t => t.id);
-  const tieneAyuno = medicamentos.some(m => (m.separacion_comida_min || 0) > 0);
+  // Separación de comida de este bloque: la mayor de sus medicamentos (minutos antes y después)
+  const minutosAyuno = Math.max(0, ...medicamentos.map(m => m.separacion_comida_min || 0));
+  const tieneAyuno = minutosAyuno > 0;
 
   const colorBorde = {
     tomada: 'rgba(40,167,69,0.5)',
@@ -204,7 +212,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, cargando }) {
 
           {/* Ventana de ayuno: sólo si el medicamento lo requiere (dato de su registro) */}
           {tieneAyuno && (
-            <VentanaAyuno horario={horario} estado={estado} />
+            <VentanaAyuno horario={horario} estado={estado} minutos={minutosAyuno} />
           )}
         </div>
 
@@ -688,11 +696,13 @@ export default function MiDiaPage({ token, apiUrl }) {
   }
 
   // Sustancias activas del día (para el pie de la ventana de ayuno), sin nombres comerciales
-  const sustanciasAyuno = [...new Set(
-    bloques.flatMap(b => (b.tomas || []))
-      .filter(t => (t.separacion_comida_min || 0) > 0 && t.principio_activo)
-      .map(t => t.principio_activo)
-  )];
+  const ayunoPorSustancia = {};
+  bloques.flatMap(b => (b.tomas || []))
+    .filter(t => (t.separacion_comida_min || 0) > 0 && t.principio_activo)
+    .forEach(t => {
+      ayunoPorSustancia[t.principio_activo] = Math.max(ayunoPorSustancia[t.principio_activo] || 0, t.separacion_comida_min);
+    });
+  const sustanciasAyuno = Object.keys(ayunoPorSustancia);
 
   return (
     <div style={{ padding: '16px 16px 32px', maxWidth: '600px', margin: '0 auto', color: 'white' }}>
@@ -765,7 +775,7 @@ export default function MiDiaPage({ token, apiUrl }) {
           textAlign: 'center',
           lineHeight: '1.6'
         }}>
-          🍽️ Ventana de ayuno: 1 hora antes y 1 hora después de cada toma de {sustanciasAyuno.join(', ')}
+          🍽️ Ventana de ayuno: {sustanciasAyuno.map(s => `${textoMinutos(ayunoPorSustancia[s])} antes y después de cada toma de ${s}`).join('; ')}
         </div>
       )}
     </div>
