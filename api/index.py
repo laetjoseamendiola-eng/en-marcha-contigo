@@ -1028,6 +1028,8 @@ def registrar_toma(usuario_actual, toma_id):
             ahora = datetime.datetime.now(datetime.timezone.utc).astimezone(zona).replace(tzinfo=None)
         desvio = int((ahora - toma.fecha_programada).total_seconds() / 60)
 
+        # P66: hora de captura (cuando el paciente registró la toma), en hora local del paciente
+        toma.fecha_registro = datetime.datetime.now(datetime.timezone.utc).astimezone(zona).replace(tzinfo=None)
         toma.tomada = True
         toma.omitida = False
         toma.fecha_toma_real = ahora
@@ -1447,6 +1449,15 @@ def generar_reporte(usuario_actual):
                     break
             if dosis_vigente is None and t.medicamento_id not in meds_con_historial and t.medicamento:
                 dosis_vigente, fuente = t.medicamento.dosis, 'dosis actual (sin cambios registrados)'
+            # P65: toma fuera de horario = hora real más de 30 min después (o antes) de la programada.
+            # P66: registro extemporáneo = captura más de 30 min después de la hora real de la toma.
+            fuera_de_horario = bool(t.tomada and t.fecha_toma_real and
+                                    abs((t.fecha_toma_real - t.fecha_programada).total_seconds()) > 30 * 60)
+            # Solo cuentan las capturas hechas desde este cambio (hora local). Antes, fecha_registro era la hora UTC
+            # de creación de la toma y no sirve para medir la captura.
+            registro_extemporaneo = bool(t.tomada and t.fecha_toma_real and t.fecha_registro and
+                                         t.fecha_registro >= datetime.datetime(2026, 10, 11, 2, 30) and
+                                         (t.fecha_registro - t.fecha_toma_real).total_seconds() > 30 * 60)
             tomas_dosis.append({
                 'medicamento': t.medicamento.nombre if t.medicamento else None,
                 'horario': t.horario_programado,
@@ -1455,6 +1466,8 @@ def generar_reporte(usuario_actual):
                 'omitida': bool(t.omitida),
                 'dosis_vigente': dosis_vigente,
                 'fuente': fuente if dosis_vigente else 'sin registro de dosis para esa hora',
+                'fuera_de_horario': fuera_de_horario,
+                'registro_extemporaneo': registro_extemporaneo,
             })
 
         return jsonify({

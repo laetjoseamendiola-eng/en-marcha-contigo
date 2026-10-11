@@ -103,6 +103,7 @@ function VentanaAyuno({ horario, estado, minutos }) {
 function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
   const { horario, tomas = [] } = bloque;
   const [panelHora, setPanelHora] = useState(false);       // "¿A qué hora la tomó?"
+  const [preguntaTardio, setPreguntaTardio] = useState(false); // P66: "¿Es un registro tardío?"
   const [confirmarOmitir, setConfirmarOmitir] = useState(false);
   const [hr, setHr] = useState(horaAhoraEnZona());
   // Medicamentos del bloque, tomados de cada toma (nombre y sustancia activa)
@@ -177,6 +178,24 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
             <div style={{ fontSize: '14px', color: '#5dde83', marginTop: '6px', fontWeight: 600 }}>
               ✓ Tomado a las {formatHora(tomaHora)}
               {horaVentana !== horario && <span style={{ fontWeight: 400, color: 'rgba(255,255,255,0.8)' }}> (programada {aHora12(horario)})</span>}
+            </div>
+          )}
+
+          {/* P66: primero el pop-up "¿Es un registro tardío?"; después se pide la hora real.
+              La respuesta no se guarda (opción 1): la etiqueta sale de las horas guardadas. */}
+          {preguntaTardio && (
+            <div style={{ marginTop: '10px', padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)' }}>
+              <div style={{ fontSize: '13px', marginBottom: '8px' }}>¿Es un registro tardío?</div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button onClick={() => { setPreguntaTardio(false); setPanelHora(true); }}
+                  style={{ background: '#2AACB0', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 14px', fontFamily: 'inherit', cursor: 'pointer' }}>
+                  Sí, es tardío
+                </button>
+                <button onClick={() => { setPreguntaTardio(false); setPanelHora(true); }}
+                  style={{ background: 'transparent', color: 'white', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '8px', padding: '8px 14px', fontFamily: 'inherit', cursor: 'pointer' }}>
+                  No
+                </button>
+              </div>
             </div>
           )}
 
@@ -272,7 +291,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
                 const esDeOtroDia = !!fechaToma && fechaToma.slice(0, 10) !== hoyISO;
                 const minutosTarde = ahora() - horaAMinutos(horario);
                 if (!esDeOtroDia && minutosTarde <= 30) onTomar(idsPendientes);
-                else setPanelHora(true);
+                else setPreguntaTardio(true);
               }}
               disabled={cargando}
               style={{

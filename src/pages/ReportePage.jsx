@@ -448,6 +448,14 @@ export default function ReportePage({ token, apiUrl }) {
           {(reporte.tomas_dosis || []).map((t, i) => (
             <div key={i} className="texto-reporte" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginBottom: '8px' }}>
               <strong>{t.medicamento}</strong> · {horaCorta12(t.horario)} ·{t.tomada ? 'tomada' : t.omitida ? 'omitida' : 'pendiente'}
+              {(t.fuera_de_horario || t.registro_extemporaneo) && (
+                <div style={{ fontSize: '12px', color: '#FFD84D', fontWeight: '600' }}>
+                  {/* Texto además del color, por ser daltónico */}
+                  {t.fuera_de_horario && 'Toma fuera de horario'}
+                  {t.fuera_de_horario && t.registro_extemporaneo && ' · '}
+                  {t.registro_extemporaneo && 'Registro extemporáneo'}
+                </div>
+              )}
               <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>
                 {t.dosis_vigente
                   ? `Dosis vigente: ${t.dosis_vigente}${t.fuente === 'historial' ? '' : ' (dosis actual, sin cambios registrados)'}`
