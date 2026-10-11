@@ -890,12 +890,17 @@ def tomas_hoy(usuario_actual):
         ahora_local = datetime.datetime.now(datetime.timezone.utc).astimezone(zona)
         hoy = ahora_local.date()
 
+        # Modo "ayer" (P72): solo muestra las tomas que ya existen del día de ayer.
+        # No genera tomas nuevas para ayer, para no inflar el reporte con tomas que nunca se programaron.
+        ver_ayer = request.args.get('ayer') == '1'
+        dia_ver = hoy - datetime.timedelta(days=1) if ver_ayer else hoy
+
         medicamentos = MedicamentoProgramado.query.filter_by(
             usuario_id=usuario_actual.id, activo=True
         ).all()
 
         tomas_generadas = []
-        for med in medicamentos:
+        for med in ([] if ver_ayer else medicamentos):
             horarios = json.loads(med.horarios)
             for horario in horarios:
                 hora, minuto = map(int, horario.split(':'))
@@ -929,8 +934,8 @@ def tomas_hoy(usuario_actual):
         # Recuperar todas las tomas de hoy ordenadas por hora
         tomas = TomaRegistrada.query.filter(
             TomaRegistrada.usuario_id == usuario_actual.id,
-            TomaRegistrada.fecha_programada >= datetime.datetime(hoy.year, hoy.month, hoy.day),
-            TomaRegistrada.fecha_programada < datetime.datetime(hoy.year, hoy.month, hoy.day) + datetime.timedelta(days=1)
+            TomaRegistrada.fecha_programada >= datetime.datetime(dia_ver.year, dia_ver.month, dia_ver.day),
+            TomaRegistrada.fecha_programada < datetime.datetime(dia_ver.year, dia_ver.month, dia_ver.day) + datetime.timedelta(days=1)
         ).order_by(TomaRegistrada.fecha_programada.asc()).all()
 
         # Solo se muestran las tomas del plan vigente. Una toma vieja (horario cambiado o medicamento quitado)
@@ -967,7 +972,8 @@ def tomas_hoy(usuario_actual):
                 bloques[h]['alguna_omitida'] = True
 
         return jsonify({
-            'fecha': hoy.isoformat(),
+            'fecha': dia_ver.isoformat(),
+            'es_ayer': ver_ayer,
             'bloques': list(bloques.values()),
         }), 200
 

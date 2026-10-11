@@ -626,6 +626,8 @@ export default function MiDiaPage({ token, apiUrl }) {
   const [cargando, setCargando] = useState(true);
   const [accionCargando, setAccionCargando] = useState(false);
   const [mensaje, setMensaje] = useState('');
+  // P72: ver las tomas de ayer (solo durante el día siguiente, por el propio diseño de la ventana)
+  const [verAyer, setVerAyer] = useState(false);
 
   const headers = {
     'Content-Type': 'application/json',
@@ -634,7 +636,7 @@ export default function MiDiaPage({ token, apiUrl }) {
 
   const cargarTomas = useCallback(async () => {
     try {
-      const res = await fetch(`${apiUrl}/api/tomas/hoy?zona=${encodeURIComponent(zonaDelPaciente())}`, { headers });
+      const res = await fetch(`${apiUrl}/api/tomas/hoy?zona=${encodeURIComponent(zonaDelPaciente())}${verAyer ? '&ayer=1' : ''}`, { headers });
       if (res.ok) {
         const data = await res.json();
         setBloques(data.bloques || []);
@@ -647,7 +649,7 @@ export default function MiDiaPage({ token, apiUrl }) {
     } finally {
       setCargando(false);
     }
-  }, [apiUrl, token]);
+  }, [apiUrl, token, verAyer]);
 
   useEffect(() => {
     cargarTomas();
@@ -696,6 +698,9 @@ export default function MiDiaPage({ token, apiUrl }) {
   };
 
   const hoy = new Date().toLocaleDateString('es-MX', {
+    weekday: 'long', day: 'numeric', month: 'long'
+  });
+  const fechaAyer = new Date(Date.now() - 24 * 60 * 60 * 1000).toLocaleDateString('es-MX', {
     weekday: 'long', day: 'numeric', month: 'long'
   });
 
@@ -763,7 +768,7 @@ export default function MiDiaPage({ token, apiUrl }) {
       {/* Fecha */}
       <div style={{ marginBottom: '16px' }}>
         <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)', textTransform: 'capitalize' }}>
-          {hoy}
+          {verAyer ? `Ayer: ${fechaAyer}` : hoy}
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginTop: '2px' }}>
           <div style={{ fontSize: '20px', fontWeight: '600', color: 'white' }}>
@@ -780,6 +785,19 @@ export default function MiDiaPage({ token, apiUrl }) {
           </button>
         </div>
       </div>
+
+      {/* P72: botón de ayer. Texto completo (no depende del color). Solo ver y corregir tomas de ayer */}
+      <button
+        onClick={() => setVerAyer(v => !v)}
+        style={{
+          width: '100%', marginBottom: '16px', padding: '10px 16px', borderRadius: '10px',
+          background: verAyer ? 'rgba(42,172,176,0.2)' : 'transparent',
+          color: '#2AACB0', border: '1px solid #2AACB0',
+          fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'center'
+        }}
+      >
+        {verAyer ? 'Volver a las tomas de hoy' : 'Ver tomas de ayer'}
+      </button>
 
       {menuAbierto && (
         <MenuMedicamentos
