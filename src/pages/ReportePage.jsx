@@ -410,11 +410,11 @@ export default function ReportePage({ token, apiUrl }) {
             <div key={i} className="texto-reporte" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginBottom: '8px' }}>
               <strong>{h.medicamento}</strong>: {h.dosis}, a las {h.horarios.join(' y ')}
               <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>
-                Desde {new Date(h.desde).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })}
+                Desde {new Date(h.desde).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })}{h.hora_utc ? ' UTC' : ''}
                 {' · '}{h.hasta
-                  ? `hasta ${new Date(h.hasta).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })}`
+                  ? `hasta ${new Date(h.hasta).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })}${h.hora_utc ? ' UTC' : ''}`
                   : 'vigente'}
-                {h.hora_utc ? ' · (hora UTC, registro anterior al 10 oct 9:18 p.m.)' : ''}
+                {h.hora_utc ? ' · registrado en hora UTC, antes del cambio a hora local' : ''}
               </div>
             </div>
           ))}
