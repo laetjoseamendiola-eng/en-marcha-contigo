@@ -1456,7 +1456,7 @@ def generar_reporte(usuario_actual):
             # Solo cuentan las capturas hechas desde este cambio (hora local). Antes, fecha_registro era la hora UTC
             # de creación de la toma y no sirve para medir la captura.
             registro_extemporaneo = bool(t.tomada and t.fecha_toma_real and t.fecha_registro and
-                                         t.fecha_registro >= datetime.datetime(2026, 10, 11, 2, 30) and
+                                         t.fecha_registro >= datetime.datetime(2026, 10, 11, 2, 0) and
                                          (t.fecha_registro - t.fecha_toma_real).total_seconds() > 30 * 60)
             tomas_dosis.append({
                 'medicamento': t.medicamento.nombre if t.medicamento else None,
