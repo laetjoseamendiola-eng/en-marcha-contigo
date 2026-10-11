@@ -245,7 +245,13 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
         {(estado === 'pendiente' || estado === 'futura') && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginLeft: '12px' }}>
             <button
-              onClick={() => (estado === 'futura' ? setPanelHora(true) : onTomar(idsPendientes))}
+              onClick={() => {
+                // Dentro de 30 minutos de la hora programada se registra con la hora de ahora.
+                // Fuera de ese margen (antes o después) se pregunta a qué hora se tomó.
+                const diferencia = Math.abs(ahora() - horaAMinutos(horario));
+                if (diferencia <= 30) onTomar(idsPendientes);
+                else setPanelHora(true);
+              }}
               disabled={cargando}
               style={{
                 background: '#2AACB0',
