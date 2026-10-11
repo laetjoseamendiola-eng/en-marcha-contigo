@@ -774,30 +774,36 @@ def editar_medicamento(usuario_actual, med_id):
     horarios_actuales = json.loads(med.horarios or '[]')
     cambia_dosis = nueva_dosis != (med.dosis or '')
     cambia_horarios = horarios_nuevos != horarios_actuales
+    # Hora del cambio en la zona del paciente (la que manda la app, según su configuración de reloj).
+    # Así el historial se guarda en la misma hora que las tomas (fecha_programada), no en UTC.
+    zona_cambio = zona_de_paciente(data.get('zona'))
+    ahora_local = datetime.datetime.now(datetime.timezone.utc).astimezone(zona_cambio).replace(tzinfo=None)
     try:
         if cambia_dosis or cambia_horarios:
             # 1) Si aún no hay historial para este medicamento, guardar la dosis anterior como primer registro.
-            #    Su inicio es la fecha de alta del medicamento (fecha_inicio) y su fin, hoy.
+            #    Su inicio es la fecha de alta del medicamento (fecha_inicio, en UTC, pasada a hora local) y su fin, ahora.
             tiene_historial = db.session.execute(
                 text("SELECT 1 FROM historial_dosis WHERE medicamento_id = :m"),
                 {'m': med.id}
             ).first()
             if not tiene_historial:
+                alta_utc = med.fecha_inicio or datetime.datetime.utcnow()
+                alta_local = alta_utc.replace(tzinfo=datetime.timezone.utc).astimezone(zona_cambio).replace(tzinfo=None)
                 db.session.execute(
                     text("""INSERT INTO historial_dosis (medicamento_id, dosis, horarios, fecha_inicio, fecha_fin)
-                            VALUES (:m, :d, :h, :ini, NOW())"""),
+                            VALUES (:m, :d, :h, :ini, :ahora)"""),
                     {'m': med.id, 'd': med.dosis, 'h': json.dumps(horarios_actuales),
-                     'ini': med.fecha_inicio or datetime.datetime.utcnow()}
+                     'ini': alta_local, 'ahora': ahora_local}
                 )
-            # 2) Cerrar la dosis vigente y abrir la nueva con la fecha de hoy.
+            # 2) Cerrar la dosis vigente y abrir la nueva con la hora local del cambio.
             db.session.execute(
-                text("UPDATE historial_dosis SET fecha_fin = NOW() WHERE medicamento_id = :m AND fecha_fin IS NULL"),
-                {'m': med.id}
+                text("UPDATE historial_dosis SET fecha_fin = :ahora WHERE medicamento_id = :m AND fecha_fin IS NULL"),
+                {'m': med.id, 'ahora': ahora_local}
             )
             db.session.execute(
                 text("""INSERT INTO historial_dosis (medicamento_id, dosis, horarios, fecha_inicio, fecha_fin)
-                        VALUES (:m, :d, :h, NOW(), NULL)"""),
-                {'m': med.id, 'd': nueva_dosis, 'h': json.dumps(horarios_nuevos)}
+                        VALUES (:m, :d, :h, :ahora, NULL)"""),
+                {'m': med.id, 'd': nueva_dosis, 'h': json.dumps(horarios_nuevos), 'ahora': ahora_local}
             )
             med.dosis = nueva_dosis
             med.horarios = json.dumps(horarios_nuevos)

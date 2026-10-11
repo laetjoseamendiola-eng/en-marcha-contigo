@@ -437,7 +437,8 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
       return;
     }
     const body = cuerpoDesdeForm();
-    const res = await fetch(`${apiUrl}/api/medicamentos/${id}`, { method: 'PUT', headers, body: JSON.stringify(body) });
+    // Se manda la zona del paciente para guardar el historial de dosis en su hora local
+    const res = await fetch(`${apiUrl}/api/medicamentos/${id}`, { method: 'PUT', headers, body: JSON.stringify({ ...body, zona: zonaDelPaciente() }) });
     const data = await res.json();
     if (res.ok) {
       setEditando(null); setMensaje('Cambios guardados');
