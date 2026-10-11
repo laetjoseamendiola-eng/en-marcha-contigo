@@ -390,6 +390,31 @@ export default function ReportePage({ token, apiUrl }) {
           </div>
         )}
 
+        {/* SECCIÓN: CAMBIOS DE ZONA HORARIA (para interpretar jetlag, dosis de más o de menos) */}
+        <div className="tarjeta-reporte" style={{
+          background: 'rgba(255,255,255,0.04)',
+          border: '1px solid rgba(42,172,176,0.15)',
+          borderRadius: '16px',
+          padding: '20px',
+          marginBottom: '14px',
+        }}>
+          <div style={{ fontSize: '14px', fontWeight: '600', color: '#2AACB0', marginBottom: '10px' }}>
+            🌍 Cambios de zona horaria ({(reporte.cambios_zona || []).length})
+          </div>
+          {(reporte.cambios_zona || []).length === 0 && (
+            <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>
+              Sin cambios de zona en el período.
+            </div>
+          )}
+          {(reporte.cambios_zona || []).map((c, i) => (
+            <div key={i} className="texto-reporte" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginBottom: '6px' }}>
+              {new Date(c.fecha_local).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })}
+              {' · '}{c.zona_anterior || 'sin dato'} → {c.zona_nueva} ({c.offset_nuevo})
+              {' · '}{c.tipo === 'manual' ? 'manual' : 'automático (dispositivo)'}
+            </div>
+          ))}
+        </div>
+
         {/* PIE */}
         <div style={{
           textAlign: 'center',

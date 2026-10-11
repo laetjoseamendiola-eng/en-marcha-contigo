@@ -61,6 +61,21 @@ const guardarEntrada = (entrada) => {
   return nuevoLog;
 };
 
+// Envía el cambio de zona al servidor para el reporte. Si falla (sin conexión), queda solo en el registro local.
+const registrarCambioZona = async (zonaNueva, zonaAnterior, tipo) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    await fetch(`${import.meta.env.VITE_API_URL || ''}/api/zona/cambio`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ zona_nueva: zonaNueva, zona_anterior: zonaAnterior, tipo }),
+    });
+  } catch (e) {
+    /* sin conexión: el cambio sigue en el registro local */
+  }
+};
+
 const ConfiguracionPage = () => {
   // Configuración guardada (la que usa la app)
   const [guardada, setGuardada] = useState(() => leer(CLAVE_RELOJ, { modo: 'dispositivo', zonaManual: 'America/Mexico_City' }));
@@ -79,7 +94,7 @@ const ConfiguracionPage = () => {
     const previo = leer(CLAVE_ULTIMO, null);
     const modoGuardado = leer(CLAVE_RELOJ, { modo: 'dispositivo' }).modo;
 
-    if (modoGuardado === 'manual' && previo && (previo.zona !== zonaAct || previo.offset !== offsetAct)) {
+    if (previo && (previo.zona !== zonaAct || previo.offset !== offsetAct)) {
       const entrada = {
         fecha: new Date().toISOString(),
         tipo: 'cambio del dispositivo',
@@ -89,7 +104,13 @@ const ConfiguracionPage = () => {
         offsetNueva: formatoOffset(offsetAct),
       };
       setLog(guardarEntrada(entrada));
-      setAvisoCambio(entrada);
+      if (modoGuardado === 'manual') {
+        // En modo manual la app sigue usando la zona elegida: el cambio del dispositivo no cambia al paciente.
+        setAvisoCambio(entrada);
+      } else {
+        // En modo dispositivo, el cambio sí cambia la zona del paciente: se manda al servidor como automático.
+        registrarCambioZona(zonaAct, previo.zona, 'automatico');
+      }
     }
     escribir(CLAVE_ULTIMO, { zona: zonaAct, offset: offsetAct });
 
@@ -101,6 +122,10 @@ const ConfiguracionPage = () => {
   // Guardar: solo aquí se aplica la configuración. Si es manual, queda constancia de que el usuario aceptó el riesgo.
   const guardarConfiguracion = () => {
     escribir(CLAVE_RELOJ, borrador);
+    // Zona que usa la app antes y después: si cambia, se manda al servidor como cambio manual
+    const zonaAntes = guardada.modo === 'manual' ? guardada.zonaManual : zonaDispositivo();
+    const zonaDespues = borrador.modo === 'manual' ? borrador.zonaManual : zonaDispositivo();
+    if (zonaAntes !== zonaDespues) registrarCambioZona(zonaDespues, zonaAntes, 'manual');
     setGuardada(borrador);
     // Avisa a la franja de hora (BarraHora) que la configuración cambió
     window.dispatchEvent(new Event('cfg-reloj-cambio'));

@@ -1352,6 +1352,20 @@ def generar_reporte(usuario_actual):
         tipo_counter = Counter([s.tipo for s in sintomas])
         sintomas_frecuentes = [{'tipo': t, 'conteo': c} for t, c in tipo_counter.most_common(5)]
 
+        # 6. Cambios de zona horaria (manual o automático) en el período, para interpretar fluctuaciones
+        from sqlalchemy import text
+        filas_zona = db.session.execute(text("""
+            SELECT fecha_local, zona_anterior, zona_nueva, offset_nuevo, tipo
+            FROM cambios_zona_horaria
+            WHERE usuario_id = :u AND fecha_local >= :d
+            ORDER BY fecha_local
+        """), {'u': usuario_actual.id, 'd': desde_dt}).fetchall()
+        cambios_zona = [
+            {'fecha_local': f[0].isoformat(), 'zona_anterior': f[1], 'zona_nueva': f[2],
+             'offset_nuevo': f[3], 'tipo': f[4]}
+            for f in filas_zona
+        ]
+
         return jsonify({
             'paciente': {
                 'nombre': usuario_actual.nombre,
@@ -1383,9 +1397,49 @@ def generar_reporte(usuario_actual):
                 'promedios': promedios_no_motor,
                 'registros': [r.to_dict() for r in registros_diarios],
             },
+            'cambios_zona': cambios_zona,
         }), 200
 
     except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/zona/cambio', methods=['POST'])
+@token_requerido
+def registrar_cambio_zona(usuario_actual):
+    """
+    Registra un cambio de zona horaria. tipo = 'manual' (lo eligió el paciente en Configuración)
+    o 'automatico' (cambió el reloj del dispositivo). La hora y el desfase UTC los calcula el servidor.
+    """
+    from sqlalchemy import text
+    data = request.get_json(silent=True) or {}
+    zona_nueva = (data.get('zona_nueva') or '').strip()
+    zona_anterior = (data.get('zona_anterior') or '').strip()[:60] or None
+    tipo = data.get('tipo')
+    if tipo not in ('manual', 'automatico'):
+        return jsonify({'error': 'tipo debe ser manual o automatico'}), 400
+    if not zona_nueva or len(zona_nueva) > 60:
+        return jsonify({'error': 'Zona horaria no válida'}), 400
+    try:
+        from zoneinfo import ZoneInfo
+        zona = ZoneInfo(zona_nueva)
+    except Exception:
+        return jsonify({'error': 'Zona horaria no válida'}), 400
+
+    ahora_zona = datetime.datetime.now(datetime.timezone.utc).astimezone(zona)
+    minutos = int(ahora_zona.utcoffset().total_seconds() // 60)
+    signo = '+' if minutos >= 0 else '-'
+    offset = f"UTC{signo}{abs(minutos) // 60:02d}:{abs(minutos) % 60:02d}"
+    try:
+        db.session.execute(text("""
+            INSERT INTO cambios_zona_horaria (usuario_id, fecha_local, zona_anterior, zona_nueva, offset_nuevo, tipo)
+            VALUES (:u, :f, :za, :zn, :o, :t)
+        """), {'u': usuario_actual.id, 'f': ahora_zona.replace(tzinfo=None), 'za': zona_anterior,
+               'zn': zona_nueva, 'o': offset, 't': tipo})
+        db.session.commit()
+        return jsonify({'ok': True, 'offset_nuevo': offset}), 201
+    except Exception as e:
+        db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
 
