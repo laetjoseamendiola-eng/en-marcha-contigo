@@ -819,9 +819,16 @@ def tomas_hoy(usuario_actual):
     """
     import json
     try:
-        # Hora actual en zona horaria del servidor (UTC) — el frontend ajusta a local
-        ahora_utc = datetime.datetime.utcnow()
-        hoy = ahora_utc.date()
+        # "Hoy" y los horarios son la hora de pared del paciente: se usa la zona que manda la app
+        # (configuración del reloj de cada persona). Si no llega una zona válida, se usa UTC.
+        zona_pedida = (request.args.get('zona') or '').strip()
+        try:
+            from zoneinfo import ZoneInfo
+            zona = ZoneInfo(zona_pedida) if zona_pedida else ZoneInfo('UTC')
+        except Exception:
+            zona = datetime.timezone.utc
+        ahora_local = datetime.datetime.now(datetime.timezone.utc).astimezone(zona)
+        hoy = ahora_local.date()
 
         medicamentos = MedicamentoProgramado.query.filter_by(
             usuario_id=usuario_actual.id, activo=True

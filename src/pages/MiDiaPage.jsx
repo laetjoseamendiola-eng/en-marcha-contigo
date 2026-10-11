@@ -1,5 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
+// Zona horaria del paciente: la que eligió a mano en Configuración, o la del dispositivo.
+function zonaDelPaciente() {
+  try {
+    const cfg = JSON.parse(localStorage.getItem('cfg_reloj') || 'null');
+    if (cfg && cfg.modo === 'manual' && cfg.zonaManual) return cfg.zonaManual;
+  } catch (e) { /* sin configuración guardada */ }
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  } catch (e) {
+    return 'UTC';
+  }
+}
+
 // Estado visual por toma
 const ESTADO_ICONS = {
   pendiente: '⏳',
@@ -418,7 +431,7 @@ export default function MiDiaPage({ token, apiUrl }) {
 
   const cargarTomas = useCallback(async () => {
     try {
-      const res = await fetch(`${apiUrl}/api/tomas/hoy`, { headers });
+      const res = await fetch(`${apiUrl}/api/tomas/hoy?zona=${encodeURIComponent(zonaDelPaciente())}`, { headers });
       if (res.ok) {
         const data = await res.json();
         setBloques(data.bloques || []);
