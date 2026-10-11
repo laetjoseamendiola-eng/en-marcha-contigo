@@ -744,16 +744,18 @@ def editar_medicamento(usuario_actual, med_id):
     cambia_horarios = horarios_nuevos != horarios_actuales
     try:
         if cambia_dosis or cambia_horarios:
-            # 1) Si aún no hay historial para este medicamento, guardar la dosis actual como primer registro.
-            tiene_vigente = db.session.execute(
-                text("SELECT 1 FROM historial_dosis WHERE medicamento_id = :m AND fecha_fin IS NULL"),
+            # 1) Si aún no hay historial para este medicamento, guardar la dosis anterior como primer registro.
+            #    Su inicio es la fecha de alta del medicamento (fecha_inicio) y su fin, hoy.
+            tiene_historial = db.session.execute(
+                text("SELECT 1 FROM historial_dosis WHERE medicamento_id = :m"),
                 {'m': med.id}
             ).first()
-            if not tiene_vigente:
+            if not tiene_historial:
                 db.session.execute(
                     text("""INSERT INTO historial_dosis (medicamento_id, dosis, horarios, fecha_inicio, fecha_fin)
-                            VALUES (:m, :d, :h, NOW(), NOW())"""),
-                    {'m': med.id, 'd': med.dosis, 'h': json.dumps(horarios_actuales)}
+                            VALUES (:m, :d, :h, :ini, NOW())"""),
+                    {'m': med.id, 'd': med.dosis, 'h': json.dumps(horarios_actuales),
+                     'ini': med.fecha_inicio or datetime.datetime.utcnow()}
                 )
             # 2) Cerrar la dosis vigente y abrir la nueva con la fecha de hoy.
             db.session.execute(
