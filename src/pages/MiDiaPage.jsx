@@ -276,7 +276,11 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
 
   const guardarEdicion = async (id) => {
     setMensaje('');
-    const body = { principio_activo: form.principio_activo };
+    const body = {
+      principio_activo: form.principio_activo,
+      dosis: form.dosis,
+      horarios: horariosDesdeTexto(form.horarios),
+    };
     const res = await fetch(`${apiUrl}/api/medicamentos/${id}`, { method: 'PUT', headers, body: JSON.stringify(body) });
     const data = await res.json();
     if (res.ok) {
@@ -306,16 +310,12 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
       <label style={{ display: 'block', fontSize: '13px' }}>Sustancia activa
         <input style={campoEstilo} value={form.principio_activo} placeholder="Ej. Levodopa 250 mg / Carbidopa 25 mg" onChange={e => setForm({ ...form, principio_activo: e.target.value })} />
       </label>
-      {esNuevo && (
-        <>
-          <label style={{ display: 'block', fontSize: '13px', marginTop: '8px' }}>Dosis
-            <input style={campoEstilo} value={form.dosis} placeholder="Ej. 1 tableta" onChange={e => setForm({ ...form, dosis: e.target.value })} />
-          </label>
-          <label style={{ display: 'block', fontSize: '13px', marginTop: '8px' }}>Horarios (separados por coma)
-            <input style={campoEstilo} value={form.horarios} placeholder="Ej. 08:00, 16:00" onChange={e => setForm({ ...form, horarios: e.target.value })} />
-          </label>
-        </>
-      )}
+      <label style={{ display: 'block', fontSize: '13px', marginTop: '8px' }}>Dosis
+        <input style={campoEstilo} value={form.dosis} placeholder="Ej. 1 tableta" onChange={e => setForm({ ...form, dosis: e.target.value })} />
+      </label>
+      <label style={{ display: 'block', fontSize: '13px', marginTop: '8px' }}>Horarios (separados por coma)
+        <input style={campoEstilo} value={form.horarios} placeholder="Ej. 08:00, 16:00" onChange={e => setForm({ ...form, horarios: e.target.value })} />
+      </label>
       <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
         <button style={boton('#2AACB0')} onClick={onGuardar}>Guardar</button>
         <button style={boton('transparent')} onClick={onCancelar}>Cancelar</button>
@@ -352,9 +352,6 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
 
             {editando === m.id ? (
               <>
-                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', margin: '8px 0 0' }}>
-                  Por ahora sólo se puede cambiar la sustancia activa. La dosis y los horarios se cambian cuando esté activo el historial.
-                </p>
                 {formulario(() => guardarEdicion(m.id), () => setEditando(null), false)}
               </>
             ) : confirmarEliminar === m.id ? (
@@ -369,7 +366,12 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
               <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
                 <button style={boton('#2AACB0')} onClick={() => {
                   setEditando(m.id);
-                  setForm({ ...vacio, principio_activo: m.principio_activo || '' });
+                  setForm({
+                    ...vacio,
+                    principio_activo: m.principio_activo || '',
+                    dosis: m.dosis || '',
+                    horarios: (m.horarios || []).join(', '),
+                  });
                   setMensaje('');
                 }}>Editar</button>
                 <button style={boton('#dc3545')} onClick={() => setConfirmarEliminar(m.id)}>Quitar</button>

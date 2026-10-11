@@ -717,16 +717,57 @@ def crear_medicamento(usuario_actual):
 @app.route('/api/medicamentos/<int:med_id>', methods=['PUT'])
 @token_requerido
 def editar_medicamento(usuario_actual, med_id):
-    """Edita un medicamento. Dosis y horarios quedan bloqueados hasta tener historial de cambios."""
+    """
+    Edita un medicamento. Si cambian la dosis o los horarios, el valor anterior
+    se cierra con fecha de fin en historial_dosis y el nuevo queda con fecha de inicio.
+    """
     import json
+    from sqlalchemy import text
     med = MedicamentoProgramado.query.filter_by(id=med_id, usuario_id=usuario_actual.id, activo=True).first()
     if not med:
         return jsonify({'error': 'Medicamento no encontrado'}), 404
     data = request.get_json(silent=True) or {}
-    if ('dosis' in data and data['dosis'] != med.dosis) or ('horarios' in data):
-        # Cada cambio de dosis u horario debe quedar con fecha (historial). Se habilita tras la migración.
-        return jsonify({'error': 'Cambiar dosis u horarios requiere el historial de cambios (pendiente de autorización)'}), 423
+
+    nueva_dosis = (data.get('dosis') if 'dosis' in data else med.dosis) or ''
+    nueva_dosis = nueva_dosis.strip()
+    if 'horarios' in data:
+        horarios_nuevos = sorted({h.strip() for h in (data.get('horarios') or []) if h and ':' in h})
+    else:
+        horarios_nuevos = json.loads(med.horarios or '[]')
+    if 'principio_activo' in data and not (data.get('principio_activo') or '').strip():
+        return jsonify({'error': 'La sustancia activa no puede quedar vacía'}), 400
+    if not nueva_dosis or not horarios_nuevos:
+        return jsonify({'error': 'Dosis y al menos un horario son obligatorios'}), 400
+
+    horarios_actuales = json.loads(med.horarios or '[]')
+    cambia_dosis = nueva_dosis != (med.dosis or '')
+    cambia_horarios = horarios_nuevos != horarios_actuales
     try:
+        if cambia_dosis or cambia_horarios:
+            # 1) Si aún no hay historial para este medicamento, guardar la dosis actual como primer registro.
+            tiene_vigente = db.session.execute(
+                text("SELECT 1 FROM historial_dosis WHERE medicamento_id = :m AND fecha_fin IS NULL"),
+                {'m': med.id}
+            ).first()
+            if not tiene_vigente:
+                db.session.execute(
+                    text("""INSERT INTO historial_dosis (medicamento_id, dosis, horarios, fecha_inicio, fecha_fin)
+                            VALUES (:m, :d, :h, NOW(), NOW())"""),
+                    {'m': med.id, 'd': med.dosis, 'h': json.dumps(horarios_actuales)}
+                )
+            # 2) Cerrar la dosis vigente y abrir la nueva con la fecha de hoy.
+            db.session.execute(
+                text("UPDATE historial_dosis SET fecha_fin = NOW() WHERE medicamento_id = :m AND fecha_fin IS NULL"),
+                {'m': med.id}
+            )
+            db.session.execute(
+                text("""INSERT INTO historial_dosis (medicamento_id, dosis, horarios, fecha_inicio, fecha_fin)
+                        VALUES (:m, :d, :h, NOW(), NULL)"""),
+                {'m': med.id, 'd': nueva_dosis, 'h': json.dumps(horarios_nuevos)}
+            )
+            med.dosis = nueva_dosis
+            med.horarios = json.dumps(horarios_nuevos)
+
         if 'principio_activo' in data and (data['principio_activo'] or '').strip():
             nueva = data['principio_activo'].strip()
             med.principio_activo = nueva
