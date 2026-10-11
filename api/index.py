@@ -1309,9 +1309,13 @@ def generar_reporte(usuario_actual):
         ).order_by(Sintoma.fecha_registro.desc()).all()
 
         # 2. Adherencia a medicamentos
+        # Solo tomas hasta hoy (hora de CDMX, UTC-6). Las de días futuros aún no existen para el reporte.
+        manana_local = (datetime.datetime.utcnow() - datetime.timedelta(hours=6)).date() + datetime.timedelta(days=1)
+        manana_dt = datetime.datetime(manana_local.year, manana_local.month, manana_local.day)
         tomas = TomaRegistrada.query.filter(
             TomaRegistrada.usuario_id == usuario_actual.id,
-            TomaRegistrada.fecha_programada >= desde_dt
+            TomaRegistrada.fecha_programada >= desde_dt,
+            TomaRegistrada.fecha_programada < manana_dt
         ).all()
 
         total_tomas = len([t for t in tomas if not t.omitida or t.tomada])

@@ -440,7 +440,9 @@ export default function ReportePage({ token, apiUrl }) {
             <div key={i} className="texto-reporte" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginBottom: '8px' }}>
               <strong>{t.medicamento}</strong> · {t.horario} · {t.tomada ? 'tomada' : t.omitida ? 'omitida' : 'pendiente'}
               <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>
-                Dosis vigente: {t.dosis_vigente || 'sin dato'}{t.fuente && t.fuente !== 'historial' ? ` (${t.fuente})` : ''}
+                {t.dosis_vigente
+                  ? `Dosis vigente: ${t.dosis_vigente}${t.fuente === 'historial' ? '' : ' (dosis actual, sin cambios registrados)'}`
+                  : 'Sin registro de dosis para esa hora'}
               </div>
             </div>
           ))}
