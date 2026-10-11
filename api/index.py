@@ -907,6 +907,14 @@ def tomas_hoy(usuario_actual):
             TomaRegistrada.fecha_programada < datetime.datetime(hoy.year, hoy.month, hoy.day) + datetime.timedelta(days=1)
         ).order_by(TomaRegistrada.fecha_programada.asc()).all()
 
+        # Solo se muestran las tomas del plan vigente. Una toma vieja (horario cambiado o medicamento quitado)
+        # que todavía no se registró deja de mostrarse. Las tomas ya registradas (tomadas u omitidas) se conservan.
+        plan_vigente = set()
+        for med in medicamentos:
+            for h_plan in json.loads(med.horarios):
+                plan_vigente.add((med.id, h_plan))
+        tomas = [t for t in tomas if t.tomada or t.omitida or (t.medicamento_id, t.horario_programado) in plan_vigente]
+
         # Agrupar por horario (una entrada por bloque horario, con todos sus medicamentos)
         bloques = {}
         for t in tomas:
