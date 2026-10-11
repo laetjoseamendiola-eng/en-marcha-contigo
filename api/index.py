@@ -1354,17 +1354,23 @@ def generar_reporte(usuario_actual):
 
         # 6. Cambios de zona horaria (manual o automático) en el período, para interpretar fluctuaciones
         from sqlalchemy import text
+        # Se ordena por la hora real (UTC). Cada cambio se muestra en la zona nueva del paciente.
         filas_zona = db.session.execute(text("""
-            SELECT fecha_local, zona_anterior, zona_nueva, offset_nuevo, tipo
+            SELECT fecha_utc, zona_anterior, zona_nueva, offset_nuevo, tipo
             FROM cambios_zona_horaria
-            WHERE usuario_id = :u AND fecha_local >= :d
-            ORDER BY fecha_local
+            WHERE usuario_id = :u AND fecha_utc >= :d
+            ORDER BY fecha_utc
         """), {'u': usuario_actual.id, 'd': desde_dt}).fetchall()
-        cambios_zona = [
-            {'fecha_local': f[0].isoformat(), 'zona_anterior': f[1], 'zona_nueva': f[2],
-             'offset_nuevo': f[3], 'tipo': f[4]}
-            for f in filas_zona
-        ]
+        cambios_zona = []
+        for f in filas_zona:
+            try:
+                from zoneinfo import ZoneInfo
+                local = f[0].replace(tzinfo=datetime.timezone.utc).astimezone(ZoneInfo(f[2]))
+                hora_mostrada = local.replace(tzinfo=None).isoformat()
+            except Exception:
+                hora_mostrada = f[0].isoformat()
+            cambios_zona.append({'fecha_local': hora_mostrada, 'zona_anterior': f[1], 'zona_nueva': f[2],
+                                 'offset_nuevo': f[3], 'tipo': f[4]})
 
         return jsonify({
             'paciente': {
@@ -1426,16 +1432,17 @@ def registrar_cambio_zona(usuario_actual):
     except Exception:
         return jsonify({'error': 'Zona horaria no válida'}), 400
 
-    ahora_zona = datetime.datetime.now(datetime.timezone.utc).astimezone(zona)
+    ahora_utc = datetime.datetime.now(datetime.timezone.utc)
+    ahora_zona = ahora_utc.astimezone(zona)
     minutos = int(ahora_zona.utcoffset().total_seconds() // 60)
     signo = '+' if minutos >= 0 else '-'
     offset = f"UTC{signo}{abs(minutos) // 60:02d}:{abs(minutos) % 60:02d}"
     try:
         db.session.execute(text("""
-            INSERT INTO cambios_zona_horaria (usuario_id, fecha_local, zona_anterior, zona_nueva, offset_nuevo, tipo)
-            VALUES (:u, :f, :za, :zn, :o, :t)
-        """), {'u': usuario_actual.id, 'f': ahora_zona.replace(tzinfo=None), 'za': zona_anterior,
-               'zn': zona_nueva, 'o': offset, 't': tipo})
+            INSERT INTO cambios_zona_horaria (usuario_id, fecha_utc, fecha_local, zona_anterior, zona_nueva, offset_nuevo, tipo)
+            VALUES (:u, :fu, :f, :za, :zn, :o, :t)
+        """), {'u': usuario_actual.id, 'fu': ahora_utc.replace(tzinfo=None), 'f': ahora_zona.replace(tzinfo=None),
+               'za': zona_anterior, 'zn': zona_nueva, 'o': offset, 't': tipo})
         db.session.commit()
         return jsonify({'ok': True, 'offset_nuevo': offset}), 201
     except Exception as e:
