@@ -1342,7 +1342,9 @@ def generar_reporte(usuario_actual):
 
         # 2. Adherencia a medicamentos
         # Solo tomas hasta hoy (hora de CDMX, UTC-6). Las de días futuros aún no existen para el reporte.
-        manana_local = (datetime.datetime.utcnow() - datetime.timedelta(hours=6)).date() + datetime.timedelta(days=1)
+        # Hoy y "mañana" en la zona del reloj de la app (la que manda el reporte); si no llega, CDMX como antes.
+        zona_reporte = zona_de_paciente(request.args.get('zona') or 'America/Mexico_City')
+        manana_local = datetime.datetime.now(datetime.timezone.utc).astimezone(zona_reporte).date() + datetime.timedelta(days=1)
         manana_dt = datetime.datetime(manana_local.year, manana_local.month, manana_local.day)
         tomas = TomaRegistrada.query.filter(
             TomaRegistrada.usuario_id == usuario_actual.id,

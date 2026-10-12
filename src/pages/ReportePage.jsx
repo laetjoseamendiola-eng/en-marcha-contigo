@@ -8,10 +8,19 @@ const COLOR_ESTADO = {
   DORMIDO: { color: '#4A5568', label: 'Dormido', emoji: '😴' },
 };
 
+// Zona del reloj de la app: la manual si está configurada; si no, la del dispositivo.
+function zonaDelReloj() {
+  try {
+    const cfg = JSON.parse(localStorage.getItem('cfg_reloj') || 'null');
+    if (cfg && cfg.modo === 'manual' && cfg.zonaManual) return cfg.zonaManual;
+  } catch (e) { /* sin configuración guardada */ }
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; } catch (e) { return 'UTC'; }
+}
+
 // Convierte "22:15" a "10:15 p.m." (12 horas, igual que "Mi día").
 function fechaHora(iso) {
   if (!iso) return '';
-  return new Date(iso).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' });
+  return new Date(iso).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short', timeZone: zonaDelReloj() });
 }
 
 function horaCorta12(hhmm) {
@@ -86,7 +95,7 @@ export default function ReportePage({ token, apiUrl }) {
     setCargando(true);
     setError('');
     try {
-      const res = await fetch(`${apiUrl}/api/reporte?dias=${dias}`, {
+      const res = await fetch(`${apiUrl}/api/reporte?dias=${dias}&zona=${encodeURIComponent(zonaDelReloj())}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (res.ok) {
@@ -424,9 +433,9 @@ export default function ReportePage({ token, apiUrl }) {
             <div key={i} className="texto-reporte" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginBottom: '8px' }}>
               <strong>{h.medicamento}</strong>: {h.dosis}, a las {h.horarios.map(horaCorta12).join(' y ')}
               <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>
-                Desde {new Date(h.desde).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })}{h.hora_utc ? ' UTC' : ''}
+                Desde {new Date(h.desde).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short', timeZone: zonaDelReloj() })}{h.hora_utc ? ' UTC' : ''}
                 {' · '}{h.hasta
-                  ? `hasta ${new Date(h.hasta).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })}${h.hora_utc ? ' UTC' : ''}`
+                  ? `hasta ${new Date(h.hasta).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short', timeZone: zonaDelReloj() })}${h.hora_utc ? ' UTC' : ''}`
                   : 'vigente'}
                 {h.hora_utc ? ' · registrado en hora UTC, antes del cambio a hora local' : ''}
               </div>
@@ -494,7 +503,7 @@ export default function ReportePage({ token, apiUrl }) {
           )}
           {(reporte.cambios_zona || []).map((c, i) => (
             <div key={i} className="texto-reporte" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginBottom: '6px' }}>
-              {new Date(c.fecha_local).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })}
+              {new Date(c.fecha_local).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short', timeZone: zonaDelReloj() })}
               {' · '}{c.zona_anterior || 'sin dato'} → {c.zona_nueva} ({c.offset_nuevo})
               {' · '}{c.tipo === 'manual' ? 'manual' : 'automático (dispositivo)'}
             </div>
