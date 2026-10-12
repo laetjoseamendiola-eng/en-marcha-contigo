@@ -1409,10 +1409,8 @@ def generar_reporte(usuario_actual):
                                  'offset_nuevo': f[3], 'tipo': f[4]})
 
         # 7. Dosis y horarios vigentes en el período (P62).
-        # Filas con id <= ULTIMA_FILA_UTC se guardaron en UTC (antes del cambio a hora local, 10 oct 2026 20:53).
         # Se marcan por número de fila porque las fechas de UTC y de hora local se mezclan en el tiempo.
         import json
-        ULTIMA_FILA_UTC = 7
         filas_dosis = db.session.execute(text("""
             SELECT h.id, h.medicamento_id, m.nombre, h.dosis, h.horarios, h.fecha_inicio, h.fecha_fin
             FROM historial_dosis h
@@ -1424,16 +1422,15 @@ def generar_reporte(usuario_actual):
             {'medicamento_id': f[1], 'medicamento': f[2], 'dosis': f[3],
              'horarios': json.loads(f[4] or '[]'),
              'desde': f[5].isoformat(), 'hasta': f[6].isoformat() if f[6] else None,
-             'hora_utc': f[0] <= ULTIMA_FILA_UTC}
+             'hora_utc': False}
             for f in filas_dosis
         ]
 
         # 8. Dosis vigente en cada toma del período (P62 por toma).
-        # Filas id <= ULTIMA_FILA_UTC están en UTC: se pasan a hora local restando 6 horas (hora de CDMX en esa fecha).
         # Si un medicamento no tiene filas de historial, se usa su dosis actual (no ha habido cambios registrados).
         vigencias = []
         for f in filas_dosis:
-            es_utc = f[0] <= ULTIMA_FILA_UTC
+            es_utc = False
             desde_loc = f[5] - datetime.timedelta(hours=6) if es_utc else f[5]
             hasta_loc = None
             if f[6]:
