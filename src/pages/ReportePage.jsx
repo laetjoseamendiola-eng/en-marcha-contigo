@@ -9,6 +9,11 @@ const COLOR_ESTADO = {
 };
 
 // Convierte "22:15" a "10:15 p.m." (12 horas, igual que "Mi día").
+function fechaHora(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' });
+}
+
 function horaCorta12(hhmm) {
   if (!hhmm) return '';
   const [h, m] = String(hhmm).split(':').map(Number);
@@ -456,6 +461,11 @@ export default function ReportePage({ token, apiUrl }) {
                   {t.registro_extemporaneo && 'Registro extemporáneo'}
                 </div>
               )}
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>
+                Programada: {fechaHora(t.fecha_programada)}
+                {t.fecha_toma_real && <><br/>Toma real: {fechaHora(t.fecha_toma_real)}</>}
+                {t.fecha_registro && <><br/>Registro: {fechaHora(t.fecha_registro)}</>}
+              </div>
               <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>
                 {t.dosis_vigente
                   ? `Dosis vigente: ${t.dosis_vigente}${t.fuente === 'historial' ? '' : ' (dosis actual, sin cambios registrados)'}`

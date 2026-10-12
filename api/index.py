@@ -1459,6 +1459,8 @@ def generar_reporte(usuario_actual):
                 'medicamento': t.medicamento.nombre if t.medicamento else None,
                 'horario': t.horario_programado,
                 'fecha_programada': t.fecha_programada.isoformat(),
+                'fecha_toma_real': t.fecha_toma_real.isoformat() if t.fecha_toma_real else None,
+                'fecha_registro': t.fecha_registro.isoformat() if t.fecha_registro else None,
                 'tomada': bool(t.tomada),
                 'omitida': bool(t.omitida),
                 'dosis_vigente': dosis_vigente,
