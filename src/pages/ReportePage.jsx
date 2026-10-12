@@ -451,7 +451,8 @@ export default function ReportePage({ token, apiUrl }) {
             </div>
           )}
           {(reporte.tomas_dosis || []).map((t, i) => (
-            <div key={i} className="texto-reporte" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginBottom: '8px' }}>
+            <div key={i} className="texto-reporte" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginBottom: '8px',
+              ...(t.omitida ? { background: '#B3261E', border: '2px solid #FFFFFF', borderRadius: '8px', padding: '6px 10px', color: '#FFFFFF' } : {}) }}>
               <strong>{t.medicamento}</strong> · {horaCorta12(t.horario)} ·{t.tomada ? 'tomada' : t.omitida ? 'omitida' : 'pendiente'}
               {(t.fuera_de_horario || t.registro_extemporaneo) && (
                 <div style={{ fontSize: '12px', color: '#FFD84D', fontWeight: '600' }}>
