@@ -1348,12 +1348,25 @@ def generar_reporte(usuario_actual):
     try:
         dias = int(request.args.get('dias', 30))
         desde = hoy_req() - datetime.timedelta(days=dias - 1)
+        hasta = hoy_req()
+        # Periodo personalizado: ?desde=AAAA-MM-DD&hasta=AAAA-MM-DD (ambos dias incluidos).
+        if request.args.get('desde') and request.args.get('hasta'):
+            try:
+                desde = datetime.date.fromisoformat(request.args['desde'])
+                hasta = datetime.date.fromisoformat(request.args['hasta'])
+            except ValueError:
+                return jsonify({'error': 'Fechas no válidas'}), 400
+            if hasta < desde:
+                return jsonify({'error': 'La fecha final es anterior a la inicial'}), 400
+            dias = (hasta - desde).days + 1
         desde_dt = datetime.datetime(desde.year, desde.month, desde.day)
+        fin_dt = datetime.datetime(hasta.year, hasta.month, hasta.day) + datetime.timedelta(days=1)
 
         # 1. Síntomas motores registrados
         sintomas = Sintoma.query.filter(
             Sintoma.usuario_id == usuario_actual.id,
-            Sintoma.fecha_registro >= desde_dt
+            Sintoma.fecha_registro >= desde_dt,
+            Sintoma.fecha_registro < fin_dt
         ).order_by(Sintoma.fecha_registro.desc()).all()
 
         # 2. Adherencia a medicamentos
@@ -1365,7 +1378,7 @@ def generar_reporte(usuario_actual):
         tomas = TomaRegistrada.query.filter(
             TomaRegistrada.usuario_id == usuario_actual.id,
             TomaRegistrada.fecha_programada >= desde_dt,
-            TomaRegistrada.fecha_programada < manana_dt
+            TomaRegistrada.fecha_programada < min(manana_dt, fin_dt)
         ).all()
 
         total_tomas = len([t for t in tomas if not t.omitida or t.tomada])
@@ -1376,7 +1389,8 @@ def generar_reporte(usuario_actual):
         # 3. Estado motor (fluctuaciones ON/OFF) — últimos N días
         fluctuaciones = FluctuacionMotora.query.filter(
             FluctuacionMotora.usuario_id == usuario_actual.id,
-            FluctuacionMotora.fecha >= desde
+            FluctuacionMotora.fecha >= desde,
+            FluctuacionMotora.fecha <= hasta
         ).all()
 
         conteo_estados = {'ON': 0, 'OFF': 0, 'ON_DISC_LEVE': 0, 'ON_DISC_GRAVE': 0, 'DORMIDO': 0}
@@ -1390,7 +1404,8 @@ def generar_reporte(usuario_actual):
         # 4. Registros diarios (síntomas no motores)
         registros_diarios = RegistroDiario.query.filter(
             RegistroDiario.usuario_id == usuario_actual.id,
-            RegistroDiario.fecha >= desde
+            RegistroDiario.fecha >= desde,
+            RegistroDiario.fecha <= hasta
         ).order_by(RegistroDiario.fecha.asc()).all()
 
         # Promedios de registros diarios
@@ -1500,7 +1515,7 @@ def generar_reporte(usuario_actual):
             'periodo': {
                 'dias': dias,
                 'desde': desde.isoformat(),
-                'hasta': hoy_req().isoformat(),
+                'hasta': hasta.isoformat(),
             },
             'adherencia': {
                 'total_programadas': total_tomas,

@@ -39,6 +39,26 @@ function horaCorta12(hhmm) {
   return d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
 }
 
+// Fecha "AAAA-MM-DD" de hoy en la zona del reloj, desplazada N dias (negativo = atras).
+function fechaRelativa(desplazamiento) {
+  const hoyTxt = new Intl.DateTimeFormat('en-CA', { timeZone: zonaDelReloj() }).format(new Date());
+  const d = new Date(hoyTxt + 'T12:00:00');
+  d.setDate(d.getDate() + desplazamiento);
+  const p2 = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
+}
+
+const estiloInputPeriodo = {
+  background: 'rgba(255,255,255,0.08)',
+  border: '1px solid rgba(42,172,176,0.3)',
+  borderRadius: '10px',
+  padding: '7px 10px',
+  color: 'white',
+  fontFamily: 'inherit',
+  fontSize: '13px',
+  colorScheme: 'dark',
+};
+
 const NO_MOTOR_LABELS = {
   energia: { emoji: '⚡', label: 'Fatiga/Energía' },
   calidad_sueno: { emoji: '🌙', label: 'Sueño nocturno' },
@@ -96,14 +116,19 @@ export default function ReportePage({ token, apiUrl }) {
   const [reporte, setReporte] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
-  const [dias, setDias] = useState(30);
+  const [modoPeriodo, setModoPeriodo] = useState('hoy'); // 'hoy' | 'personalizado'
+  const [fechaDesde, setFechaDesde] = useState(() => fechaRelativa(-6));
+  const [fechaHasta, setFechaHasta] = useState(() => fechaRelativa(0));
   const reporteRef = useRef(null);
 
   const cargarReporte = useCallback(async () => {
     setCargando(true);
     setError('');
     try {
-      const res = await fetch(`${apiUrl}/api/reporte?dias=${dias}&zona=${encodeURIComponent(zonaDelReloj())}`, {
+      const periodoQs = modoPeriodo === 'hoy'
+        ? 'dias=1'
+        : `dias=1&desde=${fechaDesde}&hasta=${fechaHasta}`;
+      const res = await fetch(`${apiUrl}/api/reporte?${periodoQs}&zona=${encodeURIComponent(zonaDelReloj())}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (res.ok) {
@@ -118,7 +143,7 @@ export default function ReportePage({ token, apiUrl }) {
     } finally {
       setCargando(false);
     }
-  }, [apiUrl, token, dias]);
+  }, [apiUrl, token, modoPeriodo, fechaDesde, fechaHasta]);
 
   useEffect(() => {
     cargarReporte();
@@ -187,9 +212,12 @@ export default function ReportePage({ token, apiUrl }) {
 
         {/* Controles (no imprimir) */}
         <div className="no-print" style={{ display: 'flex', gap: '10px', marginBottom: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <style>{`.selector-periodo option { color: #000; background: #fff; }
+            .selector-periodo option:checked, .selector-periodo option:hover { background: #2AACB0 !important; color: #fff !important; }`}</style>
           <select
-            value={dias}
-            onChange={e => setDias(Number(e.target.value))}
+            className="selector-periodo"
+            value={modoPeriodo}
+            onChange={e => setModoPeriodo(e.target.value)}
             style={{
               background: 'rgba(255,255,255,0.08)',
               border: '1px solid rgba(42,172,176,0.3)',
@@ -200,11 +228,18 @@ export default function ReportePage({ token, apiUrl }) {
               fontSize: '13px',
             }}
           >
-            <option value={7}>Últimos 7 días</option>
-            <option value={14}>Últimas 2 semanas</option>
-            <option value={30}>Último mes</option>
-            <option value={60}>Últimos 2 meses</option>
+            <option value="hoy" style={{ color: '#000', background: '#fff' }}>Hoy</option>
+            <option value="personalizado" style={{ color: '#000', background: '#fff' }}>Personalizado</option>
           </select>
+          {modoPeriodo === 'personalizado' && (
+            <>
+              <input type="date" value={fechaDesde} max={fechaHasta}
+                onChange={e => setFechaDesde(e.target.value)} style={estiloInputPeriodo} />
+              <span style={{ color: 'white', fontSize: '13px' }}>a</span>
+              <input type="date" value={fechaHasta} min={fechaDesde}
+                onChange={e => setFechaHasta(e.target.value)} style={estiloInputPeriodo} />
+            </>
+          )}
           <button
             onClick={handleImprimir}
             style={{
@@ -260,7 +295,7 @@ export default function ReportePage({ token, apiUrl }) {
               {new Date(periodo.hasta + 'T12:00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}
             </div>
             <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)', marginTop: '4px' }}>
-              {periodo.dias} días · {plural(no_motor.dias_registrados, 'día', 'días')} con registro completo
+              {periodo.dias} {periodo.dias === 1 ? 'día' : 'días'} · {plural(no_motor.dias_registrados, 'día', 'días')} con registro completo
             </div>
           </div>
         </div>
