@@ -1440,7 +1440,12 @@ def generar_reporte(usuario_actual):
             vigencias.append((f[1], f[3], desde_loc, hasta_loc))
         meds_con_historial = {v[0] for v in vigencias}
         tomas_dosis = []
-        for t in sorted(tomas, key=lambda x: x.fecha_programada):
+        # Hora actual en la zona del reloj (las fechas de toma son hora local, sin zona).
+        ahora_local = datetime.datetime.now(datetime.timezone.utc).astimezone(zona_reporte).replace(tzinfo=None)
+        # Más recientes primero. Solo tomas cuya hora ya pasó, tomadas o no; las tomadas antes de su hora también se muestran.
+        for t in sorted(tomas, key=lambda x: x.fecha_programada, reverse=True):
+            if t.fecha_programada > ahora_local and not t.tomada:
+                continue
             dosis_vigente, fuente = None, 'historial'
             for med_id, dosis, desde_loc, hasta_loc in vigencias:
                 if med_id == t.medicamento_id and desde_loc <= t.fecha_programada and (hasta_loc is None or t.fecha_programada < hasta_loc):

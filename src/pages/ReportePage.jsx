@@ -23,6 +23,14 @@ function fechaHora(iso) {
   return new Date(iso).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short', timeZone: zonaDelReloj() });
 }
 
+// Fecha corta para las columnas de tomas: "12 oct, 1:04 a. m."
+function fechaCorta(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleString('es-MX', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: zonaDelReloj() });
+}
+
+const COLUMNAS_TOMA = 'minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1.2fr)';
+
 function horaCorta12(hhmm) {
   if (!hhmm) return '';
   const [h, m] = String(hhmm).split(':').map(Number);
@@ -459,30 +467,47 @@ export default function ReportePage({ token, apiUrl }) {
               Sin tomas programadas en el período.
             </div>
           )}
-          {(reporte.tomas_dosis || []).map((t, i) => (
-            <div key={i} className="texto-reporte" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginBottom: '8px',
-              ...(t.omitida ? { background: '#B3261E', border: '2px solid #FFFFFF', borderRadius: '8px', padding: '6px 10px', color: '#FFFFFF' } : {}) }}>
-              <strong>{t.medicamento}</strong> · {horaCorta12(t.horario)} ·{t.tomada ? 'tomada' : t.omitida ? 'omitida' : 'pendiente'}
-              {(t.fuera_de_horario || t.registro_extemporaneo) && (
-                <div style={{ fontSize: '12px', color: '#FFD84D', fontWeight: '600' }}>
-                  {/* Texto además del color, por ser daltónico */}
-                  {t.fuera_de_horario && 'Toma fuera de horario'}
-                  {t.fuera_de_horario && t.registro_extemporaneo && ' · '}
-                  {t.registro_extemporaneo && 'Registro extemporáneo'}
+          {(reporte.tomas_dosis || []).length > 0 && (
+            <>
+              <div className="cabecera-toma" style={{ display: 'grid', gridTemplateColumns: COLUMNAS_TOMA, gap: '8px', fontSize: '11px', fontWeight: '700', color: '#2AACB0', padding: '0 10px 4px' }}>
+                <div>Medicamento</div>
+                <div>Programada</div>
+                <div>Toma real</div>
+                <div>Registro</div>
+                <div>Dosis vigente</div>
+              </div>
+              {(reporte.tomas_dosis || []).map((t, i) => (
+                <div key={i} className="fila-toma" style={{ display: 'grid', gridTemplateColumns: COLUMNAS_TOMA, gap: '8px', alignItems: 'start',
+                  fontSize: '12px', color: 'rgba(255,255,255,0.85)', padding: '8px 10px', marginBottom: '6px', borderRadius: '8px',
+                  ...(t.omitida ? { background: '#B3261E', border: '2px solid #FFFFFF', color: '#FFFFFF' } : {}) }}>
+                  <div>
+                    <strong>{t.medicamento}</strong>
+                    <div>{horaCorta12(t.horario)} · {t.tomada ? 'tomada' : t.omitida ? 'omitida' : 'pendiente'}</div>
+                    {(t.fuera_de_horario || t.registro_extemporaneo) && (
+                      <div style={{ color: '#FFD84D', fontWeight: '600' }}>
+                        {/* Texto además del color, por ser daltónico */}
+                        {t.fuera_de_horario && 'Fuera de horario'}
+                        {t.fuera_de_horario && t.registro_extemporaneo && ' · '}
+                        {t.registro_extemporaneo && 'Registro extemporáneo'}
+                      </div>
+                    )}
+                  </div>
+                  <div>{fechaCorta(t.fecha_programada)}</div>
+                  <div>{t.fecha_toma_real ? fechaCorta(t.fecha_toma_real) : '—'}</div>
+                  <div>{t.fecha_registro ? fechaCorta(t.fecha_registro) : '—'}</div>
+                  <div>
+                    {t.dosis_vigente
+                      ? `${t.dosis_vigente}${t.fuente === 'historial' ? '' : ' (actual)'}`
+                      : 'Sin registro'}
+                  </div>
                 </div>
-              )}
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>
-                Programada: {fechaHora(t.fecha_programada)}
-                {t.fecha_toma_real && <><br/>Toma real: {fechaHora(t.fecha_toma_real)}</>}
-                {t.fecha_registro && <><br/>Registro: {fechaHora(t.fecha_registro)}</>}
-              </div>
-              <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>
-                {t.dosis_vigente
-                  ? `Dosis vigente: ${t.dosis_vigente}${t.fuente === 'historial' ? '' : ' (dosis actual, sin cambios registrados)'}`
-                  : 'Sin registro de dosis para esa hora'}
-              </div>
-            </div>
-          ))}
+              ))}
+              <style>{`@media (max-width: 640px) {
+                .cabecera-toma { display: none !important; }
+                .fila-toma { grid-template-columns: 1fr !important; }
+              }`}</style>
+            </>
+          )}
         </div>
 
         {/* SECCIÓN: CAMBIOS DE ZONA HORARIA (para interpretar jetlag, dosis de más o de menos) */}
