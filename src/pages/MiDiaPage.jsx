@@ -356,7 +356,7 @@ function ResumenDia({ tomas }) {
     }}>
       <div>
         <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)', marginBottom: '2px' }}>
-          Adherencia hoy
+          Adherencia del día
         </div>
         <div style={{ fontSize: '22px', fontWeight: 'bold', color: pct >= 80 ? '#28a745' : '#ffc107' }}>
           {pct}%
