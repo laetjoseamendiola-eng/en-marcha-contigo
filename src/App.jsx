@@ -1,4 +1,6 @@
 import { leerPreferencias, aplicarRelojDeCuenta } from './preferenciasCuenta';
+import { instalarControlSesion } from './sesionUnica';
+instalarControlSesion();
 import React, { useState, useEffect } from 'react'
 import LoginPage from './pages/LoginPage.jsx'
 import RegistroSintomasPage from './pages/RegistroSintomasPage.jsx'

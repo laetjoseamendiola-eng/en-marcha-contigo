@@ -61,6 +61,7 @@ class Usuario(db.Model):
     activo = db.Column(db.Boolean, default=True)
     config_reloj = db.Column(db.Text, nullable=True)
     config_reporte = db.Column(db.Text, nullable=True)
+    sesion_id = db.Column(db.String(64), nullable=True)
 
     sintomas = db.relationship('Sintoma', backref='usuario', lazy=True)
     def to_dict(self):
@@ -319,6 +320,8 @@ def token_requerido(f):
             usuario_actual = db.session.get(Usuario, datos['usuario_id'])
             if not usuario_actual or not usuario_actual.activo:
                 return jsonify({'error': 'Usuario no válido o inactivo'}), 401
+            if usuario_actual.sesion_id and datos.get('sid') != usuario_actual.sesion_id:
+                return jsonify({'error': 'La sesión se inició en otro dispositivo. Inicia sesión de nuevo.'}), 401
         except jwt.ExpiredSignatureError:
             return jsonify({'error': 'Token expirado. Inicia sesión nuevamente'}), 401
         except jwt.InvalidTokenError:
@@ -329,9 +332,14 @@ def token_requerido(f):
 
 
 def generar_token(usuario):
+    # Una cuenta, una sesion: cada inicio de sesion cambia sesion_id y el token viejo deja de servir.
+    import secrets
+    usuario.sesion_id = secrets.token_hex(16)
+    db.session.commit()
     payload = {
         'usuario_id': usuario.id,
         'email': usuario.email,
+        'sid': usuario.sesion_id,
         'exp': datetime.datetime.utcnow() + datetime.timedelta(days=30)
     }
     return jwt.encode(payload, app.config['SECRET_KEY'], algorithm='HS256')
