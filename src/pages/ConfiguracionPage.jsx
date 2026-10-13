@@ -1,5 +1,6 @@
 import { zonaReloj, hora12, diaClave } from '../zonaReloj';
 import React, { useState, useEffect } from 'react';
+import { guardarPreferencias } from '../preferenciasCuenta';
 
 // Claves de almacenamiento local (por navegador)
 const CLAVE_RELOJ = 'cfg_reloj';            // { modo: 'dispositivo' | 'manual', zonaManual: 'America/Mexico_City' }
@@ -77,7 +78,7 @@ const registrarCambioZona = async (zonaNueva, zonaAnterior, tipo) => {
   }
 };
 
-const ConfiguracionPage = () => {
+const ConfiguracionPage = ({ token, apiUrl } = {}) => {
   // Configuración guardada (la que usa la app)
   const [guardada, setGuardada] = useState(() => leer(CLAVE_RELOJ, { modo: 'dispositivo', zonaManual: 'America/Mexico_City' }));
   // Borrador: lo que el usuario está editando, todavía no guardado
@@ -123,6 +124,7 @@ const ConfiguracionPage = () => {
   // Guardar: solo aquí se aplica la configuración. Si es manual, queda constancia de que el usuario aceptó el riesgo.
   const guardarConfiguracion = () => {
     escribir(CLAVE_RELOJ, borrador);
+    if (token && apiUrl) guardarPreferencias(apiUrl, token, { config_reloj: borrador });
     // Zona que usa la app antes y después: si cambia, se manda al servidor como cambio manual
     const zonaAntes = guardada.modo === 'manual' ? guardada.zonaManual : zonaDispositivo();
     const zonaDespues = borrador.modo === 'manual' ? borrador.zonaManual : zonaDispositivo();

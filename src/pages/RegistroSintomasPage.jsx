@@ -368,7 +368,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
 
       {/* Pestaña Reporte */}
       {pestanaActiva === 'config' && (
-        <ConfiguracionPage />
+        <ConfiguracionPage token={token} apiUrl={apiUrl} />
       )}
 
       {pestanaActiva === 'reporte' && (

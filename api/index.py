@@ -59,6 +59,8 @@ class Usuario(db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     fecha_registro = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     activo = db.Column(db.Boolean, default=True)
+    config_reloj = db.Column(db.Text, nullable=True)
+    config_reporte = db.Column(db.Text, nullable=True)
 
     sintomas = db.relationship('Sintoma', backref='usuario', lazy=True)
     def to_dict(self):
@@ -1335,6 +1337,38 @@ def historial_registro_diario(usuario_actual):
         return jsonify([r.to_dict() for r in registros]), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/preferencias', methods=['GET'])
+@token_requerido
+def obtener_preferencias(usuario_actual):
+    """Configuracion del reloj y del periodo del reporte guardada en la cuenta."""
+    import json
+
+    def cargar(txt):
+        try:
+            return json.loads(txt) if txt else None
+        except ValueError:
+            return None
+
+    return jsonify({
+        'config_reloj': cargar(usuario_actual.config_reloj),
+        'config_reporte': cargar(usuario_actual.config_reporte),
+    })
+
+
+@app.route('/api/preferencias', methods=['PUT'])
+@token_requerido
+def guardar_preferencias(usuario_actual):
+    """Guarda en la cuenta el reloj y/o el periodo del reporte."""
+    import json
+    datos = request.get_json(silent=True) or {}
+    if 'config_reloj' in datos:
+        usuario_actual.config_reloj = json.dumps(datos['config_reloj'])
+    if 'config_reporte' in datos:
+        usuario_actual.config_reporte = json.dumps(datos['config_reporte'])
+    db.session.commit()
+    return jsonify({'ok': True})
 
 
 @app.route('/api/reporte', methods=['GET'])

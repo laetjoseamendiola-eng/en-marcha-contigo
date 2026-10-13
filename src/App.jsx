@@ -1,3 +1,4 @@
+import { leerPreferencias, aplicarRelojDeCuenta } from './preferenciasCuenta';
 import React, { useState, useEffect } from 'react'
 import LoginPage from './pages/LoginPage.jsx'
 import RegistroSintomasPage from './pages/RegistroSintomasPage.jsx'
@@ -29,6 +30,7 @@ function App() {
         .then(data => {
           setUsuario(data.usuario);
           setToken(tokenGuardado);
+          leerPreferencias(apiUrl, tokenGuardado).then(aplicarRelojDeCuenta);
         })
         .catch(() => {
           // Token expirado o inválido, limpiar
@@ -46,6 +48,7 @@ function App() {
   const handleLoginExitoso = (usuarioData, tokenData) => {
     setUsuario(usuarioData);
     setToken(tokenData);
+    leerPreferencias(apiUrl, tokenData).then(aplicarRelojDeCuenta);
   };
 
   const handleLogout = () => {

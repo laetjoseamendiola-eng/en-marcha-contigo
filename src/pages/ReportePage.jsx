@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { leerPreferencias, guardarPreferencias } from '../preferenciasCuenta';
 
 const COLOR_ESTADO = {
   ON: { color: '#27AE60', label: 'ON', emoji: '🟢' },
@@ -120,6 +121,25 @@ export default function ReportePage({ token, apiUrl }) {
   const [fechaDesde, setFechaDesde] = useState(() => fechaRelativa(-6));
   const [fechaHasta, setFechaHasta] = useState(() => fechaRelativa(0));
   const reporteRef = useRef(null);
+  const prefListoRef = useRef(false);
+
+  // Periodo guardado en la cuenta: se carga al abrir y se guarda al cambiar.
+  useEffect(() => {
+    leerPreferencias(apiUrl, token).then(pref => {
+      const r = pref && pref.config_reporte;
+      if (r) {
+        if (r.modo) setModoPeriodo(r.modo);
+        if (r.desde) setFechaDesde(r.desde);
+        if (r.hasta) setFechaHasta(r.hasta);
+      }
+      prefListoRef.current = true;
+    });
+  }, [apiUrl, token]);
+
+  useEffect(() => {
+    if (!prefListoRef.current) return;
+    guardarPreferencias(apiUrl, token, { config_reporte: { modo: modoPeriodo, desde: fechaDesde, hasta: fechaHasta } });
+  }, [apiUrl, token, modoPeriodo, fechaDesde, fechaHasta]);
 
   const cargarReporte = useCallback(async () => {
     setCargando(true);
