@@ -1,3 +1,4 @@
+import { zonaReloj, hora12, diaClave } from '../zonaReloj';
 import React, { useState, useEffect } from 'react';
 import './RegistroSintomasPage.css';
 import EvolucionPage from './EvolucionPage.jsx';
@@ -119,7 +120,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
 
   const cargarSintomas = async () => {
     try {
-      const response = await fetch(`${apiUrl}/api/sintomas`, {
+      const response = await fetch(`${apiUrl}/api/sintomas?zona=${encodeURIComponent(zonaReloj())}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -136,7 +137,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
 
   const cargarEstadisticas = async () => {
     try {
-      const response = await fetch(`${apiUrl}/api/sintomas/stats`, {
+      const response = await fetch(`${apiUrl}/api/sintomas/stats?zona=${encodeURIComponent(zonaReloj())}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -176,7 +177,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
 
     setCargando(true);
     try {
-      const response = await fetch(`${apiUrl}/api/sintomas`, {
+      const response = await fetch(`${apiUrl}/api/sintomas?zona=${encodeURIComponent(zonaReloj())}`, {
         method: 'POST',
         headers: authHeaders,
         body: JSON.stringify({
@@ -263,12 +264,12 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
     const ayer = new Date(hoy);
     ayer.setDate(ayer.getDate() - 1);
 
-    if (fecha.toDateString() === hoy.toDateString()) {
-      return `Hoy a las ${fecha.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}`;
-    } else if (fecha.toDateString() === ayer.toDateString()) {
-      return `Ayer a las ${fecha.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}`;
+    if (diaClave(fecha) === diaClave(hoy)) {
+      return `Hoy a las ${fecha.toLocaleTimeString('es-MX', { hour: 'numeric', minute: '2-digit', timeZone: zonaReloj() })}`;
+    } else if (diaClave(fecha) === diaClave(ayer)) {
+      return `Ayer a las ${fecha.toLocaleTimeString('es-MX', { hour: 'numeric', minute: '2-digit', timeZone: zonaReloj() })}`;
     }
-    return fecha.toLocaleDateString('es-MX') + ' ' + fecha.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+    return fecha.toLocaleDateString('es-MX', { timeZone: zonaReloj() }) + ' ' + fecha.toLocaleTimeString('es-MX', { hour: 'numeric', minute: '2-digit', timeZone: zonaReloj() });
   };
 
   // Estilos de pestañas inline para no tocar el CSS existente

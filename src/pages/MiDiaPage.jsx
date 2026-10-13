@@ -1,3 +1,4 @@
+import { zonaReloj, hora12, diaClave } from '../zonaReloj';
 import React, { useState, useEffect, useCallback } from 'react';
 
 // Zona horaria del paciente: la que eligió a mano en Configuración, o la del dispositivo.
@@ -45,13 +46,14 @@ function horaAMinutos(hora) {
 
 function ahora() {
   const now = new Date();
-  return now.getHours() * 60 + now.getMinutes();
+  const hm = new Intl.DateTimeFormat('en-GB', { timeZone: zonaDelPaciente(), hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(now).split(':');
+  return Number(hm[0]) * 60 + Number(hm[1]);
 }
 
 function formatHora(isoStr) {
   if (!isoStr) return '';
   const d = new Date(isoStr);
-  return d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+  return d.toLocaleTimeString('es-MX', { hour: 'numeric', minute: '2-digit', timeZone: zonaDelPaciente() });
 }
 
 // Convierte "22:15" a "10:15 p.m." (12 horas, igual que el reloj de la pantalla).
@@ -60,7 +62,7 @@ function horaCorta12(hhmm) {
   const [h, m] = String(hhmm).split(':').map(Number);
   if (Number.isNaN(h)) return hhmm;
   const d = new Date(2000, 0, 1, h, Number.isNaN(m) ? 0 : m);
-  return d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+  return d.toLocaleTimeString('es-MX', { hour: 'numeric', minute: '2-digit', timeZone: zonaDelPaciente() });
 }
 
 function getEstadoBloque(tomas, horario) {
@@ -287,7 +289,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
                 // P72: si la toma es de otro día (por ejemplo, de ayer), siempre se pregunta la hora.
                 const fechaToma = bloque.tomas?.[0]?.fecha_programada;
                 const hoyLocal = new Date();
-                const hoyISO = `${hoyLocal.getFullYear()}-${String(hoyLocal.getMonth() + 1).padStart(2, '0')}-${String(hoyLocal.getDate()).padStart(2, '0')}`;
+                const hoyISO = diaClave(new Date());
                 const esDeOtroDia = !!fechaToma && fechaToma.slice(0, 10) !== hoyISO;
                 const minutosTarde = ahora() - horaAMinutos(horario);
                 if (!esDeOtroDia && minutosTarde <= 30) onTomar(idsPendientes);
@@ -721,10 +723,10 @@ export default function MiDiaPage({ token, apiUrl }) {
     setTimeout(() => setMensaje(''), 2500);
   };
 
-  const hoy = new Date().toLocaleDateString('es-MX', {
+  const hoy = new Date().toLocaleDateString('es-MX', { timeZone: zonaDelPaciente(),
     weekday: 'long', day: 'numeric', month: 'long'
   });
-  const fechaAyer = new Date(Date.now() - 24 * 60 * 60 * 1000).toLocaleDateString('es-MX', {
+  const fechaAyer = new Date(Date.now() - 24 * 60 * 60 * 1000).toLocaleDateString('es-MX', { timeZone: zonaDelPaciente(),
     weekday: 'long', day: 'numeric', month: 'long'
   });
 

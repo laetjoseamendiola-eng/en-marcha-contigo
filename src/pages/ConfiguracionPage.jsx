@@ -1,3 +1,4 @@
+import { zonaReloj, hora12, diaClave } from '../zonaReloj';
 import React, { useState, useEffect } from 'react';
 
 // Claves de almacenamiento local (por navegador)
@@ -216,7 +217,7 @@ const ConfiguracionPage = () => {
         {log.length === 0 && <p style={{ margin: 0 }}>Sin cambios registrados en este dispositivo.</p>}
         {log.map((e, i) => (
           <p key={i} style={{ margin: '0 0 6px 0', fontSize: '0.9em' }}>
-            {new Date(e.fecha).toLocaleString('es-MX')} ({e.tipo || 'cambio anterior a esta función'}): {e.zonaAnterior} {e.offsetAnterior} → {e.zonaNueva} {e.offsetNueva}
+            {new Date(e.fecha).toLocaleString('es-MX', { timeZone: zonaReloj() })} ({e.tipo || 'cambio anterior a esta función'}): {e.zonaAnterior} {e.offsetAnterior} → {e.zonaNueva} {e.offsetNueva}
           </p>
         ))}
         <p style={{ margin: '8px 0 0 0', fontSize: '0.85em' }}>

@@ -1,3 +1,4 @@
+import { zonaReloj, hora12, diaClave } from '../zonaReloj';
 import React, { useState, useEffect, useCallback } from 'react';
 
 // Escala 0-4 igual a MDS-UPDRS
@@ -268,7 +269,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
 
   const cargarHoy = useCallback(async () => {
     try {
-      const res = await fetch(`${apiUrl}/api/registro-diario/hoy`, { headers });
+      const res = await fetch(`${apiUrl}/api/registro-diario/hoy?zona=${encodeURIComponent(zonaReloj())}`, { headers });
       if (res.ok) {
         const data = await res.json();
         if (data) {
@@ -290,7 +291,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
 
   const cargarHistorial = useCallback(async () => {
     try {
-      const res = await fetch(`${apiUrl}/api/registro-diario/historial?dias=14`, { headers });
+      const res = await fetch(`${apiUrl}/api/registro-diario/historial?dias=14&zona=${encodeURIComponent(zonaReloj())}`, { headers });
       if (res.ok) {
         const data = await res.json();
         setHistorial(data);
@@ -323,7 +324,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
     setGuardando(true);
     try {
       const payload = { ...respuestas, nota_dia: notaDia };
-      const res = await fetch(`${apiUrl}/api/registro-diario`, {
+      const res = await fetch(`${apiUrl}/api/registro-diario?zona=${encodeURIComponent(zonaReloj())}`, {
         method: 'POST',
         headers,
         body: JSON.stringify(payload),
@@ -345,7 +346,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
   };
 
   const hoy = new Date().toLocaleDateString('es-MX', {
-    weekday: 'long', day: 'numeric', month: 'long',
+    timeZone: zonaReloj(), weekday: 'long', day: 'numeric', month: 'long',
   });
 
   const estiloBtn = (activo) => ({
@@ -539,7 +540,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
                     <div>
                       <div style={{ fontSize: '14px', fontWeight: '600', color: 'white' }}>
-                        {fecha.toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' })}
+                        {fecha.toLocaleDateString('es-MX', { timeZone: zonaReloj(), weekday: 'short', day: 'numeric', month: 'short' })}
                       </div>
                       <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)', marginTop: '2px' }}>
                         {dominiosRespondidos.length}/8 dominios registrados

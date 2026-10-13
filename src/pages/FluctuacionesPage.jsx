@@ -1,3 +1,4 @@
+import { zonaReloj, hora12, diaClave } from '../zonaReloj';
 import React, { useState, useEffect, useCallback } from 'react';
 
 // Estados del Diario de Hauser
@@ -50,15 +51,14 @@ const COLOR_POR_ESTADO = {
 };
 
 function bloqueActual() {
-  const now = new Date();
-  const h = now.getHours();
-  const m = now.getMinutes() < 30 ? '00' : '30';
+  const partes = new Intl.DateTimeFormat('en-GB', { timeZone: zonaReloj(), hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date()).split(':');
+  const h = Number(partes[0]);
+  const m = Number(partes[1]) < 30 ? '00' : '30';
   return `${String(h).padStart(2, '0')}:${m}`;
 }
 
 function fechaHoy() {
-  const now = new Date();
-  return now.toISOString().split('T')[0];
+  return diaClave(new Date());
 }
 
 // Genera todos los bloques de 30min del día (6:00 a 23:30)
@@ -91,7 +91,7 @@ function TooltipBloque({ hora, estado }) {
       zIndex: 10,
       pointerEvents: 'none'
     }}>
-      {hora} — {def?.label || estado}
+      {hora12(hora)} — {def?.label || estado}
     </div>
   );
 }
@@ -211,7 +211,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
 
   const cargarFluctuaciones = useCallback(async () => {
     try {
-      const res = await fetch(`${apiUrl}/api/fluctuaciones?dias=1`, { headers });
+      const res = await fetch(`${apiUrl}/api/fluctuaciones?dias=1&zona=${encodeURIComponent(zonaReloj())}`, { headers });
       if (res.ok) {
         const data = await res.json();
         // data es array de días; tomamos el de hoy
@@ -235,7 +235,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
   const handleRegistrar = async (estadoId) => {
     setRegistrando(true);
     try {
-      const res = await fetch(`${apiUrl}/api/fluctuaciones`, {
+      const res = await fetch(`${apiUrl}/api/fluctuaciones?zona=${encodeURIComponent(zonaReloj())}`, {
         method: 'POST',
         headers,
         body: JSON.stringify({
@@ -304,7 +304,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
               Bloque actual
             </div>
             <div style={{ fontSize: '36px', fontWeight: 'bold', color: 'white', marginBottom: '4px' }}>
-              {bloque}
+              {hora12(bloque)}
             </div>
             {estadoBloqueActual && (
               <div style={{

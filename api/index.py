@@ -452,6 +452,7 @@ def crear_sintoma(usuario_actual):
             return jsonify({'error': 'localizacion es requerida'}), 400
 
         sintoma = Sintoma(
+            fecha_registro=ahora_req(),
             usuario_id=usuario_actual.id,
             tipo=data['tipo'],
             intensidad=data['intensidad'],
@@ -597,7 +598,7 @@ def evolucion_sintomas(usuario_actual):
         dias = int(request.args.get('dias', 30))
         tipo_filtro = request.args.get('tipo', None)
 
-        fecha_inicio = datetime.datetime.utcnow() - datetime.timedelta(days=dias)
+        fecha_inicio = ahora_req() - datetime.timedelta(days=dias)
 
         query = Sintoma.query.filter(
             Sintoma.usuario_id == usuario_actual.id,
@@ -787,7 +788,7 @@ def editar_medicamento(usuario_actual, med_id):
                 {'m': med.id}
             ).first()
             if not tiene_historial:
-                alta_utc = med.fecha_inicio or datetime.datetime.utcnow()
+                alta_utc = med.fecha_inicio or ahora_req()
                 alta_local = alta_utc.replace(tzinfo=datetime.timezone.utc).astimezone(zona_cambio).replace(tzinfo=None)
                 db.session.execute(
                     text("""INSERT INTO historial_dosis (medicamento_id, dosis, horarios, fecha_inicio, fecha_fin)
@@ -991,6 +992,21 @@ def zona_de_paciente(nombre):
         return datetime.timezone.utc
 
 
+def zona_req():
+    """Zona del reloj de la app para esta petición (?zona=). Sin dato, CDMX."""
+    return zona_de_paciente(request.args.get('zona') or 'America/Mexico_City')
+
+
+def ahora_req():
+    """Hora actual, sin zona, en la zona del reloj de la app."""
+    return datetime.datetime.now(datetime.timezone.utc).astimezone(zona_req()).replace(tzinfo=None)
+
+
+def hoy_req():
+    """Fecha de hoy en la zona del reloj de la app."""
+    return ahora_req().date()
+
+
 def validar_hora_real(txt):
     """'HH:MM' (24 h) a datetime.time. None si no es válida."""
     import re
@@ -1101,12 +1117,12 @@ def historial_tomas(usuario_actual):
     """
     try:
         dias = int(request.args.get('dias', 7))
-        fecha_inicio = datetime.datetime.utcnow() - datetime.timedelta(days=dias)
+        fecha_inicio = ahora_req() - datetime.timedelta(days=dias)
 
         tomas = TomaRegistrada.query.filter(
             TomaRegistrada.usuario_id == usuario_actual.id,
             TomaRegistrada.fecha_programada >= fecha_inicio,
-            TomaRegistrada.fecha_programada <= datetime.datetime.utcnow()
+            TomaRegistrada.fecha_programada <= ahora_req()
         ).order_by(TomaRegistrada.fecha_programada.asc()).all()
 
         total = len(tomas)
@@ -1157,11 +1173,11 @@ def registrar_fluctuacion(usuario_actual):
         if fecha_str:
             fecha = datetime.datetime.strptime(fecha_str, '%Y-%m-%d').date()
         else:
-            fecha = datetime.datetime.utcnow().date()
+            fecha = hoy_req()
 
         if not hora_bloque:
             # Calcular bloque de 30 min actual
-            ahora = datetime.datetime.utcnow()
+            ahora = ahora_req()
             minuto_redondeado = 0 if ahora.minute < 30 else 30
             hora_bloque = f'{ahora.hour:02d}:{minuto_redondeado:02d}'
 
@@ -1199,7 +1215,7 @@ def listar_fluctuaciones(usuario_actual):
     """Devuelve la bitácora de fluctuaciones de los últimos N días."""
     try:
         dias = int(request.args.get('dias', 7))
-        fecha_inicio = datetime.datetime.utcnow().date() - datetime.timedelta(days=dias)
+        fecha_inicio = hoy_req() - datetime.timedelta(days=dias)
 
         registros = FluctuacionMotora.query.filter(
             FluctuacionMotora.usuario_id == usuario_actual.id,
@@ -1250,7 +1266,7 @@ def crear_registro_diario(usuario_actual):
             from datetime import date
             fecha = date.fromisoformat(datos['fecha'])
         else:
-            fecha = datetime.datetime.utcnow().date()
+            fecha = hoy_req()
 
         # Buscar si ya existe un registro para ese día
         registro = RegistroDiario.query.filter_by(
@@ -1266,7 +1282,7 @@ def crear_registro_diario(usuario_actual):
             for campo in campos:
                 if campo in datos:
                     setattr(registro, campo, datos[campo])
-            registro.fecha_registro = datetime.datetime.utcnow()
+            registro.fecha_registro = ahora_req()
         else:
             registro = RegistroDiario(
                 usuario_id=usuario_actual.id,
@@ -1290,7 +1306,7 @@ def crear_registro_diario(usuario_actual):
 def registro_diario_hoy(usuario_actual):
     """Devuelve el registro de hoy, o null si no existe."""
     try:
-        hoy = datetime.datetime.utcnow().date()
+        hoy = hoy_req()
         registro = RegistroDiario.query.filter_by(
             usuario_id=usuario_actual.id,
             fecha=hoy
@@ -1311,7 +1327,7 @@ def historial_registro_diario(usuario_actual):
     """
     try:
         dias = int(request.args.get('dias', 14))
-        desde = datetime.datetime.utcnow().date() - datetime.timedelta(days=dias)
+        desde = hoy_req() - datetime.timedelta(days=dias)
         registros = RegistroDiario.query.filter(
             RegistroDiario.usuario_id == usuario_actual.id,
             RegistroDiario.fecha >= desde
@@ -1331,7 +1347,7 @@ def generar_reporte(usuario_actual):
     """
     try:
         dias = int(request.args.get('dias', 30))
-        desde = datetime.datetime.utcnow().date() - datetime.timedelta(days=dias)
+        desde = hoy_req() - datetime.timedelta(days=dias - 1)
         desde_dt = datetime.datetime(desde.year, desde.month, desde.day)
 
         # 1. Síntomas motores registrados
@@ -1484,7 +1500,7 @@ def generar_reporte(usuario_actual):
             'periodo': {
                 'dias': dias,
                 'desde': desde.isoformat(),
-                'hasta': datetime.datetime.utcnow().date().isoformat(),
+                'hasta': hoy_req().isoformat(),
             },
             'adherencia': {
                 'total_programadas': total_tomas,

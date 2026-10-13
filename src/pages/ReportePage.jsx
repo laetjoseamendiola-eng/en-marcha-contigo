@@ -494,7 +494,7 @@ export default function ReportePage({ token, apiUrl }) {
                   </div>
                   <div>{fechaCorta(t.fecha_programada)}</div>
                   <div>{t.fecha_toma_real ? fechaCorta(t.fecha_toma_real) : '—'}</div>
-                  <div>{t.fecha_registro ? fechaCorta(t.fecha_registro) : '—'}</div>
+                  <div>{t.fecha_registro && (t.tomada || t.omitida) ? fechaCorta(t.fecha_registro) : '—'}</div>
                   <div>
                     {t.dosis_vigente
                       ? `${t.dosis_vigente}${t.fuente === 'historial' ? '' : ' (actual)'}`
@@ -543,7 +543,7 @@ export default function ReportePage({ token, apiUrl }) {
           borderTop: '1px solid rgba(255,255,255,0.06)',
         }}>
           <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)', lineHeight: '1.7' }}>
-            Reporte generado por <strong style={{ color: '#2AACB0' }}>En Marcha Contigo</strong> · {new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}<br/>
+            Reporte generado por <strong style={{ color: '#2AACB0' }}>En Marcha Contigo</strong> · {new Date().toLocaleDateString('es-MX', { timeZone: zonaDelReloj(), day: 'numeric', month: 'long', year: 'numeric' })}<br/>
             Este documento es informativo. No diagnostica ni prescribe tratamiento.<br/>
             Los datos fueron registrados directamente por el paciente en la aplicación.<br/>
             El Reporte refleja registros compartidos por el usuario de manera manual, diaria y voluntaria. No son producto de análisis clínicos.
