@@ -105,7 +105,6 @@ function VentanaAyuno({ horario, estado, minutos }) {
 function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
   const { horario, tomas = [] } = bloque;
   const [panelHora, setPanelHora] = useState(false);       // "¿A qué hora la tomó?"
-  const [preguntaTardio, setPreguntaTardio] = useState(false); // P66: "¿Es un registro tardío?"
   const [confirmarOmitir, setConfirmarOmitir] = useState(false);
   const [hr, setHr] = useState(horaAhoraEnZona());
   // Medicamentos del bloque, tomados de cada toma (nombre y sustancia activa)
@@ -121,6 +120,13 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
   // Ventana de ayuno: si ya se tomó, se centra en la hora real; si no, en la hora programada
   const horaReal = tomaHora && /T(\d{2}:\d{2})/.exec(tomaHora);
   const horaVentana = (estado === 'tomada' && horaReal) ? horaReal[1] : horario;
+  // H21: al quedar tomada u omitida, el formulario se cierra
+  useEffect(() => {
+    if (estado === 'tomada' || estado === 'omitida') {
+      setPanelHora(false);
+      setConfirmarOmitir(false);
+    }
+  }, [estado]);
   // Ids de las tomas que aún no están marcadas (cada toma tiene su propio id)
   const idsPendientes = tomas.filter(t => !t.tomada && !t.omitida).map(t => t.id);
   // Separación de comida de este bloque: la mayor de sus medicamentos (minutos antes y después)
@@ -180,24 +186,6 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
             <div style={{ fontSize: '14px', color: '#5dde83', marginTop: '6px', fontWeight: 600 }}>
               ✓ Tomado a las {formatHora(tomaHora)}
               {horaVentana !== horario && <span style={{ fontWeight: 400, color: 'rgba(255,255,255,0.8)' }}> (programada {aHora12(horario)})</span>}
-            </div>
-          )}
-
-          {/* P66: primero el pop-up "¿Es un registro tardío?"; después se pide la hora real.
-              La respuesta no se guarda (opción 1): la etiqueta sale de las horas guardadas. */}
-          {preguntaTardio && (
-            <div style={{ marginTop: '10px', padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)' }}>
-              <div style={{ fontSize: '13px', marginBottom: '8px' }}>¿Es un registro tardío?</div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button onClick={() => { setPreguntaTardio(false); setPanelHora(true); }}
-                  style={{ background: '#2AACB0', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 14px', fontFamily: 'inherit', cursor: 'pointer' }}>
-                  Sí, es tardío
-                </button>
-                <button onClick={() => { setPreguntaTardio(false); setPanelHora(true); }}
-                  style={{ background: 'transparent', color: 'white', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '8px', padding: '8px 14px', fontFamily: 'inherit', cursor: 'pointer' }}>
-                  No
-                </button>
-              </div>
             </div>
           )}
 
@@ -284,16 +272,15 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginLeft: '12px' }}>
             <button
               onClick={() => {
-                // Antes de la hora programada, o hasta 30 min después: se registra con la hora de ahora.
-                // Más de 30 min después de la hora programada: se pregunta a qué hora se tomó.
+                // H21 (GOV-1.1 §8): dentro de 30 min antes o después de la hora programada, registro directo.
+                // Fuera de esa ventana: formulario "¿A qué hora la tomó?" con la hora programada como valor inicial.
                 // P72: si la toma es de otro día (por ejemplo, de ayer), siempre se pregunta la hora.
                 const fechaToma = bloque.tomas?.[0]?.fecha_programada;
-                const hoyLocal = new Date();
                 const hoyISO = diaClave(new Date());
                 const esDeOtroDia = !!fechaToma && fechaToma.slice(0, 10) !== hoyISO;
-                const minutosTarde = ahora() - horaAMinutos(horario);
-                if (!esDeOtroDia && minutosTarde <= 30) onTomar(idsPendientes);
-                else setPreguntaTardio(true);
+                const minutosDif = ahora() - horaAMinutos(horario);
+                if (!esDeOtroDia && Math.abs(minutosDif) <= 30) onTomar(idsPendientes);
+                else { setHr(horaProgramadaEnZona(horario)); setPanelHora(true); }
               }}
               disabled={cargando}
               style={{
@@ -312,22 +299,24 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
             >
               Tomé ✓
             </button>
+            {!panelHora && (
             <button
-              onClick={() => (estado === 'futura' ? setConfirmarOmitir(true) : onOmitir(idsPendientes))}
-              disabled={cargando}
-              style={{
-                background: 'transparent',
-                color: 'rgba(255,255,255,0.75)',
-                border: '1px solid rgba(255,255,255,0.15)',
-                borderRadius: '12px',
-                padding: '8px 16px',
-                fontSize: '13px',
-                cursor: 'pointer',
-                fontFamily: 'inherit'
-              }}
-            >
-              Omitir
-            </button>
+                onClick={() => (estado === 'futura' ? setConfirmarOmitir(true) : onOmitir(idsPendientes))}
+                disabled={cargando}
+                style={{
+                  background: 'transparent',
+                  color: 'rgba(255,255,255,0.75)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  borderRadius: '12px',
+                  padding: '8px 16px',
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit'
+                }}
+              >
+                Omitir
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -384,6 +373,12 @@ function horaAhoraEnZona() {
   } catch (e) {
     return { h: '8', m: '00', ap: 'AM' };
   }
+}
+
+// H21: convierte la hora programada "HH:MM" (24 h) al formato de 12 horas del formulario.
+function horaProgramadaEnZona(hhmm) {
+  const [hh, mm] = hhmm.split(':').map(Number);
+  return { h: String(hh % 12 === 0 ? 12 : hh % 12), m: String(mm).padStart(2, '0'), ap: hh >= 12 ? 'PM' : 'AM' };
 }
 
 // Horarios en formato de 12 horas: hora (1-12), minutos (00-59) y AM/PM.
