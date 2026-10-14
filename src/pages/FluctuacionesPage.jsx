@@ -214,9 +214,8 @@ export default function FluctuacionesPage({ token, apiUrl }) {
       const res = await fetch(`${apiUrl}/api/fluctuaciones?dias=1&zona=${encodeURIComponent(zonaReloj())}`, { headers });
       if (res.ok) {
         const data = await res.json();
-        // data es array de días; tomamos el de hoy
-        const diaHoy = data.find(d => d.fecha === hoy);
-        setFluctuaciones(diaHoy?.bloques || []);
+        // P52: la API devuelve un objeto { por_fecha: { "AAAA-MM-DD": [bloques] } }
+        setFluctuaciones(data.por_fecha?.[hoy] || []);
       }
     } catch (e) {
       console.error('Error cargando fluctuaciones:', e);
