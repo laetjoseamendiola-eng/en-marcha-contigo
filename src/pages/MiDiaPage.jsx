@@ -406,6 +406,51 @@ const campoEstilo = {
   color: 'white', fontFamily: 'inherit', fontSize: '14px', boxSizing: 'border-box'
 };
 
+// Panel de confirmación de «Quitar»: «Sí, quitar» se habilita 5 s después de abrirse.
+// Se monta solo mientras el panel está abierto; al cancelar o cambiar de medicamento
+// se desmonta y su temporizador se limpia (sin temporizadores duplicados).
+function PanelQuitar({ nombre, onConfirmar, onCancelar }) {
+  const [segundos, setSegundos] = useState(5);
+
+  // Un solo temporizador a la vez: cada cambio de «segundos» programa el siguiente paso
+  // y la limpieza lo cancela si el panel se desmonta.
+  useEffect(() => {
+    if (segundos <= 0) return undefined;
+    const id = setTimeout(() => setSegundos(s => s - 1), 1000);
+    return () => clearTimeout(id);
+  }, [segundos]);
+
+  const habilitado = segundos === 0;
+  const botonPanel = (color) => ({
+    background: color, color: 'white', border: 'none', borderRadius: '8px',
+    padding: '8px 14px', fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit'
+  });
+
+  return (
+    <div style={{ marginTop: '10px', padding: '10px', borderRadius: '8px', background: 'rgba(220,53,69,0.15)' }}>
+      <p style={{ fontSize: '13px', margin: '0 0 8px' }}>
+        Vas a quitar <strong>{nombre}</strong> de tu lista. Su historial se conserva. ¿Confirmas?
+      </p>
+      <p aria-live="polite" style={{ fontSize: '13px', margin: '0 0 8px', color: 'rgba(255,255,255,0.75)' }}>
+        {habilitado ? 'Ya puedes confirmar.' : `Disponible en ${segundos} s`}
+      </p>
+      <button
+        disabled={!habilitado}
+        onClick={onConfirmar}
+        style={{ ...botonPanel('#dc3545'), opacity: habilitado ? 1 : 0.4, cursor: habilitado ? 'pointer' : 'not-allowed' }}
+      >
+        Sí, quitar
+      </button>{' '}
+      <button
+        onClick={onCancelar}
+        style={{ ...botonPanel('transparent'), border: '1px solid rgba(255,255,255,0.3)' }}
+      >
+        Cancelar
+      </button>
+    </div>
+  );
+}
+
 function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
   const [lista, setLista] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -588,13 +633,12 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
                 {formulario(() => guardarEdicion(m.id), () => setEditando(null), false)}
               </>
             ) : confirmarEliminar === m.id ? (
-              <div style={{ marginTop: '10px', padding: '10px', borderRadius: '8px', background: 'rgba(220,53,69,0.15)' }}>
-                <p style={{ fontSize: '13px', margin: '0 0 8px' }}>
-                  Vas a quitar <strong>{m.principio_activo || 'este medicamento'}</strong> de tu lista. Su historial se conserva. ¿Confirmas?
-                </p>
-                <button style={boton('#dc3545')} onClick={() => eliminar(m.id)}>Sí, quitar</button>{' '}
-                <button style={boton('transparent')} onClick={() => setConfirmarEliminar(null)}>No</button>
-              </div>
+              <PanelQuitar
+                key={m.id}
+                nombre={m.principio_activo || 'este medicamento'}
+                onConfirmar={() => eliminar(m.id)}
+                onCancelar={() => setConfirmarEliminar(null)}
+              />
             ) : (
               <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
                 <button style={boton('#2AACB0')} onClick={() => {
