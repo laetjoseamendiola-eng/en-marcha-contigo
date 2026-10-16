@@ -1,6 +1,7 @@
 import os
 import sys
 import hashlib
+import secrets
 import jwt
 import datetime
 from functools import wraps
