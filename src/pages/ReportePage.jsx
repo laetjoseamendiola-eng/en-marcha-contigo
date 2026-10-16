@@ -113,6 +113,24 @@ function BarraAdherencia({ pct }) {
 
 const plural = (n, singular, pluralTxt) => `${n} ${n === 1 ? singular : pluralTxt}`;
 
+// Secciones del Reporte que se pueden mostrar u ocultar con casillas (no se guardan en la base).
+const SECCIONES_ITEMS = [
+  ['estadoMotor', 'Estado motor'],
+  ['franjas', 'Franjas del día'],
+  ['noMotor', 'Síntomas no motores'],
+  ['sintomas', 'Síntomas reportados'],
+  ['dosis', 'Dosis vigentes'],
+  ['tomas', 'Tomas y dosis'],
+  ['zona', 'Cambios de zona'],
+];
+
+const FRANJAS = [
+  { key: 'madrugada', label: 'Madrugada (0 a 6 h)' },
+  { key: 'manana', label: 'Mañana (6 a 12 h)' },
+  { key: 'tarde', label: 'Tarde (12 a 18 h)' },
+  { key: 'noche', label: 'Noche (18 a 24 h)' },
+];
+
 export default function ReportePage({ token, apiUrl }) {
   const [reporte, setReporte] = useState(null);
   const [cargando, setCargando] = useState(true);
@@ -121,6 +139,7 @@ export default function ReportePage({ token, apiUrl }) {
   const [fechaDesde, setFechaDesde] = useState(() => fechaRelativa(-6));
   const [fechaHasta, setFechaHasta] = useState(() => fechaRelativa(0));
   const reporteRef = useRef(null);
+  const [secciones, setSecciones] = useState({ estadoMotor: true, franjas: true, noMotor: true, sintomas: true, dosis: true, tomas: true, zona: true });
   const prefListoRef = useRef(false);
 
   // Periodo guardado en la cuenta: se carga al abrir y se guarda al cambiar.
@@ -278,6 +297,16 @@ export default function ReportePage({ token, apiUrl }) {
           </button>
         </div>
 
+        {/* Casillas de secciones (no imprimir). Lo que no está marcado no sale ni en pantalla ni en impresión. */}
+        <div className="no-print" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '16px', fontSize: '12px', color: 'rgba(255,255,255,0.9)' }}>
+          {SECCIONES_ITEMS.map(([clave, texto]) => (
+            <label key={clave} style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+              <input type="checkbox" checked={secciones[clave]} onChange={e => setSecciones(s => ({ ...s, [clave]: e.target.checked }))} />
+              {texto}
+            </label>
+          ))}
+        </div>
+
         {/* ENCABEZADO CON LOGO */}
         <div className="tarjeta-reporte" style={{
           background: 'linear-gradient(135deg, rgba(26,58,92,0.9) 0%, rgba(42,172,176,0.15) 100%)',
@@ -355,7 +384,7 @@ export default function ReportePage({ token, apiUrl }) {
         </div>
 
         {/* SECCIÓN: ESTADO MOTOR */}
-        {totalHorasRegistradas > 0 && (
+        {secciones.estadoMotor && totalHorasRegistradas > 0 && (
           <div className="tarjeta-reporte" style={{
             background: 'rgba(255,255,255,0.04)',
             border: '1px solid rgba(42,172,176,0.15)',
@@ -411,8 +440,38 @@ export default function ReportePage({ token, apiUrl }) {
           </div>
         )}
 
+        {/* SECCIÓN: FRANJAS DEL DÍA */}
+        {secciones.franjas && (
+          <div className="tarjeta-reporte" style={{
+            background: 'rgba(255,255,255,0.04)',
+            border: '1px solid rgba(42,172,176,0.15)',
+            borderRadius: '16px',
+            padding: '20px',
+            marginBottom: '14px',
+          }}>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: '#2AACB0', marginBottom: '6px' }}>
+              🕐 Franjas del día
+            </div>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)', marginBottom: '12px', lineHeight: 1.6 }}>
+              Estado OFF: se cuenta por la hora exacta del episodio. Síntomas reportados: se cuentan por la hora en que se capturaron, no por la hora del síntoma.
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr 1fr', gap: '6px', fontSize: '12px', color: 'rgba(255,255,255,0.85)' }}>
+              <div style={{ fontWeight: 700, color: '#2AACB0' }}>Franja</div>
+              <div style={{ fontWeight: 700, color: '#2AACB0' }}>Estado OFF</div>
+              <div style={{ fontWeight: 700, color: '#2AACB0' }}>Síntomas</div>
+              {FRANJAS.map(f => (
+                <React.Fragment key={f.key}>
+                  <div>{f.label}</div>
+                  <div>{reporte.franjas?.estado_motor_off?.[f.key] ?? 0}</div>
+                  <div>{reporte.franjas?.sintomas_reportados?.[f.key] ?? 0}</div>
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* SECCIÓN: SÍNTOMAS NO MOTORES */}
-        {no_motor.dias_registrados > 0 && (
+        {secciones.noMotor && no_motor.dias_registrados > 0 && (
           <div className="tarjeta-reporte" style={{
             background: 'rgba(255,255,255,0.04)',
             border: '1px solid rgba(42,172,176,0.15)',
@@ -454,11 +513,25 @@ export default function ReportePage({ token, apiUrl }) {
                 );
               })}
             </div>
+            {no_motor.registros?.length > 0 && (
+              <div style={{ marginTop: '14px' }}>
+                <div style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.85)', marginBottom: '2px' }}>Registro por fecha</div>
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)', marginBottom: '6px' }}>Es un registro diario, por eso no tiene hora.</div>
+                {no_motor.registros.slice().sort((a, b) => (a.fecha < b.fecha ? 1 : -1)).map(r => (
+                  <div key={r.id} style={{ fontSize: '12px', padding: '6px 0', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div style={{ fontWeight: 600 }}>{new Date(r.fecha + 'T12:00:00').toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' })}</div>
+                    <div style={{ color: 'rgba(255,255,255,0.8)' }}>
+                      {Object.entries(NO_MOTOR_LABELS).filter(([k]) => r[k] !== null && r[k] !== undefined).map(([k, def]) => `${def.label} ${r[k]}`).join(' · ')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
         {/* SECCIÓN: SÍNTOMAS MOTORES FRECUENTES */}
-        {sintomas_motores.frecuentes.length > 0 && (
+        {secciones.sintomas && sintomas_motores.frecuentes.length > 0 && (
           <div className="tarjeta-reporte" style={{
             background: 'rgba(255,255,255,0.04)',
             border: '1px solid rgba(42,172,176,0.15)',
@@ -498,6 +571,7 @@ export default function ReportePage({ token, apiUrl }) {
         )}
 
         {/* SECCIÓN: DOSIS Y HORARIOS VIGENTES EN EL PERÍODO (P62) */}
+        <div style={{ display: secciones.dosis ? 'block' : 'none' }}>
         <div className="tarjeta-reporte" style={{
           background: 'rgba(255,255,255,0.04)',
           border: '1px solid rgba(42,172,176,0.15)',
@@ -527,7 +601,10 @@ export default function ReportePage({ token, apiUrl }) {
           ))}
         </div>
 
+        </div>
+
         {/* SECCIÓN: DOSIS VIGENTE EN CADA TOMA (P62 por toma) */}
+        <div style={{ display: secciones.tomas ? 'block' : 'none' }}>
         <div className="tarjeta-reporte" style={{
           background: 'rgba(255,255,255,0.04)',
           border: '1px solid rgba(42,172,176,0.15)',
@@ -586,7 +663,10 @@ export default function ReportePage({ token, apiUrl }) {
           )}
         </div>
 
+        </div>
+
         {/* SECCIÓN: CAMBIOS DE ZONA HORARIA (para interpretar jetlag, dosis de más o de menos) */}
+        <div style={{ display: secciones.zona ? 'block' : 'none' }}>
         <div className="tarjeta-reporte" style={{
           background: 'rgba(255,255,255,0.04)',
           border: '1px solid rgba(42,172,176,0.15)',
@@ -609,6 +689,8 @@ export default function ReportePage({ token, apiUrl }) {
               {' · '}{c.tipo === 'manual' ? 'manual' : 'automático (dispositivo)'}
             </div>
           ))}
+        </div>
+
         </div>
 
         {/* PIE */}

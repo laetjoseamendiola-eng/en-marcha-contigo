@@ -2114,6 +2114,22 @@ def generar_reporte(usuario_actual):
                 'sin_registro': toma_sin_registro(t, ahora_local),
             })
 
+        # 9. Franjas del dia (solo lectura de datos ya calculados).
+        # Estado motor: hora exacta del episodio. Sintomas: hora de captura (fecha_registro UTC -> zona del reporte).
+        def franja_de(hora_txt):
+            h = int(hora_txt[:2])
+            return 'madrugada' if h < 6 else 'manana' if h < 12 else 'tarde' if h < 18 else 'noche'
+        franjas_off = {'madrugada': 0, 'manana': 0, 'tarde': 0, 'noche': 0}
+        for ep in exactos['episodios']:
+            if str(ep.get('estado', '')).upper().startswith('OFF'):
+                franjas_off[franja_de(ep['hora'])] += 1
+        franjas_sint = {'madrugada': 0, 'manana': 0, 'tarde': 0, 'noche': 0}
+        for s in sintomas:
+            if s.fecha_registro:
+                local_s = s.fecha_registro.replace(tzinfo=datetime.timezone.utc).astimezone(zona_reporte)
+                franjas_sint[franja_de(local_s.strftime('%H:%M'))] += 1
+        franjas_resumen = {'estado_motor_off': franjas_off, 'sintomas_reportados': franjas_sint}
+
         return jsonify({
             'paciente': {
                 'nombre': usuario_actual.nombre,
@@ -2155,6 +2171,7 @@ def generar_reporte(usuario_actual):
                 'registros': [r.to_dict() for r in registros_diarios],
             },
             'cambios_zona': cambios_zona,
+            'franjas': franjas_resumen,
             'historial_dosis': historial_dosis,
             'tomas_dosis': tomas_dosis,
         }), 200
