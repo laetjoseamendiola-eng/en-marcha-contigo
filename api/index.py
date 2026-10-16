@@ -63,6 +63,8 @@ class Usuario(db.Model):
     config_reloj = db.Column(db.Text, nullable=True)
     config_reporte = db.Column(db.Text, nullable=True)
     sesion_id = db.Column(db.String(64), nullable=True)
+    pregunta_seguridad_id = db.Column(db.Integer, nullable=True)
+    respuesta_seguridad_hash = db.Column(db.String(256), nullable=True)
 
     sintomas = db.relationship('Sintoma', backref='usuario', lazy=True)
     def to_dict(self):
@@ -365,6 +367,13 @@ def registro():
         if not data.get('password') or len(data.get('password', '')) < 6:
             return jsonify({'error': 'La contraseña debe tener al menos 6 caracteres'}), 400
 
+        pregunta_id = data.get('pregunta_id')
+        respuesta = (data.get('respuesta') or '').strip().lower()
+        if not isinstance(pregunta_id, int) or pregunta_id not in PREGUNTAS_SEGURIDAD:
+            return jsonify({'error': 'Elige una pregunta de seguridad'}), 400
+        if len(respuesta) < 3:
+            return jsonify({'error': 'La respuesta de seguridad debe tener al menos 3 caracteres'}), 400
+
         codigo = (data.get('codigo') or '').strip()
         if not codigo:
             return jsonify({'error': 'El código de tester es requerido'}), 400
@@ -385,7 +394,9 @@ def registro():
         nuevo_usuario = Usuario(
             nombre=nombre,
             email=email,
-            password_hash=generate_password_hash(data['password'])
+            password_hash=generate_password_hash(data['password']),
+            pregunta_seguridad_id=pregunta_id,
+            respuesta_seguridad_hash=generate_password_hash(respuesta)
         )
 
         db.session.add(nuevo_usuario)
@@ -430,11 +441,78 @@ def login():
         return jsonify({
             'mensaje': 'Inicio de sesión exitoso',
             'token': token,
+            'requiere_pregunta': usuario.pregunta_seguridad_id is None,
             'usuario': usuario.to_dict()
         }), 200
 
     except Exception as e:
         return jsonify({'error': f'Error del servidor: {str(e)}'}), 500
+
+
+PREGUNTAS_SEGURIDAD = {
+    1: '¿Cómo se llamaba tu primera mascota?',
+    2: '¿Cuál fue el nombre de tu primera escuela?',
+    3: '¿Cuál es el nombre de tu maestra o maestro de primaria favorito?',
+    4: '¿Cuál era el nombre de tu calle de la infancia?',
+    5: '¿Cuál fue tu primer trabajo?',
+    6: '¿Cuál es el nombre de la canción que más te gusta?',
+    7: '¿Cómo se llama tu lugar favorito de vacaciones de niño?',
+    8: '¿Cuál es el nombre de tu comida favorita de la infancia?',
+}
+
+
+@app.route('/api/auth/preguntas', methods=['GET'])
+def listar_preguntas():
+    return jsonify([{'id': k, 'texto': v} for k, v in PREGUNTAS_SEGURIDAD.items()]), 200
+
+
+@app.route('/api/auth/pregunta', methods=['POST'])
+@token_requerido
+def fijar_pregunta(usuario_actual):
+    data = request.get_json() or {}
+    pregunta_id = data.get('pregunta_id')
+    respuesta = (data.get('respuesta') or '').strip().lower()
+    if usuario_actual.pregunta_seguridad_id is not None:
+        return jsonify({'error': 'Esta cuenta ya tiene pregunta de seguridad'}), 409
+    if not isinstance(pregunta_id, int) or pregunta_id not in PREGUNTAS_SEGURIDAD:
+        return jsonify({'error': 'Elige una pregunta de seguridad'}), 400
+    if len(respuesta) < 3:
+        return jsonify({'error': 'La respuesta de seguridad debe tener al menos 3 caracteres'}), 400
+    usuario_actual.pregunta_seguridad_id = pregunta_id
+    usuario_actual.respuesta_seguridad_hash = generate_password_hash(respuesta)
+    db.session.commit()
+    return jsonify({'mensaje': 'Pregunta guardada', 'usuario': usuario_actual.to_dict()}), 200
+
+
+@app.route('/api/auth/recuperar/pregunta', methods=['POST'])
+def recuperar_pregunta():
+    data = request.get_json() or {}
+    email = (data.get('email') or '').strip().lower()
+    usuario = Usuario.query.filter_by(email=email).first() if email else None
+    if not usuario or usuario.pregunta_seguridad_id is None:
+        return jsonify({'error': 'No encontramos una pregunta de seguridad para ese correo'}), 404
+    return jsonify({
+        'pregunta_id': usuario.pregunta_seguridad_id,
+        'pregunta': PREGUNTAS_SEGURIDAD[usuario.pregunta_seguridad_id]
+    }), 200
+
+
+@app.route('/api/auth/recuperar', methods=['POST'])
+def recuperar_contrasena():
+    data = request.get_json() or {}
+    email = (data.get('email') or '').strip().lower()
+    respuesta = (data.get('respuesta') or '').strip().lower()
+    nueva = data.get('password_nueva') or ''
+    if len(nueva) < 6:
+        return jsonify({'error': 'La contraseña debe tener al menos 6 caracteres'}), 400
+    usuario = Usuario.query.filter_by(email=email).first() if email else None
+    if not usuario or not usuario.respuesta_seguridad_hash or \
+            not check_password_hash(usuario.respuesta_seguridad_hash, respuesta):
+        return jsonify({'error': 'La respuesta de seguridad no coincide'}), 401
+    usuario.password_hash = generate_password_hash(nueva)
+    usuario.sesion_id = secrets.token_hex(16)  # cierra sesiones abiertas
+    db.session.commit()
+    return jsonify({'mensaje': 'Contraseña actualizada. Ya puedes iniciar sesión.'}), 200
 
 
 @app.route('/api/auth/perfil', methods=['GET'])
