@@ -139,7 +139,7 @@
 }
 
 .login-form-group input::placeholder {
-  color: #a0b0bc;
+  color: #5f7384; /* contraste ~4.7:1 sobre #fafbfc (antes #a0b0bc ~2.1:1) */
 }
 
 /* ---- Botón principal ---- */
