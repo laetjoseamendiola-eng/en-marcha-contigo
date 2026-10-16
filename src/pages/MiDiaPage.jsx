@@ -578,7 +578,7 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
 
       <label style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '13px', marginTop: '12px' }}>
         <input type="checkbox" checked={form.separa} onChange={e => setForm({ ...form, separa: e.target.checked })} />
-        Requiere separarse de la comida
+        Requiere ayuno
       </label>
       {form.separa && (
         <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>

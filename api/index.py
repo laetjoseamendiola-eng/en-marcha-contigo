@@ -1964,7 +1964,8 @@ def generar_reporte(usuario_actual):
             TomaRegistrada.fecha_programada < min(manana_dt, fin_dt)
         ).all()
 
-        total_tomas = len([t for t in tomas if not t.omitida or t.tomada])
+        # Adherencia = tomadas / (tomadas + sin registro + omitidas). Las omitidas cuentan en el total.
+        total_tomas = len(tomas)
         tomas_tomadas = len([t for t in tomas if t.tomada])
         tomas_omitidas = len([t for t in tomas if t.omitida and not t.tomada])
         adherencia_pct = round((tomas_tomadas / total_tomas * 100) if total_tomas > 0 else 0)
