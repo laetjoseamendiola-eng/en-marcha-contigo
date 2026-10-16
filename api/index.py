@@ -940,6 +940,9 @@ def eliminar_medicamento(usuario_actual, med_id):
             DELETE FROM tomas_registradas
             WHERE medicamento_id = :m AND tomada = false AND omitida = false AND fecha_programada >= :hoy
         """), {'m': med.id, 'hoy': hoy_quitar})
+        # Cierra el historial abierto para que deje de contar como vigente (el historial pasado se conserva).
+        db.session.execute(text("UPDATE historial_dosis SET fecha_fin = :ahora WHERE medicamento_id = :m AND fecha_fin IS NULL"),
+                           {'m': med.id, 'ahora': ahora_quitar})
         med.activo = False
         db.session.commit()
         return jsonify({'mensaje': 'Medicamento eliminado de tu lista (su historial se conserva)'}), 200
@@ -2042,7 +2045,7 @@ def generar_reporte(usuario_actual):
             SELECT h.id, h.medicamento_id, m.nombre, h.dosis, h.horarios, h.fecha_inicio, h.fecha_fin
             FROM historial_dosis h
             JOIN medicamentos_programados m ON m.id = h.medicamento_id
-            WHERE m.usuario_id = :u AND (h.fecha_fin IS NULL OR h.fecha_fin >= :d)
+            WHERE m.usuario_id = :u AND m.activo = true AND (h.fecha_fin IS NULL OR h.fecha_fin >= :d)
             ORDER BY h.medicamento_id, h.fecha_inicio
         """), {'u': usuario_actual.id, 'd': desde_dt}).fetchall()
         historial_dosis = [

@@ -540,7 +540,7 @@ export default function ReportePage({ token, apiUrl }) {
           </div>
           {(reporte.tomas_dosis || []).length === 0 && (
             <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>
-              Sin tomas programadas en el período.
+              Aún no hay tomas ya cumplidas en el período. Las de hoy aparecen cuando llegue su hora.
             </div>
           )}
           {(reporte.tomas_dosis || []).length > 0 && (
