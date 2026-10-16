@@ -1053,6 +1053,7 @@ def tomas_hoy(usuario_actual):
                     'alguna_omitida': False,
                 }
             entrada = t.to_dict()
+            entrada['sin_registro'] = toma_sin_registro(t, ahora_local)
             # Datos del medicamento de esta toma (nombre, dosis y sustancia activa)
             med_t = next((m for m in medicamentos if m.id == t.medicamento_id), None)
             entrada['medicamento_nombre'] = med_t.nombre if med_t else None
@@ -1074,6 +1075,13 @@ def tomas_hoy(usuario_actual):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+
+def toma_sin_registro(toma, ahora_local):
+    """Pendiente cuya ventana de registro ya cerró: el día de la toma y el día calendario siguiente."""
+    if toma.tomada or toma.omitida or not toma.fecha_programada:
+        return False
+    return toma.fecha_programada.date() + datetime.timedelta(days=2) <= ahora_local.date()
 
 
 def zona_de_paciente(nombre):
@@ -2103,6 +2111,7 @@ def generar_reporte(usuario_actual):
                 'fuente': fuente if dosis_vigente else 'sin registro de dosis para esa hora',
                 'fuera_de_horario': fuera_de_horario,
                 'registro_extemporaneo': registro_extemporaneo,
+                'sin_registro': toma_sin_registro(t, ahora_local),
             })
 
         return jsonify({

@@ -19,7 +19,8 @@ const ESTADO_ICONS = {
   pendiente: '⏳',
   tomada: '✅',
   omitida: '❌',
-  futura: '🕐'
+  futura: '🕐',
+  sin_registro: '⚪'
 };
 
 // Ventana de ayuno en minutos antes y después de cada toma
@@ -69,6 +70,7 @@ function getEstadoBloque(tomas, horario) {
   // Si alguna toma del bloque fue tomada
   if (tomas.some(t => t.tomada)) return 'tomada';
   if (tomas.some(t => t.omitida)) return 'omitida';
+  if (tomas.length > 0 && tomas.every(t => t.sin_registro)) return 'sin_registro';
   const minutosHorario = horaAMinutos(horario);
   const minutosAhora = ahora();
   if (minutosAhora < minutosHorario - 5) return 'futura';
@@ -113,7 +115,8 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
     nombre: t.medicamento_nombre,
     dosis: t.medicamento_dosis,
     principio_activo: t.principio_activo,
-    separacion_comida_min: t.separacion_comida_min
+    separacion_comida_min: t.separacion_comida_min,
+    sin_registro: t.sin_registro
   }));
   const estado = getEstadoBloque(tomas, horario);
   const tomaHora = tomas.find(t => t.tomada)?.fecha_toma_real;
@@ -137,14 +140,16 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
     tomada: 'rgba(40,167,69,0.5)',
     omitida: 'rgba(255,226,89,0.85)',
     pendiente: 'rgba(42,172,176,0.5)',
-    futura: 'rgba(255,255,255,0.1)'
+    futura: 'rgba(255,255,255,0.1)',
+    sin_registro: 'rgba(255,255,255,0.25)'
   }[estado];
 
   const colorFondo = {
     tomada: 'rgba(40,167,69,0.08)',
     omitida: 'rgba(255,226,89,0.12)',
     pendiente: 'rgba(42,172,176,0.08)',
-    futura: 'rgba(255,255,255,0.03)'
+    futura: 'rgba(255,255,255,0.03)',
+    sin_registro: 'rgba(255,255,255,0.04)'
   }[estado];
 
   return (

@@ -558,7 +558,7 @@ export default function ReportePage({ token, apiUrl }) {
                   ...(t.omitida ? { background: '#B3261E', border: '2px solid #FFFFFF', color: '#FFFFFF' } : {}) }}>
                   <div>
                     <strong>{t.medicamento}</strong>
-                    <div>{horaCorta12(t.horario)} · {t.tomada ? 'tomada' : t.omitida ? 'omitida' : 'pendiente'}</div>
+                    <div>{horaCorta12(t.horario)} · {t.tomada ? 'tomada' : t.omitida ? 'omitida' : t.sin_registro ? 'sin registro' : 'pendiente'}</div>
                     {(t.fuera_de_horario || t.registro_extemporaneo) && (
                       <div style={{ color: '#FFD84D', fontWeight: '600' }}>
                         {/* Texto además del color, por ser daltónico */}
