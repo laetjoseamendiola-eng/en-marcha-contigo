@@ -221,3 +221,35 @@
     padding: 14px;
   }
 }
+
+/* ---- Mostrar/ocultar contraseña (LOGIN-02) ---- */
+.login-pass-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.login-pass-wrap input {
+  width: 100%;
+  padding-right: 84px;
+  box-sizing: border-box;
+}
+
+.login-toggle-pass {
+  position: absolute;
+  right: 8px;
+  padding: 6px 10px;
+  border: 1.5px solid #2AACB0;
+  border-radius: 8px;
+  background: #fff;
+  color: #1B3A5C;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.login-toggle-pass:focus-visible {
+  outline: 3px solid #2AACB0;
+  outline-offset: 2px;
+}

@@ -12,6 +12,8 @@ const LoginPage = ({ onLoginExitoso }) => {
   });
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
+  const [verPassword, setVerPassword] = useState(false);
+  const [verConfirmar, setVerConfirmar] = useState(false);
 
   const apiUrl = import.meta.env.VITE_API_URL || '';
 
@@ -153,15 +155,26 @@ const LoginPage = ({ onLoginExitoso }) => {
 
           <div className="login-form-group">
             <label htmlFor="password">Contraseña</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder={modo === 'registro' ? 'Mínimo 6 caracteres' : 'Tu contraseña'}
-              autoComplete={modo === 'login' ? 'current-password' : 'new-password'}
-            />
+            <div className="login-pass-wrap">
+              <input
+                type={verPassword ? 'text' : 'password'}
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder={modo === 'registro' ? 'Mínimo 6 caracteres' : 'Tu contraseña'}
+                autoComplete={modo === 'login' ? 'current-password' : 'new-password'}
+              />
+              <button
+                type="button"
+                className="login-toggle-pass"
+                onClick={() => setVerPassword(v => !v)}
+                aria-label={verPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                aria-pressed={verPassword}
+              >
+                {verPassword ? 'Ocultar' : 'Ver'}
+              </button>
+            </div>
           </div>
 
           {modo === 'registro' && (
@@ -183,15 +196,26 @@ const LoginPage = ({ onLoginExitoso }) => {
           {modo === 'registro' && (
             <div className="login-form-group">
               <label htmlFor="confirmarPassword">Confirmar contraseña</label>
-              <input
-                type="password"
-                id="confirmarPassword"
-                name="confirmarPassword"
-                value={formData.confirmarPassword}
-                onChange={handleChange}
-                placeholder="Repite tu contraseña"
-                autoComplete="new-password"
-              />
+              <div className="login-pass-wrap">
+                <input
+                  type={verConfirmar ? 'text' : 'password'}
+                  id="confirmarPassword"
+                  name="confirmarPassword"
+                  value={formData.confirmarPassword}
+                  onChange={handleChange}
+                  placeholder="Repite tu contraseña"
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  className="login-toggle-pass"
+                  onClick={() => setVerConfirmar(v => !v)}
+                  aria-label={verConfirmar ? 'Ocultar confirmación' : 'Mostrar confirmación'}
+                  aria-pressed={verConfirmar}
+                >
+                  {verConfirmar ? 'Ocultar' : 'Ver'}
+                </button>
+              </div>
             </div>
           )}
 
