@@ -2017,7 +2017,6 @@ def generar_reporte(usuario_actual):
         sintomas_frecuentes = [{'tipo': t, 'conteo': c} for t, c in tipo_counter.most_common(5)]
 
         # 6. Cambios de zona horaria (manual o automático) en el período, para interpretar fluctuaciones
-        from sqlalchemy import text
         # Se ordena por la hora real (UTC). Cada cambio se muestra en la zona nueva del paciente.
         filas_zona = db.session.execute(text("""
             SELECT fecha_utc, zona_anterior, zona_nueva, offset_nuevo, tipo
