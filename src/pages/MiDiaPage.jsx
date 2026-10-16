@@ -181,7 +181,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
               }}>
                 <span>💊</span>
                 <span style={{ fontWeight: '500' }}>{med.nombre}</span>
-                <span style={{ color: 'rgba(255,255,255,0.75)', fontSize: '12px' }}>{med.dosis}</span>
+                <span style={{ color: 'rgba(255,255,255,0.93)', fontSize: '12px' }}>{med.dosis}</span>
               </div>
             ))}
           </div>
@@ -310,8 +310,8 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
                 disabled={cargando}
                 style={{
                   background: 'transparent',
-                  color: 'rgba(255,255,255,0.75)',
-                  border: '1px solid rgba(255,255,255,0.15)',
+                  color: 'rgba(255,255,255,0.93)',
+                  border: '1px solid rgba(255,255,255,0.35)',
                   borderRadius: '12px',
                   padding: '8px 16px',
                   fontSize: '13px',
@@ -340,7 +340,7 @@ function ResumenDia({ tomas }) {
   return (
     <div style={{
       background: 'rgba(42,172,176,0.08)',
-      border: '1px solid rgba(42,172,176,0.2)',
+      border: '1px solid rgba(42,172,176,0.45)',
       borderRadius: '12px',
       padding: '14px 18px',
       marginBottom: '20px',
@@ -349,7 +349,7 @@ function ResumenDia({ tomas }) {
       alignItems: 'center'
     }}>
       <div>
-        <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)', marginBottom: '2px' }}>
+        <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.93)', marginBottom: '2px' }}>
           Adherencia del día
         </div>
         <div style={{ fontSize: '22px', fontWeight: 'bold', color: pct >= 80 ? '#28a745' : '#ffc107' }}>
@@ -357,11 +357,11 @@ function ResumenDia({ tomas }) {
         </div>
       </div>
       <div style={{ textAlign: 'right' }}>
-        <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)', marginBottom: '2px' }}>
+        <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.93)', marginBottom: '2px' }}>
           Tomas
         </div>
         <div style={{ fontSize: '18px', color: 'white' }}>
-          {tomadas}/{total} <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.75)' }}>completadas</span>
+          {tomadas}/{total} <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.93)' }}>completadas</span>
         </div>
       </div>
     </div>
@@ -407,7 +407,7 @@ const desdeHora24 = (txt) => {
 
 const campoEstilo = {
   width: '100%', padding: '10px', borderRadius: '8px', marginTop: '4px',
-  border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)',
+  border: '1px solid rgba(255,255,255,0.35)', background: 'rgba(255,255,255,0.06)',
   color: 'white', fontFamily: 'inherit', fontSize: '14px', boxSizing: 'border-box'
 };
 
@@ -436,7 +436,7 @@ function PanelQuitar({ nombre, onConfirmar, onCancelar }) {
       <p style={{ fontSize: '13px', margin: '0 0 8px' }}>
         Vas a quitar <strong>{nombre}</strong> de tu lista. Su historial se conserva. ¿Confirmas?
       </p>
-      <p aria-live="polite" style={{ fontSize: '13px', margin: '0 0 8px', color: 'rgba(255,255,255,0.75)' }}>
+      <p aria-live="polite" style={{ fontSize: '13px', margin: '0 0 8px', color: 'rgba(255,255,255,0.93)' }}>
         {habilitado ? 'Ya puedes confirmar.' : `Disponible en ${segundos} s`}
       </p>
       <button
@@ -623,13 +623,13 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
         {mensaje && <p style={{ fontSize: '13px', color: '#5dde83', margin: '10px 0 0' }}>{mensaje}</p>}
         {cargando && <p style={{ fontSize: '14px' }}>Cargando...</p>}
         {!cargando && lista.length === 0 && !agregando && (
-          <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.75)' }}>Aún no tienes medicamentos registrados.</p>
+          <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.93)' }}>Aún no tienes medicamentos registrados.</p>
         )}
 
         {lista.map(m => (
           <div key={m.id} style={{ marginTop: '12px', padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)' }}>
             <div style={{ fontWeight: 600 }}>{m.principio_activo || 'Sin sustancia registrada'}</div>
-            <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)' }}>
+            <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.93)' }}>
               {m.dosis} · {(m.horarios || []).map(horaCorta12).join(', ')}
             </div>
 
@@ -779,7 +779,7 @@ export default function MiDiaPage({ token, apiUrl }) {
 
   if (cargando) {
     return (
-      <div style={{ textAlign: 'center', padding: '60px 20px', color: 'rgba(255,255,255,0.75)' }}>
+      <div style={{ textAlign: 'center', padding: '60px 20px', color: 'rgba(255,255,255,0.93)' }}>
         Cargando plan de tomas...
       </div>
     );
@@ -798,7 +798,7 @@ export default function MiDiaPage({ token, apiUrl }) {
         }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>💊</div>
           <h3 style={{ color: '#2AACB0', margin: '0 0 12px' }}>Aún no hay medicamentos registrados</h3>
-          <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '14px', lineHeight: '1.6' }}>
+          <p style={{ color: 'rgba(255,255,255,0.93)', fontSize: '14px', lineHeight: '1.6' }}>
             Agrega tus medicamentos, dosis y horarios para ver tus tomas del día.
           </p>
           <button
@@ -837,7 +837,7 @@ export default function MiDiaPage({ token, apiUrl }) {
 
       {/* Fecha */}
       <div style={{ marginBottom: '16px' }}>
-        <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)', textTransform: 'capitalize' }}>
+        <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.93)', textTransform: 'capitalize' }}>
           {verAyer ? `Ayer: ${fechaAyer}` : hoy}
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginTop: '2px' }}>
@@ -914,7 +914,7 @@ export default function MiDiaPage({ token, apiUrl }) {
         <div style={{
           marginTop: '8px',
           fontSize: '12px',
-          color: 'rgba(255,255,255,0.75)',
+          color: 'rgba(255,255,255,0.93)',
           textAlign: 'center',
           lineHeight: '1.6'
         }}>

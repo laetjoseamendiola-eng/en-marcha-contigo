@@ -95,7 +95,7 @@ function BarraAdherencia({ pct }) {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-        <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>Adherencia al tratamiento</span>
+        <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.93)' }}>Adherencia al tratamiento</span>
         <span style={{ fontSize: '18px', fontWeight: 'bold', color }}>{pct}%</span>
       </div>
       <div style={{ height: '10px', background: 'rgba(255,255,255,0.08)', borderRadius: '5px', overflow: 'hidden' }}>
@@ -188,13 +188,25 @@ export default function ReportePage({ token, apiUrl }) {
     cargarReporte();
   }, [cargarReporte]);
 
+  // Nombre del archivo al imprimir o guardar PDF: "Reporte EMC - 16-10-2026 13.34".
+  // El navegador usa el titulo de la pagina como nombre; se cambia solo durante la impresion.
   const handleImprimir = () => {
+    const zona = zonaDelReloj();
+    const ahora = new Date();
+    const fecha = new Intl.DateTimeFormat('es-MX', { timeZone: zona, day: '2-digit', month: '2-digit', year: 'numeric' })
+      .format(ahora).replace(/\//g, '-');
+    const hora = new Intl.DateTimeFormat('es-MX', { timeZone: zona, hour: '2-digit', minute: '2-digit', hour12: false })
+      .format(ahora).replace(':', '.');
+    const tituloAnterior = document.title;
+    const restaurar = () => { document.title = tituloAnterior; window.removeEventListener('afterprint', restaurar); };
+    document.title = `Reporte EMC - ${fecha} ${hora}`;
+    window.addEventListener('afterprint', restaurar);
     window.print();
   };
 
   if (cargando) {
     return (
-      <div style={{ textAlign: 'center', padding: '60px 20px', color: 'rgba(255,255,255,0.75)' }}>
+      <div style={{ textAlign: 'center', padding: '60px 20px', color: 'rgba(255,255,255,0.93)' }}>
         Generando reporte...
       </div>
     );
@@ -332,18 +344,18 @@ export default function ReportePage({ token, apiUrl }) {
             <div className="texto-reporte" style={{ fontSize: '18px', fontWeight: 'bold', color: 'white' }}>
               Reporte de Seguimiento Neurológico
             </div>
-            <div className="subtexto-reporte" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.55)', marginTop: '4px' }}>
+            <div className="subtexto-reporte" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.93)', marginTop: '4px' }}>
               Paciente: <strong style={{ color: 'rgba(255,255,255,0.85)' }}>{paciente.nombre}</strong>
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>Período analizado</div>
+            <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)' }}>Período analizado</div>
             <div className="texto-reporte" style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)', fontWeight: '600', marginTop: '2px' }}>
               {new Date(periodo.desde + 'T12:00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })}
               {' – '}
               {new Date(periodo.hasta + 'T12:00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}
             </div>
-            <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)', marginTop: '4px' }}>
+            <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginTop: '4px' }}>
               {periodo.dias} {periodo.dias === 1 ? 'día' : 'días'} · {plural(no_motor.dias_registrados, 'día', 'días')} con registro completo
             </div>
           </div>
@@ -352,7 +364,7 @@ export default function ReportePage({ token, apiUrl }) {
         {/* SECCIÓN: ADHERENCIA */}
         <div className="tarjeta-reporte" style={{
           background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(42,172,176,0.15)',
+          border: '1px solid rgba(42,172,176,0.45)',
           borderRadius: '16px',
           padding: '20px',
           marginBottom: '14px',
@@ -366,7 +378,7 @@ export default function ReportePage({ token, apiUrl }) {
             gap: '10px', marginTop: '14px',
           }}>
             {[
-              { label: 'Tomas programadas', valor: adherencia.total_programadas, color: 'rgba(255,255,255,0.6)' },
+              { label: 'Tomas programadas', valor: adherencia.total_programadas, color: 'rgba(255,255,255,0.93)' },
               { label: 'Tomadas', valor: adherencia.tomadas, color: '#27AE60' },
               { label: 'Omitidas', valor: adherencia.omitidas, color: '#E74C3C' },
             ].map(item => (
@@ -377,7 +389,7 @@ export default function ReportePage({ token, apiUrl }) {
                 textAlign: 'center',
               }}>
                 <div className="texto-reporte" style={{ fontSize: '22px', fontWeight: 'bold', color: item.color }}>{item.valor}</div>
-                <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)', marginTop: '2px' }}>{item.label}</div>
+                <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginTop: '2px' }}>{item.label}</div>
               </div>
             ))}
           </div>
@@ -387,7 +399,7 @@ export default function ReportePage({ token, apiUrl }) {
         {secciones.estadoMotor && totalHorasRegistradas > 0 && (
           <div className="tarjeta-reporte" style={{
             background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(42,172,176,0.15)',
+            border: '1px solid rgba(42,172,176,0.45)',
             borderRadius: '16px',
             padding: '20px',
             marginBottom: '14px',
@@ -411,8 +423,8 @@ export default function ReportePage({ token, apiUrl }) {
                   }}>
                     <div style={{ fontSize: '20px', marginBottom: '4px' }}>{def.emoji}</div>
                     <div className="texto-reporte" style={{ fontSize: '18px', fontWeight: 'bold', color: def.color }}>{h}h</div>
-                    <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)' }}>{def.label} · {pct}%</div>
-                    <div className="subtexto-reporte" style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', marginTop: '4px' }}>
+                    <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)' }}>{def.label} · {pct}%</div>
+                    <div className="subtexto-reporte" style={{ fontSize: '10px', color: 'rgba(255,255,255,0.93)', marginTop: '4px' }}>
                       Exacto: {estado_motor.horas_exactas?.[key] ?? 0} h · Bloques: {estado_motor.horas_por_bloque?.[key] ?? 0} h
                     </div>
                   </div>
@@ -420,7 +432,7 @@ export default function ReportePage({ token, apiUrl }) {
               })}
             </div>
             {estado_motor.episodios_exactos?.total > 0 && (
-              <div style={{ marginTop: '14px', fontSize: '12px', color: 'rgba(255,255,255,0.75)', lineHeight: 1.6 }}>
+              <div style={{ marginTop: '14px', fontSize: '12px', color: 'rgba(255,255,255,0.93)', lineHeight: 1.6 }}>
                 Episodios con hora exacta: {estado_motor.episodios_exactos.total}. Cada duración va desde un episodio hasta el siguiente del mismo día.
                 El último episodio de cada día no tiene cierre conocido, así que no se le calcula duración ({estado_motor.episodios_exactos.sin_cierre} sin cierre).
                 {estado_motor.total_bloques > 0 && <> Los bloques históricos de 30 minutos (sin minutos exactos) se suman solo cuando no se cruzan con un intervalo exacto: {estado_motor.total_bloques} bloques contados.</>}
@@ -444,7 +456,7 @@ export default function ReportePage({ token, apiUrl }) {
         {secciones.franjas && (
           <div className="tarjeta-reporte" style={{
             background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(42,172,176,0.15)',
+            border: '1px solid rgba(42,172,176,0.45)',
             borderRadius: '16px',
             padding: '20px',
             marginBottom: '14px',
@@ -452,7 +464,7 @@ export default function ReportePage({ token, apiUrl }) {
             <div style={{ fontSize: '14px', fontWeight: '600', color: '#2AACB0', marginBottom: '6px' }}>
               🕐 Franjas del día
             </div>
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)', marginBottom: '12px', lineHeight: 1.6 }}>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginBottom: '12px', lineHeight: 1.6 }}>
               Estado OFF: se cuenta por la hora exacta del episodio. Síntomas reportados: se cuentan por la hora en que se capturaron, no por la hora del síntoma.
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr 1fr', gap: '6px', fontSize: '12px', color: 'rgba(255,255,255,0.85)' }}>
@@ -474,7 +486,7 @@ export default function ReportePage({ token, apiUrl }) {
         {secciones.noMotor && no_motor.dias_registrados > 0 && (
           <div className="tarjeta-reporte" style={{
             background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(42,172,176,0.15)',
+            border: '1px solid rgba(42,172,176,0.45)',
             borderRadius: '16px',
             padding: '20px',
             marginBottom: '14px',
@@ -482,7 +494,7 @@ export default function ReportePage({ token, apiUrl }) {
             <div style={{ fontSize: '14px', fontWeight: '600', color: '#2AACB0', marginBottom: '14px' }}>
               🌿 Síntomas No Motores — Promedio del Período
             </div>
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)', marginBottom: '12px' }}>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginBottom: '12px' }}>
               Escala 0–4 · 0 = sin problema · 4 = severo · Basado en {plural(no_motor.dias_registrados, 'día', 'días')} con registro
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -495,7 +507,7 @@ export default function ReportePage({ token, apiUrl }) {
                     <span style={{ fontSize: '18px', width: '24px', flexShrink: 0 }}>{def.emoji}</span>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
-                        <span className="texto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>{def.label}</span>
+                        <span className="texto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)' }}>{def.label}</span>
                         <span style={{ fontSize: '12px', fontWeight: '600', color }}>
                           {v} — {LABEL_PROMEDIO(v)}
                         </span>
@@ -516,7 +528,7 @@ export default function ReportePage({ token, apiUrl }) {
             {no_motor.registros?.length > 0 && (
               <div style={{ marginTop: '14px' }}>
                 <div style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.85)', marginBottom: '2px' }}>Registro por fecha</div>
-                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)', marginBottom: '6px' }}>Es un registro diario, por eso no tiene hora.</div>
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginBottom: '6px' }}>Es un registro diario, por eso no tiene hora.</div>
                 {no_motor.registros.slice().sort((a, b) => (a.fecha < b.fecha ? 1 : -1)).map(r => (
                   <div key={r.id} style={{ fontSize: '12px', padding: '6px 0', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                     <div style={{ fontWeight: 600 }}>{new Date(r.fecha + 'T12:00:00').toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' })}</div>
@@ -534,7 +546,7 @@ export default function ReportePage({ token, apiUrl }) {
         {secciones.sintomas && sintomas_motores.frecuentes.length > 0 && (
           <div className="tarjeta-reporte" style={{
             background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(42,172,176,0.15)',
+            border: '1px solid rgba(42,172,176,0.45)',
             borderRadius: '16px',
             padding: '20px',
             marginBottom: '14px',
@@ -546,11 +558,11 @@ export default function ReportePage({ token, apiUrl }) {
               {sintomas_motores.frecuentes.map(s => (
                 <div key={s.tipo} style={{
                   background: 'rgba(255,255,255,0.06)',
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  border: '1px solid rgba(255,255,255,0.35)',
                   borderRadius: '20px',
                   padding: '6px 14px',
                   fontSize: '13px',
-                  color: 'rgba(255,255,255,0.75)',
+                  color: 'rgba(255,255,255,0.93)',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
@@ -574,7 +586,7 @@ export default function ReportePage({ token, apiUrl }) {
         <div style={{ display: secciones.dosis ? 'block' : 'none' }}>
         <div className="tarjeta-reporte" style={{
           background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(42,172,176,0.15)',
+          border: '1px solid rgba(42,172,176,0.45)',
           borderRadius: '16px',
           padding: '20px',
           marginBottom: '14px',
@@ -583,14 +595,14 @@ export default function ReportePage({ token, apiUrl }) {
             💊 Dosis y horarios vigentes ({(reporte.historial_dosis || []).length})
           </div>
           {(reporte.historial_dosis || []).length === 0 && (
-            <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>
+            <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)' }}>
               Sin registros de dosis en el período.
             </div>
           )}
           {(reporte.historial_dosis || []).map((h, i) => (
             <div key={i} className="texto-reporte" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginBottom: '8px' }}>
               <strong>{h.medicamento}</strong>: {h.dosis}, a las {h.horarios.map(horaCorta12).join(' y ')}
-              <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>
+              <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)' }}>
                 Desde {new Date(h.desde).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short', timeZone: zonaDelReloj() })}{h.hora_utc ? ' UTC' : ''}
                 {' · '}{h.hasta
                   ? `hasta ${new Date(h.hasta).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short', timeZone: zonaDelReloj() })}${h.hora_utc ? ' UTC' : ''}`
@@ -607,7 +619,7 @@ export default function ReportePage({ token, apiUrl }) {
         <div style={{ display: secciones.tomas ? 'block' : 'none' }}>
         <div className="tarjeta-reporte" style={{
           background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(42,172,176,0.15)',
+          border: '1px solid rgba(42,172,176,0.45)',
           borderRadius: '16px',
           padding: '20px',
           marginBottom: '14px',
@@ -616,7 +628,7 @@ export default function ReportePage({ token, apiUrl }) {
             🕒 Tomas y dosis vigente ({(reporte.tomas_dosis || []).length})
           </div>
           {(reporte.tomas_dosis || []).length === 0 && (
-            <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>
+            <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)' }}>
               Aún no hay tomas ya cumplidas en el período. Las de hoy aparecen cuando llegue su hora.
             </div>
           )}
@@ -669,7 +681,7 @@ export default function ReportePage({ token, apiUrl }) {
         <div style={{ display: secciones.zona ? 'block' : 'none' }}>
         <div className="tarjeta-reporte" style={{
           background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(42,172,176,0.15)',
+          border: '1px solid rgba(42,172,176,0.45)',
           borderRadius: '16px',
           padding: '20px',
           marginBottom: '14px',
@@ -678,7 +690,7 @@ export default function ReportePage({ token, apiUrl }) {
             🌍 Cambios de zona horaria ({(reporte.cambios_zona || []).length})
           </div>
           {(reporte.cambios_zona || []).length === 0 && (
-            <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>
+            <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)' }}>
               Sin cambios de zona en el período.
             </div>
           )}
@@ -700,7 +712,7 @@ export default function ReportePage({ token, apiUrl }) {
           paddingTop: '16px',
           borderTop: '1px solid rgba(255,255,255,0.06)',
         }}>
-          <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)', lineHeight: '1.7' }}>
+          <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', lineHeight: '1.7' }}>
             Reporte generado por <strong style={{ color: '#2AACB0' }}>En Marcha Contigo</strong> · {new Date().toLocaleDateString('es-MX', { timeZone: zonaDelReloj(), day: 'numeric', month: 'long', year: 'numeric' })}<br/>
             Este documento es informativo. No diagnostica ni prescribe tratamiento.<br/>
             Los datos fueron registrados directamente por el paciente en la aplicación.<br/>
