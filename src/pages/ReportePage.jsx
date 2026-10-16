@@ -383,10 +383,31 @@ export default function ReportePage({ token, apiUrl }) {
                     <div style={{ fontSize: '20px', marginBottom: '4px' }}>{def.emoji}</div>
                     <div className="texto-reporte" style={{ fontSize: '18px', fontWeight: 'bold', color: def.color }}>{h}h</div>
                     <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)' }}>{def.label} · {pct}%</div>
+                    <div className="subtexto-reporte" style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', marginTop: '4px' }}>
+                      Exacto: {estado_motor.horas_exactas?.[key] ?? 0} h · Bloques: {estado_motor.horas_por_bloque?.[key] ?? 0} h
+                    </div>
                   </div>
                 );
               })}
             </div>
+            {estado_motor.episodios_exactos?.total > 0 && (
+              <div style={{ marginTop: '14px', fontSize: '12px', color: 'rgba(255,255,255,0.75)', lineHeight: 1.6 }}>
+                Episodios con hora exacta: {estado_motor.episodios_exactos.total}. Cada duración va desde un episodio hasta el siguiente del mismo día.
+                El último episodio de cada día no tiene cierre conocido, así que no se le calcula duración ({estado_motor.episodios_exactos.sin_cierre} sin cierre).
+                {estado_motor.total_bloques > 0 && <> Los bloques históricos de 30 minutos (sin minutos exactos) se suman solo cuando no se cruzan con un intervalo exacto: {estado_motor.total_bloques} bloques contados.</>}
+                {estado_motor.bloques_en_conflicto > 0 && <> Se omitieron {estado_motor.bloques_en_conflicto} bloques que se cruzan con un intervalo exacto, para no duplicar tiempo ni inventar minutos.</>}
+              </div>
+            )}
+            {estado_motor.episodios_exactos?.intervalos?.length > 0 && (
+              <div style={{ marginTop: '10px' }}>
+                {estado_motor.episodios_exactos.intervalos.slice(-20).reverse().map((it, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', fontSize: '12px', padding: '5px 0', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                    <span>{it.fecha} {it.hora} · {COLOR_ESTADO[it.estado]?.label || it.estado}</span>
+                    <span>{it.duracion_min == null ? 'sin cierre' : `${Math.floor(it.duracion_min / 60)} h ${String(it.duracion_min % 60).padStart(2, '0')} min`}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

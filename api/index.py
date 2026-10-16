@@ -9,6 +9,7 @@ from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.pool import NullPool
+from sqlalchemy import text
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -1255,6 +1256,464 @@ def listar_fluctuaciones(usuario_actual):
 
 
 # =============================================
+# HZ-REG-01: EVENTOS DE FLUCTUACIÓN (tabla fluctuaciones_eventos)
+# La tabla histórica fluctuaciones_motoras NO se modifica ni se borra.
+# Las reglas de integridad viven en la base (triggers fe_*); aquí solo
+# se llama a la base y se traduce cualquier rechazo a un mensaje claro.
+# =============================================
+
+ESTADOS_EVENTO = ('ON', 'OFF', 'ON_DISC_LEVE', 'ON_DISC_GRAVE', 'DORMIDO')
+
+
+def _nombre_zona(zona):
+    """Nombre IANA de la zona del reloj (UTC si no tiene nombre)."""
+    return getattr(zona, 'key', None) or 'UTC'
+
+
+def _hora_episodio(datos, zona, obligatoria=False):
+    """
+    Instante del episodio.
+    - Sin 'ocurrio_en': la hora actual del servidor (registro en tiempo real).
+    - Con 'ocurrio_en' ('AAAA-MM-DDTHH:MM' en la hora local de la zona): registro extemporáneo o corrección.
+    """
+    txt = datos.get('ocurrio_en')
+    if not txt:
+        if obligatoria:
+            raise ValueError('Falta la hora del episodio')
+        return datetime.datetime.now(datetime.timezone.utc)
+    try:
+        local = datetime.datetime.strptime(str(txt)[:16], '%Y-%m-%dT%H:%M')
+    except (ValueError, TypeError):
+        raise ValueError('Hora del episodio inválida')
+    return local.replace(tzinfo=zona)
+
+
+def _mensaje_error_evento(e):
+    """Traduce un rechazo de la base a un mensaje para la app. None si no es de este módulo."""
+    msg = str(getattr(e, 'orig', None) or e)
+    if 'fe_no_posterior_a_captura' in msg:
+        return 'La hora del episodio no puede ser posterior a la actual.'
+    if 'fe_ventana_7_dias' in msg:
+        return 'Solo se puede registrar o corregir hasta 7 días atrás.'
+    if 'fluctuaciones_eventos:' in msg:
+        return msg.split('fluctuaciones_eventos:', 1)[1].split('\n')[0].strip()
+    return None
+
+
+SQL_INSERTAR_EVENTO = text("""
+    INSERT INTO fluctuaciones_eventos
+        (usuario_id, episodio_raiz_id, estado, ocurrio_en, capturado_en,
+         registrado_en, zona, origen, version_de)
+    VALUES
+        (:uid, 0, :estado, :ocurrio, :ahora, :ahora, :zona, 'en_vivo', :version_de)
+    RETURNING id
+""")
+
+
+def _insertar_evento(uid, estado, ocurrio, zona, version_de=None):
+    """
+    Inserta un evento dentro de la transacción actual (sin commit).
+    Los campos de servidor (id, capturado_en, registrado_en, origen, episodio_raiz_id)
+    los fija el trigger fe_antes_insertar; aquí van solo valores de relleno válidos.
+    """
+    ahora = datetime.datetime.now(datetime.timezone.utc)
+    fila = db.session.execute(SQL_INSERTAR_EVENTO, {
+        'uid': uid,
+        'estado': estado,
+        'ocurrio': ocurrio,
+        'ahora': ahora,
+        'zona': _nombre_zona(zona),
+        'version_de': version_de,
+    }).one()
+    return fila.id
+
+
+def _evento_a_dict(ev, zona):
+    """Fila de fluctuaciones_eventos -> dict para la app, en la hora local de la zona."""
+    local = ev.ocurrio_en.astimezone(zona)
+    bloque_min = 0 if local.minute < 30 else 30
+    return {
+        'id': ev.id,
+        'estado': ev.estado,
+        'ocurrio_en': local.strftime('%Y-%m-%dT%H:%M'),
+        'fecha': local.date().isoformat(),
+        'hora_bloque': f'{local.hour:02d}:{bloque_min:02d}',
+        'origen': ev.origen,
+        'extemporaneo': ev.origen == 'extemporaneo',
+        'version_de': ev.version_de,
+        'anulado_en': ev.anulado_en.isoformat() if ev.anulado_en else None,
+        'anulado_en_local': ev.anulado_en.astimezone(zona).strftime('%Y-%m-%dT%H:%M') if ev.anulado_en else None,
+        'motivo_anulacion': ev.motivo_anulacion,
+        'anulado_por_evento': ev.anulado_por_evento,
+    }
+
+
+def _tabla_duraciones_existe():
+    """True si la migración de duraciones (fluctuaciones_duraciones) ya está aplicada en esta base."""
+    return db.session.execute(text("SELECT to_regclass('fluctuaciones_duraciones') IS NOT NULL")).scalar()
+
+
+def _duraciones_de(uid, ids):
+    """Duraciones aproximadas por id de episodio. Sin tabla (migración pendiente) devuelve {} sin error."""
+    if not ids or not _tabla_duraciones_existe():
+        return {}
+    filas = db.session.execute(text("""
+        SELECT evento_id, minutos, origen FROM fluctuaciones_duraciones
+         WHERE usuario_id = :uid AND evento_id = ANY(:ids)
+    """), {'uid': uid, 'ids': ids}).all()
+    return {f.evento_id: {'minutos': f.minutos, 'origen': f.origen} for f in filas}
+
+
+def calcular_intervalos_exactos(filas, zona, ventana=None):
+    """
+    Duraciones exactas del estado motor (HZ-REG-01).
+    filas: [{'id', 'estado', 'ocurrio_en' (instante aware)}] episodios vigentes.
+    ventana: (inicio, fin) aware, opcional. Solo cuentan los episodios que EMPIEZAN dentro de la ventana.
+    - Un periodo continúa hasta el siguiente cambio de estado, aunque ocurra al día siguiente (cruce de medianoche).
+    - La duración se atribuye completa al episodio donde empieza: no se parte ni se repite entre días o ventanas.
+    - Dos episodios con el mismo instante: prevalece el de mayor id (último guardado); el otro no suma tiempo.
+    - El último episodio sin siguiente cambio conocido no tiene duración calculada.
+    """
+    estados = ('ON', 'OFF', 'ON_DISC_LEVE', 'ON_DISC_GRAVE', 'DORMIDO')
+    episodios, intervalos, cerrados = [], [], []
+    horas = {e: 0.0 for e in estados}
+    sin_cierre = 0
+    eff = []
+    for f in sorted(filas, key=lambda f: (f['ocurrio_en'], f['id'])):
+        local = f['ocurrio_en'].astimezone(zona)
+        registro = {'id': f['id'], 'ocurrio': f['ocurrio_en'], 'estado': f['estado'],
+                    'fecha': local.date().isoformat(), 'hora': local.strftime('%H:%M')}
+        if eff and eff[-1]['ocurrio'] == f['ocurrio_en']:
+            eff[-1] = registro
+        else:
+            eff.append(registro)
+    dentro = lambda t: ventana is None or (ventana[0] <= t < ventana[1])
+    for f in sorted(filas, key=lambda f: (f['ocurrio_en'], f['id'])):
+        if dentro(f['ocurrio_en']):
+            local = f['ocurrio_en'].astimezone(zona)
+            episodios.append({'id': f['id'], 'fecha': local.date().isoformat(), 'hora': local.strftime('%H:%M'), 'estado': f['estado']})
+    # Reparto diario: cada periodo cerrado se divide en tramos por medianoche local.
+    # El episodio sigue siendo uno (duracion_min completa en 'intervalos'); los minutos por fecha
+    # salen de los tramos, y su suma por fecha coincide con el total del periodo.
+    minutos_por_fecha = {}
+    for i, ep in enumerate(eff):
+        if i + 1 >= len(eff):
+            if dentro(ep['ocurrio']):
+                sin_cierre += 1
+                intervalos.append({'fecha': ep['fecha'], 'hora': ep['hora'], 'estado': ep['estado'], 'duracion_min': None})
+            continue
+        siguiente = eff[i + 1]
+        if dentro(ep['ocurrio']):
+            total = int(round((siguiente['ocurrio'] - ep['ocurrio']).total_seconds() / 60))
+            intervalos.append({'fecha': ep['fecha'], 'hora': ep['hora'], 'estado': ep['estado'], 'duracion_min': total})
+        inicio = ep['ocurrio'] if ventana is None else max(ep['ocurrio'], ventana[0])
+        fin = siguiente['ocurrio'] if ventana is None else min(siguiente['ocurrio'], ventana[1])
+        cur = inicio
+        while cur < fin:
+            dia_sig = cur.astimezone(zona).date() + datetime.timedelta(days=1)
+            medianoche = datetime.datetime.combine(dia_sig, datetime.time(0, 0), tzinfo=zona)
+            seg_fin = min(fin, medianoche)
+            minutos = int(round((seg_fin - cur).total_seconds() / 60))
+            fecha = cur.astimezone(zona).date().isoformat()
+            if minutos > 0:
+                horas[ep['estado']] += minutos / 60
+                cerrados.append({'inicio': cur, 'fin': seg_fin, 'estado': ep['estado']})
+                dic = minutos_por_fecha.setdefault(fecha, {e: 0 for e in estados})
+                dic[ep['estado']] += minutos
+            cur = seg_fin
+    return {
+        'episodios': episodios,
+        'intervalos': intervalos,
+        'sin_cierre': sin_cierre,
+        'horas_por_estado': {e: round(horas[e], 2) for e in estados},
+        'cerrados': cerrados,
+        'minutos_por_fecha': minutos_por_fecha,
+    }
+
+
+def combinar_estado_motor(cerrados, bloques, zona):
+    """
+    Combina duraciones exactas y bloques históricos sin contar dos veces el mismo tiempo.
+    - cerrados: [{'inicio', 'fin' (instantes aware), 'estado'}] intervalos con duración confirmada.
+    - bloques: [{'fecha': 'AAAA-MM-DD', 'hora_bloque': 'HH:MM', 'estado'}] registros históricos de 30 min.
+    Un bloque histórico se suma solo si NO se superpone con ningún intervalo exacto.
+    Si se superpone, aunque sea en parte, no se suma: no se sabe qué parte le corresponde.
+    Nunca se inventan minutos: cada bloque aporta 0.5 h, como se registró.
+    """
+    estados = ('ON', 'OFF', 'ON_DISC_LEVE', 'ON_DISC_GRAVE', 'DORMIDO')
+    exactas = {e: 0.0 for e in estados}
+    for c in cerrados:
+        if c['estado'] in exactas:
+            exactas[c['estado']] += (c['fin'] - c['inicio']).total_seconds() / 3600
+    conteo = {e: 0 for e in estados}
+    en_conflicto = 0
+    for b in bloques:
+        if b['estado'] not in conteo:
+            continue
+        inicio = datetime.datetime.strptime(f"{b['fecha']} {b['hora_bloque']}", '%Y-%m-%d %H:%M').replace(tzinfo=zona)
+        fin = inicio + datetime.timedelta(minutes=30)
+        if any(c['inicio'] < fin and c['fin'] > inicio for c in cerrados):
+            en_conflicto += 1
+            continue
+        conteo[b['estado']] += 1
+    horas_exactas = {e: round(exactas[e], 2) for e in estados}
+    horas_por_bloque = {e: round(conteo[e] * 0.5, 2) for e in estados}
+    return {
+        'conteo': conteo,
+        'horas_exactas': horas_exactas,
+        'horas_por_bloque': horas_por_bloque,
+        'horas': {e: round(horas_exactas[e] + horas_por_bloque[e], 2) for e in estados},
+        'bloques_contados': sum(conteo.values()),
+        'bloques_en_conflicto': en_conflicto,
+    }
+
+
+@app.route('/api/fluctuaciones-eventos', methods=['GET'])
+@token_requerido
+def listar_fluctuaciones_eventos(usuario_actual):
+    """
+    Eventos vigentes de los últimos N días (N = ?dias, por defecto 1, máx. 8),
+    el último estado cronológico registrado (aunque sea de otro día) y los
+    registros históricos por bloque de fluctuaciones_motoras (sin minutos exactos).
+    Con ?historial=1 también devuelve los episodios corregidos o eliminados.
+    """
+    try:
+        zona = zona_req()
+        dias = min(max(int(request.args.get('dias', 1)), 1), 8)
+        ahora = ahora_req()
+        hoy = ahora.date()
+        inicio = datetime.datetime.combine(
+            hoy - datetime.timedelta(days=dias - 1), datetime.time(0, 0), tzinfo=zona)
+
+        vigentes = db.session.execute(text("""
+            SELECT id, estado, ocurrio_en, origen, version_de, anulado_en, motivo_anulacion, anulado_por_evento
+              FROM fluctuaciones_eventos
+             WHERE usuario_id = :uid AND anulado_en IS NULL AND ocurrio_en >= :inicio
+             ORDER BY ocurrio_en ASC, id ASC
+        """), {'uid': usuario_actual.id, 'inicio': inicio}).all()
+
+        ultimo = db.session.execute(text("""
+            SELECT id, estado, ocurrio_en, origen, version_de, anulado_en, motivo_anulacion, anulado_por_evento
+              FROM fluctuaciones_eventos
+             WHERE usuario_id = :uid AND anulado_en IS NULL
+             ORDER BY ocurrio_en DESC, id DESC
+             LIMIT 1
+        """), {'uid': usuario_actual.id}).first()
+
+        historial = None
+        if request.args.get('historial') == '1':
+            historial = [_evento_a_dict(e, zona) for e in db.session.execute(text("""
+                SELECT id, estado, ocurrio_en, origen, version_de, anulado_en, motivo_anulacion, anulado_por_evento
+                  FROM fluctuaciones_eventos
+                 WHERE usuario_id = :uid AND ocurrio_en >= :inicio
+                 ORDER BY ocurrio_en ASC, id ASC
+            """), {'uid': usuario_actual.id, 'inicio': inicio}).all()]
+
+        historicos = FluctuacionMotora.query.filter(
+            FluctuacionMotora.usuario_id == usuario_actual.id,
+            FluctuacionMotora.fecha >= inicio.date()
+        ).order_by(FluctuacionMotora.fecha.asc(), FluctuacionMotora.hora_bloque.asc()).all()
+
+        # Duración aproximada elegida (dato aparte; nunca altera la hora del episodio).
+        # Si la migración aún no está aplicada en esta base, la lista funciona igual, sin duraciones.
+        duraciones = _duraciones_de(usuario_actual.id, [e.id for e in vigentes])
+
+        eventos_dict = []
+        for e in vigentes:
+            d = _evento_a_dict(e, zona)
+            d['duracion_aproximada'] = duraciones.get(e.id)
+            eventos_dict.append(d)
+
+        if historial:
+            # Trazabilidad: la duración anotada de un episodio corregido o eliminado se muestra en su historial,
+            # sin pasar nunca al episodio que lo reemplaza.
+            dur_hist = _duraciones_de(usuario_actual.id, [h['id'] for h in historial])
+            for h in historial:
+                h['duracion_aproximada'] = dur_hist.get(h['id'])
+
+        return jsonify({
+            'zona': _nombre_zona(zona),
+            'ahora': ahora.strftime('%Y-%m-%dT%H:%M'),
+            'dias': dias,
+            'eventos': eventos_dict,
+            'ultimo_estado': _evento_a_dict(ultimo, zona) if ultimo else None,
+            'historicos': [dict(h.to_dict(), historico=True) for h in historicos],
+            'historial': historial,
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/fluctuaciones-eventos', methods=['POST'])
+@token_requerido
+def registrar_fluctuacion_evento(usuario_actual):
+    """
+    Alta de un estado. Sin 'ocurrio_en' = ahora (en vivo).
+    Con 'ocurrio_en' = registro extemporáneo (hasta 7 días atrás).
+    El origen (en_vivo | extemporaneo) lo calcula el servidor.
+    """
+    try:
+        datos = request.get_json() or {}
+        estado = (datos.get('estado') or '').upper()
+        if estado not in ESTADOS_EVENTO:
+            return jsonify({'error': f'Estado inválido. Usa: {", ".join(ESTADOS_EVENTO)}'}), 400
+
+        zona = zona_req()
+        if not datos.get('ocurrio_en'):
+            # Tiempo real: no puede repetirse el último estado cronológico vigente.
+            # Se toma el mismo bloqueo por paciente que usa el trigger, antes de leer el último estado;
+            # así dos solicitudes simultáneas se resuelven en serie.
+            db.session.execute(text("SELECT pg_advisory_xact_lock(hashtext('fluctuaciones_eventos'), :uid)"),
+                               {'uid': usuario_actual.id})
+            ultimo = db.session.execute(text("""
+                SELECT estado FROM fluctuaciones_eventos
+                 WHERE usuario_id = :uid AND anulado_en IS NULL
+                 ORDER BY ocurrio_en DESC, id DESC
+                 LIMIT 1
+            """), {'uid': usuario_actual.id}).first()
+            if ultimo and ultimo.estado == estado:
+                db.session.rollback()
+                return jsonify({'error': f'Tu último estado ya es {estado}. Elige un estado distinto.'}), 409
+
+        ocurrio = _hora_episodio(datos, zona)
+        nuevo_id = _insertar_evento(usuario_actual.id, estado, ocurrio, zona)
+        db.session.commit()
+        return jsonify({'mensaje': 'Estado registrado', 'id': nuevo_id, 'estado': estado}), 201
+
+    except ValueError as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        db.session.rollback()
+        msg = _mensaje_error_evento(e)
+        if msg:
+            return jsonify({'error': msg}), 400
+        return jsonify({'error': 'No se pudo registrar el estado'}), 500
+
+
+@app.route('/api/fluctuaciones-eventos/<int:evento_id>/corregir', methods=['POST'])
+@token_requerido
+def corregir_fluctuacion_evento(usuario_actual, evento_id):
+    """
+    Corrección atómica: crea la versión nueva y anula la original en la misma transacción.
+    Si cualquier paso falla, no queda ninguna de las dos modificaciones.
+    La hora original de captura (capturado_en) se conserva; la hora de modificación queda en registrado_en.
+    """
+    try:
+        datos = request.get_json() or {}
+        estado = (datos.get('estado') or '').upper()
+        if estado not in ESTADOS_EVENTO:
+            return jsonify({'error': f'Estado inválido. Usa: {", ".join(ESTADOS_EVENTO)}'}), 400
+
+        zona = zona_req()
+        ocurrio = _hora_episodio(datos, zona, obligatoria=True)
+        nuevo_id = _insertar_evento(usuario_actual.id, estado, ocurrio, zona, version_de=evento_id)
+
+        res = db.session.execute(text("""
+            UPDATE fluctuaciones_eventos
+               SET motivo_anulacion = 'correccion', anulado_por_evento = :nuevo
+             WHERE id = :id AND usuario_id = :uid AND anulado_en IS NULL
+        """), {'nuevo': nuevo_id, 'id': evento_id, 'uid': usuario_actual.id})
+        if res.rowcount != 1:
+            db.session.rollback()
+            return jsonify({'error': 'El episodio ya no está vigente'}), 409
+
+        db.session.commit()
+        return jsonify({'mensaje': 'Episodio corregido', 'id': nuevo_id, 'reemplaza_a': evento_id}), 201
+
+    except ValueError as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        db.session.rollback()
+        msg = _mensaje_error_evento(e)
+        if msg:
+            return jsonify({'error': msg}), 400
+        return jsonify({'error': 'No se pudo corregir el episodio'}), 500
+
+
+@app.route('/api/fluctuaciones-eventos/<int:evento_id>/eliminar', methods=['POST'])
+@token_requerido
+def eliminar_fluctuacion_evento(usuario_actual, evento_id):
+    """Eliminación lógica: el episodio deja de ser vigente; no se borra ninguna fila."""
+    try:
+        res = db.session.execute(text("""
+            UPDATE fluctuaciones_eventos
+               SET motivo_anulacion = 'eliminacion'
+             WHERE id = :id AND usuario_id = :uid AND anulado_en IS NULL
+        """), {'id': evento_id, 'uid': usuario_actual.id})
+        if res.rowcount != 1:
+            db.session.rollback()
+            return jsonify({'error': 'El episodio ya no está vigente'}), 409
+
+        db.session.commit()
+        return jsonify({'mensaje': 'Episodio eliminado', 'id': evento_id}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        msg = _mensaje_error_evento(e)
+        if msg:
+            return jsonify({'error': msg}), 400
+        return jsonify({'error': 'No se pudo eliminar el episodio'}), 500
+
+
+DURACION_MAX_MIN = 1440
+ORIGENES_DURACION = ('sugerencia', 'usuario')
+
+
+@app.route('/api/fluctuaciones-eventos/<int:evento_id>/duracion', methods=['POST'])
+@token_requerido
+def guardar_duracion_evento(usuario_actual, evento_id):
+    """
+    Guarda o reemplaza la duración aproximada elegida para un episodio vigente.
+    Es un dato separado: no cambia ocurrio_en ni los periodos exactos.
+    Cuerpo: {'minutos': entero 1..1440, 'origen': 'sugerencia' | 'usuario'}.
+    """
+    try:
+        datos = request.get_json() or {}
+        minutos = datos.get('minutos')
+        origen = datos.get('origen') or 'usuario'
+        if isinstance(minutos, bool) or not isinstance(minutos, int) or not (1 <= minutos <= DURACION_MAX_MIN):
+            return jsonify({'error': f'Escribe minutos enteros entre 1 y {DURACION_MAX_MIN}.'}), 400
+        if origen not in ORIGENES_DURACION:
+            return jsonify({'error': 'Origen de duración inválido.'}), 400
+
+        if not _tabla_duraciones_existe():
+            return jsonify({'error': 'La duración aproximada aún no está disponible en esta versión.'}), 409
+
+        vigente = db.session.execute(text("""
+            SELECT id FROM fluctuaciones_eventos
+             WHERE id = :id AND usuario_id = :uid AND anulado_en IS NULL
+        """), {'id': evento_id, 'uid': usuario_actual.id}).first()
+        if not vigente:
+            db.session.rollback()
+            return jsonify({'error': 'El episodio ya no está vigente'}), 409
+
+        db.session.execute(text("""
+            INSERT INTO fluctuaciones_duraciones (evento_id, usuario_id, minutos, origen, actualizado_en)
+            VALUES (:id, :uid, :minutos, :origen, now())
+            ON CONFLICT (evento_id) DO UPDATE
+               SET minutos = EXCLUDED.minutos,
+                   origen = EXCLUDED.origen,
+                   actualizado_en = EXCLUDED.actualizado_en
+        """), {'id': evento_id, 'uid': usuario_actual.id, 'minutos': minutos, 'origen': origen})
+        db.session.commit()
+        return jsonify({
+            'mensaje': 'Duración aproximada guardada',
+            'evento_id': evento_id,
+            'duracion_aproximada': {'minutos': minutos, 'origen': origen},
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        msg = _mensaje_error_evento(e)
+        if msg:
+            return jsonify({'error': msg}), 400
+        return jsonify({'error': 'No se pudo guardar la duración'}), 500
+
+
+# =============================================
 # ENDPOINTS: REGISTRO DIARIO (síntomas no motores)
 # =============================================
 
@@ -1428,20 +1887,35 @@ def generar_reporte(usuario_actual):
         tomas_omitidas = len([t for t in tomas if t.omitida and not t.tomada])
         adherencia_pct = round((tomas_tomadas / total_tomas * 100) if total_tomas > 0 else 0)
 
-        # 3. Estado motor (fluctuaciones ON/OFF) — últimos N días
+        # 3. Estado motor (HZ-REG-01)
+        # a) Episodios exactos: fluctuaciones_eventos vigentes (corregidos y eliminados no cuentan).
+        ini_ev = datetime.datetime.combine(desde, datetime.time(0, 0), tzinfo=zona_reporte)
+        fin_ev = datetime.datetime.combine(hasta + datetime.timedelta(days=1), datetime.time(0, 0), tzinfo=zona_reporte)
+        # Se añade el primer cambio posterior a la ventana solo como cierre: así un periodo que cruza
+        # el final del rango conserva su duración exacta, sin contar minutos fuera del rango.
+        filas_exactas = db.session.execute(text("""
+            (SELECT id, estado, ocurrio_en FROM fluctuaciones_eventos
+              WHERE usuario_id = :uid AND anulado_en IS NULL
+                AND ocurrio_en >= :ini AND ocurrio_en < :fin)
+            UNION ALL
+            (SELECT id, estado, ocurrio_en FROM fluctuaciones_eventos
+              WHERE usuario_id = :uid AND anulado_en IS NULL AND ocurrio_en >= :fin
+              ORDER BY ocurrio_en ASC, id ASC LIMIT 1)
+        """), {'uid': usuario_actual.id, 'ini': ini_ev, 'fin': fin_ev}).all()
+        exactos = calcular_intervalos_exactos(
+            [{'id': r.id, 'estado': r.estado, 'ocurrio_en': r.ocurrio_en} for r in filas_exactas],
+            zona_reporte, ventana=(ini_ev, fin_ev))
+        # b) Registros históricos por bloque (sin minutos exactos). Se suman solo los bloques
+        # que no se superponen con un intervalo exacto (ver combinar_estado_motor).
         fluctuaciones = FluctuacionMotora.query.filter(
             FluctuacionMotora.usuario_id == usuario_actual.id,
             FluctuacionMotora.fecha >= desde,
             FluctuacionMotora.fecha <= hasta
         ).all()
-
-        conteo_estados = {'ON': 0, 'OFF': 0, 'ON_DISC_LEVE': 0, 'ON_DISC_GRAVE': 0, 'DORMIDO': 0}
-        for f in fluctuaciones:
-            if f.estado in conteo_estados:
-                conteo_estados[f.estado] += 1
-
-        # Convertir a horas (bloques de 30 min = 0.5h)
-        horas_estados = {k: round(v * 0.5, 1) for k, v in conteo_estados.items()}
+        combinado = combinar_estado_motor(
+            exactos['cerrados'],
+            [{'fecha': f.fecha.isoformat(), 'hora_bloque': f.hora_bloque, 'estado': f.estado} for f in fluctuaciones],
+            zona_reporte)
 
         # 4. Registros diarios (síntomas no motores)
         registros_diarios = RegistroDiario.query.filter(
@@ -1566,9 +2040,18 @@ def generar_reporte(usuario_actual):
                 'porcentaje': adherencia_pct,
             },
             'estado_motor': {
-                'total_bloques': len(fluctuaciones),
-                'conteo': conteo_estados,
-                'horas': horas_estados,
+                'total_bloques': combinado['bloques_contados'],
+                'conteo': combinado['conteo'],
+                'horas': combinado['horas'],
+                'horas_exactas': combinado['horas_exactas'],
+                'horas_por_bloque': combinado['horas_por_bloque'],
+                'bloques_en_conflicto': combinado['bloques_en_conflicto'],
+                'episodios_exactos': {
+                    'total': len(exactos['episodios']),
+                    'sin_cierre': exactos['sin_cierre'],
+                    'intervalos': exactos['intervalos'][-200:],
+                    'minutos_por_fecha': exactos['minutos_por_fecha'],
+                },
             },
             'sintomas_motores': {
                 'total': len(sintomas),
