@@ -66,6 +66,8 @@ class Usuario(db.Model):
     sesion_id = db.Column(db.String(64), nullable=True)
     pregunta_seguridad_id = db.Column(db.Integer, nullable=True)
     respuesta_seguridad_hash = db.Column(db.String(256), nullable=True)
+    intentos_fallidos = db.Column(db.Integer, nullable=False, default=0)
+    bloqueado_hasta = db.Column(db.DateTime, nullable=True)
 
     sintomas = db.relationship('Sintoma', backref='usuario', lazy=True)
     def to_dict(self):
@@ -417,6 +419,10 @@ def registro():
         return jsonify({'error': f'Error del servidor: {str(e)}'}), 500
 
 
+LIMITE_INTENTOS = 5
+MINUTOS_BLOQUEO = 15
+
+
 @app.route('/api/auth/login', methods=['POST'])
 def login():
     try:
@@ -431,8 +437,24 @@ def login():
         email = data['email'].strip().lower()
         usuario = Usuario.query.filter_by(email=email).first()
 
+        ahora = datetime.datetime.utcnow()
+        if usuario and usuario.bloqueado_hasta and ahora < usuario.bloqueado_hasta:
+            return jsonify({'error': 'Demasiados intentos. Espera 15 minutos e inténtalo de nuevo'}), 429
+
         if not usuario or not check_password_hash(usuario.password_hash, data['password']):
+            if usuario:
+                usuario.intentos_fallidos = (usuario.intentos_fallidos or 0) + 1
+                if usuario.intentos_fallidos >= LIMITE_INTENTOS:
+                    usuario.bloqueado_hasta = ahora + datetime.timedelta(minutes=MINUTOS_BLOQUEO)
+                    usuario.intentos_fallidos = 0
+                    db.session.commit()
+                    return jsonify({'error': 'Demasiados intentos. Espera 15 minutos e inténtalo de nuevo'}), 429
+                db.session.commit()
             return jsonify({'error': 'Email o contraseña incorrectos'}), 401
+
+        usuario.intentos_fallidos = 0
+        usuario.bloqueado_hasta = None
+        db.session.commit()
 
         if not usuario.activo:
             return jsonify({'error': 'Cuenta desactivada'}), 403
