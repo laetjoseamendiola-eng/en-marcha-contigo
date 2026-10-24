@@ -15,8 +15,8 @@ function App() {
 
   // Verificar sesión guardada al cargar
   useEffect(() => {
-    const tokenGuardado = localStorage.getItem('token');
-    const usuarioGuardado = localStorage.getItem('usuario');
+    const tokenGuardado = sessionStorage.getItem('token');
+    const usuarioGuardado = sessionStorage.getItem('usuario');
 
     if (tokenGuardado && usuarioGuardado) {
       // Verificar que el token siga siendo válido
@@ -36,8 +36,8 @@ function App() {
         })
         .catch(() => {
           // Token expirado o inválido, limpiar
-          localStorage.removeItem('token');
-          localStorage.removeItem('usuario');
+          sessionStorage.removeItem('token');
+          sessionStorage.removeItem('usuario');
         })
         .finally(() => {
           setVerificando(false);
@@ -56,8 +56,8 @@ function App() {
   const handleLogout = () => {
     setUsuario(null);
     setToken(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('usuario');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('usuario');
   };
 
   // Pantalla de carga mientras verifica sesión

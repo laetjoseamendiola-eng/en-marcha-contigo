@@ -10,8 +10,8 @@ export function instalarControlSesion() {
       try {
         const datos = await res.clone().json();
         if (datos && String(datos.error || '').includes('otro dispositivo')) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('usuario');
+          sessionStorage.removeItem('token');
+          sessionStorage.removeItem('usuario');
           window.location.reload();
         }
       } catch (e) { /* respuesta sin JSON: no es el caso */ }

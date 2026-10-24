@@ -72,8 +72,8 @@ const LoginPage = ({ onLoginExitoso }) => {
         { Authorization: `Bearer ${pendiente.token}` }
       );
       if (ok) {
-        localStorage.setItem('token', pendiente.token);
-        localStorage.setItem('usuario', JSON.stringify(data.usuario));
+        sessionStorage.setItem('token', pendiente.token);
+        sessionStorage.setItem('usuario', JSON.stringify(data.usuario));
         onLoginExitoso(data.usuario, pendiente.token);
       } else {
         setError(data.error || 'No se pudo guardar la pregunta');
@@ -198,8 +198,8 @@ const LoginPage = ({ onLoginExitoso }) => {
           setFormData(prev => ({ ...prev, pregunta_id: '', respuesta: '' }));
           return;
         }
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('usuario', JSON.stringify(data.usuario));
+        sessionStorage.setItem('token', data.token);
+        sessionStorage.setItem('usuario', JSON.stringify(data.usuario));
         onLoginExitoso(data.usuario, data.token);
       } else {
         setError(data.error || 'Error en la operación');

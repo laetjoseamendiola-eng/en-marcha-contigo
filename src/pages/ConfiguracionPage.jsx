@@ -66,7 +66,7 @@ const guardarEntrada = (entrada) => {
 // Envía el cambio de zona al servidor para el reporte. Si falla (sin conexión), queda solo en el registro local.
 const registrarCambioZona = async (zonaNueva, zonaAnterior, tipo) => {
   try {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     if (!token) return;
     await fetch(`${import.meta.env.VITE_API_URL || ''}/api/zona/cambio`, {
       method: 'POST',
