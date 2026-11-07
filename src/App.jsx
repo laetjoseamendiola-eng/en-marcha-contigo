@@ -66,7 +66,7 @@ function App() {
     return (
       <div style={{
         minHeight: '100vh',
-        background: `${PALETA.fondoTurquesa}`,
+        background: `${PALETA.turquesa}`,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',

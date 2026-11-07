@@ -9,7 +9,7 @@
 
 .registro-sintomas-container {
   min-height: 100vh;
-  background: var(--fondoTurquesa);
+  background: var(--turquesa);
   padding: 20px;
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
