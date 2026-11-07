@@ -400,7 +400,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
       {/* Pestaña Historial */}
       {pestanaActiva === 'historial' && (
         <div className="historial-section" style={{ padding: '20px 16px' }}>
-          <h2>Historial de síntomas</h2>
+          <h2>Historial de Síntomas</h2>
           {sintomas.length === 0 ? (
             <div className="sin-datos">
               <p>No hay síntomas registrados aún</p>

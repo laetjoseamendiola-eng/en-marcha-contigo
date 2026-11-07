@@ -30,18 +30,19 @@ const TooltipPersonalizado = ({ active, payload, label }) => {
   return (
     <div style={{
       background: '#2AACB0',
-      border: '2px solid #FFC107',
+      border: 'none',
       borderRadius: '10px',
       padding: '12px 16px',
       color: '#FFFFFF',
-      fontSize: '14px',
+      fontWeight: 700,
+      fontSize: '15px',
       minWidth: '160px'
     }}>
-      <p style={{ margin: '0 0 8px', fontWeight: 'bold', color: '#1B3A5C', WebkitTextStroke: '0.5px #FFFFFF' }}>
+      <p style={{ margin: '0 0 8px', fontWeight: 'bold', color: '#1B3A5C' }}>
         {label}
       </p>
       {payload.map((entry, i) => (
-        <p key={i} style={{ margin: '4px 0', color: entry.color }}>
+        <p key={i} style={{ margin: '4px 0', color: '#FFFFFF', fontWeight: 700 }}>
           {entry.name}: <strong>{entry.value}</strong>
         </p>
       ))}
@@ -234,21 +235,21 @@ export default function EvolucionPage({ token, apiUrl }) {
           {/* Gráfica principal: intensidad promedio diaria */}
           <div style={estiloTarjeta}>
             <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: '#2AACB0' }}>
-              Intensidad promedio por día
+              Intensidad Promedio por Día
             </h3>
             <ResponsiveContainer width="100%" height={220}>
               {vistaActiva === 'lineas' ? (
                 <LineChart data={datos.serie_temporal} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.25)" />
                   <XAxis
                     dataKey="fecha"
                     tickFormatter={formatFecha}
-                    tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }}
+                    tick={{ fill: '#FFFFFF', fontWeight: 700, fontSize: 13 }}
                     interval="preserveStartEnd"
                   />
                   <YAxis
                     domain={[0, 10]}
-                    tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }}
+                    tick={{ fill: '#FFFFFF', fontWeight: 700, fontSize: 13 }}
                     ticks={[0, 2, 4, 6, 8, 10]}
                   />
                   <Tooltip content={<TooltipPersonalizado />} />
@@ -257,27 +258,27 @@ export default function EvolucionPage({ token, apiUrl }) {
                     type="monotone"
                     dataKey="intensidad_promedio"
                     name="Intensidad"
-                    stroke="#2AACB0"
-                    strokeWidth={2.5}
-                    dot={{ r: 4, fill: '#2AACB0', stroke: '#1B3A5C', strokeWidth: 2 }}
+                    stroke="#FFC107"
+                    strokeWidth={4}
+                    dot={{ r: 4, fill: '#FFC107', stroke: '#1B3A5C', strokeWidth: 2 }}
                     activeDot={{ r: 6 }}
                   />
                 </LineChart>
               ) : (
                 <BarChart data={datos.serie_temporal} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.25)" />
                   <XAxis
                     dataKey="fecha"
                     tickFormatter={formatFecha}
-                    tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }}
+                    tick={{ fill: '#FFFFFF', fontWeight: 700, fontSize: 13 }}
                     interval="preserveStartEnd"
                   />
                   <YAxis
                     domain={[0, 10]}
-                    tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }}
+                    tick={{ fill: '#FFFFFF', fontWeight: 700, fontSize: 13 }}
                   />
                   <Tooltip content={<TooltipPersonalizado />} />
-                  <Bar dataKey="intensidad_promedio" name="Intensidad" fill="#2AACB0" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="intensidad_promedio" name="Intensidad" fill="#FFC107" radius={[4, 4, 0, 0]} />
                 </BarChart>
               )}
             </ResponsiveContainer>
@@ -287,20 +288,20 @@ export default function EvolucionPage({ token, apiUrl }) {
           {tipoFiltro === 'todos' && datos.tipos_disponibles?.length > 1 && (
             <div style={estiloTarjeta}>
               <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: '#2AACB0' }}>
-                Evolución por tipo de síntoma
+                Evolución por Tipo de Síntoma
               </h3>
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={datos.serie_temporal} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.25)" />
                   <XAxis
                     dataKey="fecha"
                     tickFormatter={formatFecha}
-                    tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }}
+                    tick={{ fill: '#FFFFFF', fontWeight: 700, fontSize: 13 }}
                     interval="preserveStartEnd"
                   />
                   <YAxis
                     domain={[0, 10]}
-                    tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }}
+                    tick={{ fill: '#FFFFFF', fontWeight: 700, fontSize: 13 }}
                   />
                   <Tooltip content={<TooltipPersonalizado />} />
                   <Legend
@@ -314,7 +315,7 @@ export default function EvolucionPage({ token, apiUrl }) {
                       dataKey={`intensidad_${tipo}`}
                       name={`intensidad_${tipo}`}
                       stroke={COLORES_TIPO[tipo] || '#95A5A6'}
-                      strokeWidth={2}
+                      strokeWidth={4}
                       dot={false}
                       connectNulls
                     />
@@ -324,21 +325,21 @@ export default function EvolucionPage({ token, apiUrl }) {
             </div>
           )}
 
-          {/* Frecuencia de registros por día */}
+          {/* Frecuencia de Registros por día */}
           <div style={estiloTarjeta}>
             <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: '#2AACB0' }}>
-              Frecuencia de registros
+              Frecuencia de Registros
             </h3>
             <ResponsiveContainer width="100%" height={140}>
               <BarChart data={datos.serie_temporal} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.25)" />
                 <XAxis
                   dataKey="fecha"
                   tickFormatter={formatFecha}
-                  tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }}
+                  tick={{ fill: '#FFFFFF', fontWeight: 700, fontSize: 13 }}
                   interval="preserveStartEnd"
                 />
-                <YAxis tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }} allowDecimals={false} />
+                <YAxis tick={{ fill: '#FFFFFF', fontWeight: 700, fontSize: 13 }} allowDecimals={false} />
                 <Tooltip content={<TooltipPersonalizado />} />
                 <Bar dataKey="total_registros" name="Registros" fill="rgba(42,172,176,0.35)" radius={[3, 3, 0, 0]} />
               </BarChart>

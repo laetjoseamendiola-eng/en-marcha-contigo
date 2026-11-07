@@ -155,7 +155,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
   return (
     <div style={{
       background: colorFondo,
-      border: `1px solid ${colorBorde}`,
+      border: '2px solid #FFC107',
       borderRadius: '16px',
       padding: '18px 20px',
       marginBottom: '14px',
@@ -617,7 +617,7 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
         maxWidth: '520px', maxHeight: '90vh', overflowY: 'auto', color: 'white'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ margin: 0 }}>Mis medicamentos</h3>
+          <h3 style={{ margin: 0 }}>Mis Medicamentos</h3>
           <button style={boton('transparent')} onClick={onCerrar}>Cerrar</button>
         </div>
 
@@ -669,7 +669,7 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
 
         {agregando ? (
           <>
-            <h4 style={{ margin: '16px 0 0' }}>Nuevo medicamento</h4>
+            <h4 style={{ margin: '16px 0 0' }}>Nuevo Medicamento</h4>
             {formulario(guardarNuevo, () => { setAgregando(false); setForm(vacio); }, true)}
           </>
         ) : (
@@ -798,7 +798,7 @@ export default function MiDiaPage({ token, apiUrl }) {
           textAlign: 'center'
         }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>💊</div>
-          <h3 style={{ color: '#2AACB0', margin: '0 0 12px' }}>Aún no hay medicamentos registrados</h3>
+          <h3 style={{ color: '#2AACB0', margin: '0 0 12px' }}>Aún No Hay Medicamentos Registrados</h3>
           <p style={{ color: 'rgba(255,255,255,0.93)', fontSize: '14px', lineHeight: '1.6' }}>
             Agrega tus medicamentos, dosis y horarios para ver tus tomas del día.
           </p>
@@ -843,7 +843,7 @@ export default function MiDiaPage({ token, apiUrl }) {
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginTop: '2px' }}>
           <div style={{ fontSize: '20px', fontWeight: '600', color: 'white' }}>
-            Mi plan de tomas
+            Mi Plan de Tomas
           </div>
           <button
             onClick={() => setMenuAbierto(true)}

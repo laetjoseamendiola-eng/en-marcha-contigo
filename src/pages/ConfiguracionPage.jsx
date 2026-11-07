@@ -166,7 +166,7 @@ const ConfiguracionPage = ({ token, apiUrl } = {}) => {
       <style>{'.cfg-page, .cfg-page * { color: #ffffff !important; } .cfg-page select, .cfg-page select option { color: #000000 !important; background: #ffffff !important; }'}</style>
 
       {avisoCambio && (
-        <div style={{ ...tarjeta, borderColor: 'rgba(230,180,60,0.7)' }}>
+        <div style={{ ...tarjeta, border: '2px solid #FFC107' }}>
           <strong>Aviso:</strong> estás en zona manual y el reloj del dispositivo cambió
           ({avisoCambio.zonaAnterior} {avisoCambio.offsetAnterior} → {avisoCambio.zonaNueva} {avisoCambio.offsetNueva}).
           La app seguirá usando la zona manual. Revisa que sea la zona que quieres.
@@ -177,7 +177,7 @@ const ConfiguracionPage = ({ token, apiUrl } = {}) => {
       )}
 
       <div style={tarjeta}>
-        <h3 style={{ margin: '0 0 8px 0' }}>Hora y zona horaria</h3>
+        <h3 style={{ margin: '0 0 8px 0' }}>Hora y Zona Horaria</h3>
         <p style={{ margin: '0 0 6px 0' }}>Hora que usa la app: <strong>{horaUsada}</strong></p>
         <p style={{ margin: '0 0 6px 0' }}>Zona del dispositivo: {zonaDispositivo()} ({formatoOffset(offsetDispositivo())})</p>
 
@@ -215,7 +215,7 @@ const ConfiguracionPage = ({ token, apiUrl } = {}) => {
       </div>
 
       <div style={tarjeta}>
-        <h3 style={{ margin: '0 0 8px 0' }}>Historial de cambios de hora o zona</h3>
+        <h3 style={{ margin: '0 0 8px 0' }}>Historial de Cambios de Hora o Zona</h3>
         {log.length === 0 && <p style={{ margin: 0 }}>Sin cambios registrados en este dispositivo.</p>}
         {log.map((e, i) => (
           <p key={i} style={{ margin: '0 0 6px 0', fontSize: '0.9em' }}>

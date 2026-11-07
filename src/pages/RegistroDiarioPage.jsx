@@ -392,7 +392,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
               {hoy}
             </div>
             <div style={{ fontSize: '18px', fontWeight: '600', color: 'white', marginTop: '2px' }}>
-              ¿Cómo te sientes hoy?
+              ¿Cómo Te Sientes Hoy?
             </div>
             <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)', marginTop: '4px', lineHeight: '1.5' }}>
               Escala 0–4 · 0 = sin problema · 4 = muy grave
