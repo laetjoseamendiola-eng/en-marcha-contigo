@@ -156,6 +156,12 @@
   background: #0F2640;
 }
 
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #FFC107;
+  opacity: 1;
+}
+
 .form-group textarea {
   resize: vertical;
   min-height: 80px;
@@ -210,9 +216,9 @@
 .intensidad-labels {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
-  color: #8899a6;
-  font-weight: 500;
+  font-size: 14px;
+  color: #FFFFFF;
+  font-weight: 700;
 }
 
 /* ---- Botón submit ---- */

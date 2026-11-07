@@ -208,8 +208,11 @@ export default function FluctuacionesPage({ token, apiUrl }) {
     }
   };
 
-  const abrirAlta = () => setFormulario({ modo: 'alta', id: null, estado: null,
-    ocurrio: dia === fechaHoy ? ahora : `${dia}T12:00` });
+  const abrirAlta = () => {
+    setFormulario({ modo: 'alta', id: null, estado: null,
+      ocurrio: dia === fechaHoy ? ahora : `${dia}T12:00` });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
   const abrirCorregir = (ev) => setFormulario({ modo: 'corregir', id: ev.id, estado: ev.estado, ocurrio: ev.ocurrio_en });
 
   const guardarFormulario = async () => {
