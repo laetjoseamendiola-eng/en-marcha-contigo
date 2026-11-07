@@ -295,7 +295,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
                 borderRadius: '12px',
                 padding: '12px 20px',
                 fontSize: '15px',
-                fontWeight: '600',
+                fontWeight: '800',
                 cursor: 'pointer',
                 minWidth: '90px',
                 fontFamily: 'inherit',
@@ -315,11 +315,12 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
                   borderRadius: '12px',
                   padding: '8px 16px',
                   fontSize: '13px',
+                  fontWeight: '800',
                   cursor: 'pointer',
                   fontFamily: 'inherit'
                 }}
               >
-                ✕ Omitir
+                Omitir ✕
               </button>
             )}
           </div>
