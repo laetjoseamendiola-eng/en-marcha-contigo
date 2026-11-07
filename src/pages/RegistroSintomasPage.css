@@ -9,7 +9,7 @@
 
 .registro-sintomas-container {
   min-height: 100vh;
-  background: var(--fondoTurquesa);
+  background: linear-gradient(160deg, var(--navyOscuro) 0%, var(--navy) 40%, var(--turquesa) 100%);
   padding: 20px;
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
@@ -21,10 +21,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--blanco);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
   padding: 12px 20px;
   border-radius: 12px;
-  border: 1px solid var(--bordeClaro);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .user-info {
@@ -40,15 +41,15 @@
 }
 
 .user-greeting {
-  color: var(--navy);
+  color: white;
   font-size: 15px;
   font-weight: 600;
 }
 
 .btn-logout {
-  background: var(--blanco);
-  color: var(--navy);
-  border: 1px solid var(--bordeClaro);
+  background: rgba(255, 255, 255, 0.18);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.25);
   padding: 8px 18px;
   border-radius: 8px;
   font-size: 13px;
@@ -59,7 +60,7 @@
 }
 
 .btn-logout:hover {
-  background: var(--blanco);
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .registro-sintomas-wrapper {
@@ -358,7 +359,7 @@
 }
 
 .intensidad-badge {
-  color: var(--navy);
+  color: white;
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 12px;

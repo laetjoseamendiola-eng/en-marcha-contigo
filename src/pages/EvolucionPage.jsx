@@ -34,11 +34,11 @@ const TooltipPersonalizado = ({ active, payload, label }) => {
       border: `1px solid ${PALETA.turquesa}`,
       borderRadius: '10px',
       padding: '12px 16px',
-      color: PALETA.navy,
+      color: 'white',
       fontSize: '14px',
       minWidth: '160px'
     }}>
-      <p style={{ margin: '0 0 8px', fontWeight: 'bold', color: PALETA.turquesaTexto }}>
+      <p style={{ margin: '0 0 8px', fontWeight: 'bold', color: PALETA.turquesa }}>
         {label}
       </p>
       {payload.map((entry, i) => (
@@ -90,7 +90,7 @@ export default function EvolucionPage({ token, apiUrl }) {
 
   // ─── Estilos base ───────────────────────────────────────────────
   const estiloTarjeta = {
-    background: PALETA.blanco,
+    background: 'rgba(255,255,255,0.05)',
     borderRadius: '16px',
     border: '1px solid rgba(42,172,176,0.2)',
     padding: '20px',
@@ -101,8 +101,8 @@ export default function EvolucionPage({ token, apiUrl }) {
     padding: '8px 16px',
     borderRadius: '20px',
     border: '1px solid rgba(42,172,176,0.4)',
-    background: activo ? PALETA.turquesa : PALETA.blanco,
-    color: PALETA.navy,
+    background: activo ? PALETA.turquesa : 'rgba(255,255,255,0.05)',
+    color: 'white',
     cursor: 'pointer',
     fontSize: '14px',
     fontWeight: activo ? '600' : '400',
@@ -112,13 +112,13 @@ export default function EvolucionPage({ token, apiUrl }) {
   // ─── Estado vacío ──────────────────────────────────────────────
   if (!cargando && datos?.total_registros === 0) {
     return (
-      <div style={{ padding: '20px', color: PALETA.navy, textAlign: 'center' }}>
+      <div style={{ padding: '20px', color: 'white', textAlign: 'center' }}>
         <div style={estiloTarjeta}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
-          <p style={{ color: PALETA.turquesaTexto, fontSize: '18px', marginBottom: '8px' }}>
+          <p style={{ color: PALETA.turquesa, fontSize: '18px', marginBottom: '8px' }}>
             Sin datos aún en este período
           </p>
-          <p style={{ color: PALETA.grisTexto, fontSize: '14px' }}>
+          <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px' }}>
             Registra síntomas para ver tu evolución aquí
           </p>
         </div>
@@ -127,13 +127,13 @@ export default function EvolucionPage({ token, apiUrl }) {
   }
 
   return (
-    <div style={{ padding: '16px 0', color: PALETA.navy }}>
+    <div style={{ padding: '16px 0', color: 'white' }}>
 
       {/* ─── Filtros ─────────────────────────────────────────────── */}
       <div style={{ ...estiloTarjeta, display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
         {/* Período */}
         <div style={{ flex: 1, minWidth: '200px' }}>
-          <p style={{ margin: '0 0 8px', fontSize: '12px', color: PALETA.navy, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <p style={{ margin: '0 0 8px', fontSize: '12px', color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Período
           </p>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -148,7 +148,7 @@ export default function EvolucionPage({ token, apiUrl }) {
         {/* Tipo de síntoma */}
         {datos?.tipos_disponibles?.length > 0 && (
           <div style={{ flex: 1, minWidth: '200px' }}>
-            <p style={{ margin: '0 0 8px', fontSize: '12px', color: PALETA.navy, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <p style={{ margin: '0 0 8px', fontSize: '12px', color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Síntoma
             </p>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -169,7 +169,7 @@ export default function EvolucionPage({ token, apiUrl }) {
 
         {/* Vista */}
         <div>
-          <p style={{ margin: '0 0 8px', fontSize: '12px', color: PALETA.navy, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <p style={{ margin: '0 0 8px', fontSize: '12px', color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Vista
           </p>
           <div style={{ display: 'flex', gap: '8px' }}>
@@ -185,7 +185,7 @@ export default function EvolucionPage({ token, apiUrl }) {
 
       {/* ─── Estado cargando ─────────────────────────────────────── */}
       {cargando && (
-        <div style={{ textAlign: 'center', padding: '40px', color: PALETA.navy }}>
+        <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.75)' }}>
           Cargando evolución...
         </div>
       )}
@@ -202,10 +202,10 @@ export default function EvolucionPage({ token, apiUrl }) {
           {/* Resumen rápido */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px', marginBottom: '20px' }}>
             <div style={{ ...estiloTarjeta, textAlign: 'center', padding: '16px' }}>
-              <div style={{ fontSize: '28px', fontWeight: 'bold', color: PALETA.turquesaTexto }}>
+              <div style={{ fontSize: '28px', fontWeight: 'bold', color: PALETA.turquesa }}>
                 {datos.total_registros}
               </div>
-              <div style={{ fontSize: '12px', color: PALETA.navy, marginTop: '4px' }}>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', marginTop: '4px' }}>
                 Registros totales
               </div>
             </div>
@@ -218,7 +218,7 @@ export default function EvolucionPage({ token, apiUrl }) {
                     ) / 10
                   : '—'}
               </div>
-              <div style={{ fontSize: '12px', color: PALETA.navy, marginTop: '4px' }}>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', marginTop: '4px' }}>
                 Intensidad media
               </div>
             </div>
@@ -226,7 +226,7 @@ export default function EvolucionPage({ token, apiUrl }) {
               <div style={{ fontSize: '28px', fontWeight: 'bold', color: PALETA.morado }}>
                 {datos.serie_temporal.length}
               </div>
-              <div style={{ fontSize: '12px', color: PALETA.navy, marginTop: '4px' }}>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', marginTop: '4px' }}>
                 Días con registro
               </div>
             </div>
@@ -234,26 +234,26 @@ export default function EvolucionPage({ token, apiUrl }) {
 
           {/* Gráfica principal: intensidad promedio diaria */}
           <div style={estiloTarjeta}>
-            <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: PALETA.turquesaTexto }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: PALETA.turquesa }}>
               Intensidad promedio por día
             </h3>
             <ResponsiveContainer width="100%" height={220}>
               {vistaActiva === 'lineas' ? (
                 <LineChart data={datos.serie_temporal} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={PALETA.bordeClaro} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
                   <XAxis
                     dataKey="fecha"
                     tickFormatter={formatFecha}
-                    tick={{ fill: PALETA.grisTexto, fontSize: 11 }}
+                    tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }}
                     interval="preserveStartEnd"
                   />
                   <YAxis
                     domain={[0, 10]}
-                    tick={{ fill: PALETA.grisTexto, fontSize: 11 }}
+                    tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }}
                     ticks={[0, 2, 4, 6, 8, 10]}
                   />
                   <Tooltip content={<TooltipPersonalizado />} />
-                  <ReferenceLine y={5} stroke={PALETA.bordeClaro} strokeDasharray="4 4" />
+                  <ReferenceLine y={5} stroke="rgba(255,255,255,0.15)" strokeDasharray="4 4" />
                   <Line
                     type="monotone"
                     dataKey="intensidad_promedio"
@@ -266,16 +266,16 @@ export default function EvolucionPage({ token, apiUrl }) {
                 </LineChart>
               ) : (
                 <BarChart data={datos.serie_temporal} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={PALETA.bordeClaro} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
                   <XAxis
                     dataKey="fecha"
                     tickFormatter={formatFecha}
-                    tick={{ fill: PALETA.grisTexto, fontSize: 11 }}
+                    tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }}
                     interval="preserveStartEnd"
                   />
                   <YAxis
                     domain={[0, 10]}
-                    tick={{ fill: PALETA.grisTexto, fontSize: 11 }}
+                    tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }}
                   />
                   <Tooltip content={<TooltipPersonalizado />} />
                   <Bar dataKey="intensidad_promedio" name="Intensidad" fill={PALETA.turquesa} radius={[4, 4, 0, 0]} />
@@ -287,25 +287,25 @@ export default function EvolucionPage({ token, apiUrl }) {
           {/* Gráfica por tipo de síntoma (solo si hay varios tipos y no se está filtrando) */}
           {tipoFiltro === 'todos' && datos.tipos_disponibles?.length > 1 && (
             <div style={estiloTarjeta}>
-              <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: PALETA.turquesaTexto }}>
+              <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: PALETA.turquesa }}>
                 Evolución por tipo de síntoma
               </h3>
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={datos.serie_temporal} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={PALETA.bordeClaro} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
                   <XAxis
                     dataKey="fecha"
                     tickFormatter={formatFecha}
-                    tick={{ fill: PALETA.grisTexto, fontSize: 11 }}
+                    tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }}
                     interval="preserveStartEnd"
                   />
                   <YAxis
                     domain={[0, 10]}
-                    tick={{ fill: PALETA.grisTexto, fontSize: 11 }}
+                    tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }}
                   />
                   <Tooltip content={<TooltipPersonalizado />} />
                   <Legend
-                    wrapperStyle={{ color: PALETA.navy, fontSize: '12px', paddingTop: '8px' }}
+                    wrapperStyle={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px', paddingTop: '8px' }}
                     formatter={(value) => ETIQUETAS_TIPO[value.replace('intensidad_', '')] || value}
                   />
                   {datos.tipos_disponibles.map(tipo => (
@@ -327,19 +327,19 @@ export default function EvolucionPage({ token, apiUrl }) {
 
           {/* Frecuencia de registros por día */}
           <div style={estiloTarjeta}>
-            <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: PALETA.turquesaTexto }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: PALETA.turquesa }}>
               Frecuencia de registros
             </h3>
             <ResponsiveContainer width="100%" height={140}>
               <BarChart data={datos.serie_temporal} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={PALETA.bordeClaro} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
                 <XAxis
                   dataKey="fecha"
                   tickFormatter={formatFecha}
-                  tick={{ fill: PALETA.grisTexto, fontSize: 11 }}
+                  tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }}
                   interval="preserveStartEnd"
                 />
-                <YAxis tick={{ fill: PALETA.grisTexto, fontSize: 11 }} allowDecimals={false} />
+                <YAxis tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }} allowDecimals={false} />
                 <Tooltip content={<TooltipPersonalizado />} />
                 <Bar dataKey="total_registros" name="Registros" fill="rgba(42,172,176,0.35)" radius={[3, 3, 0, 0]} />
               </BarChart>

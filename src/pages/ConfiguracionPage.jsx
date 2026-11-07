@@ -1,4 +1,3 @@
-import { PALETA } from '../paleta.js';
 import { zonaReloj, hora12, diaClave } from '../zonaReloj';
 import React, { useState, useEffect } from 'react';
 import { guardarPreferencias } from '../preferenciasCuenta';
@@ -159,12 +158,12 @@ const ConfiguracionPage = ({ token, apiUrl } = {}) => {
     horaUsada = 'Zona no válida';
   }
 
-  const tarjeta = { margin: '12px 16px', padding: '14px', borderRadius: '8px', background: PALETA.blanco, border: '1px solid rgba(42,172,176,0.3)', color: PALETA.navy };
-  const boton = { marginTop: '12px', padding: '8px 18px', borderRadius: '6px', border: 'none', background: '#2AACB0', color: PALETA.navy, cursor: 'pointer', fontWeight: 'bold' };
+  const tarjeta = { margin: '12px 16px', padding: '14px', borderRadius: '8px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(42,172,176,0.3)', color: '#ffffff' };
+  const boton = { marginTop: '12px', padding: '8px 18px', borderRadius: '6px', border: 'none', background: '#2AACB0', color: '#ffffff', cursor: 'pointer', fontWeight: 'bold' };
 
   return (
     <div className="cfg-page" style={{ padding: '8px 0' }}>
-      <style>{'.cfg-page, .cfg-page * { color: var(--navy) !important; } .cfg-page select, .cfg-page select option { color: var(--navy) !important; background: #ffffff !important; }'}</style>
+      <style>{'.cfg-page, .cfg-page * { color: #ffffff !important; } .cfg-page select, .cfg-page select option { color: #000000 !important; background: #ffffff !important; }'}</style>
 
       {avisoCambio && (
         <div style={{ ...tarjeta, borderColor: 'rgba(230,180,60,0.7)' }}>

@@ -16,10 +16,10 @@ export class ErrorBoundary extends React.Component {
       return (
         <div style={{
           minHeight: '100vh',
-          background: `${PALETA.fondoTurquesa}`,
+          background: `linear-gradient(160deg, ${PALETA.navyOscuro} 0%, ${PALETA.navy} 40%, ${PALETA.turquesa} 100%)`,
           display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center',
-          color: PALETA.navy, padding: '32px', textAlign: 'center',
+          color: 'white', padding: '32px', textAlign: 'center',
           fontFamily: "'Segoe UI', sans-serif"
         }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
@@ -34,7 +34,7 @@ export class ErrorBoundary extends React.Component {
           <button onClick={() => window.location.reload()} style={{
             marginTop: '20px', padding: '12px 28px',
             background: PALETA.turquesa, border: 'none', borderRadius: '24px',
-            color: PALETA.navy, fontSize: '15px', cursor: 'pointer'
+            color: 'white', fontSize: '15px', cursor: 'pointer'
           }}>
             Reintentar
           </button>
