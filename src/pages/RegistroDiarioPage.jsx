@@ -135,7 +135,7 @@ function TarjetaPregunta({ pregunta, valor, onChange }) {
   return (
     <div style={{
       background: 'rgba(255,255,255,0.04)',
-      border: '1px solid rgba(42,172,176,0.15)',
+      border: '2px solid rgba(42,172,176,0.15)',
       borderRadius: '16px',
       padding: '18px 20px',
       marginBottom: '14px',
@@ -403,7 +403,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
           {registroExistente && (
             <div style={{
               background: 'rgba(42,172,176,0.08)',
-              border: '1px solid rgba(42,172,176,0.25)',
+              border: '2px solid rgba(42,172,176,0.25)',
               borderRadius: '12px',
               padding: '12px 16px',
               marginBottom: '16px',
@@ -447,7 +447,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
           {/* Nota libre */}
           <div style={{
             background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(42,172,176,0.15)',
+            border: '2px solid rgba(42,172,176,0.15)',
             borderRadius: '16px',
             padding: '18px 20px',
             marginBottom: '20px',
@@ -466,7 +466,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
               style={{
                 width: '100%',
                 background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(255,255,255,0.1)',
+                border: '2px solid rgba(255,255,255,0.1)',
                 borderRadius: '10px',
                 padding: '10px 12px',
                 color: 'white',
@@ -534,7 +534,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
               return (
                 <div key={r.id} style={{
                   background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(42,172,176,0.12)',
+                  border: '2px solid rgba(42,172,176,0.12)',
                   borderRadius: '14px',
                   padding: '14px 16px',
                   marginBottom: '10px',

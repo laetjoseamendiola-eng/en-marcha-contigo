@@ -92,7 +92,7 @@ export default function EvolucionPage({ token, apiUrl }) {
   const estiloTarjeta = {
     background: 'rgba(255,255,255,0.05)',
     borderRadius: '16px',
-    border: '1px solid rgba(42,172,176,0.2)',
+    border: '2px solid rgba(42,172,176,0.2)',
     padding: '20px',
     marginBottom: '20px'
   };
