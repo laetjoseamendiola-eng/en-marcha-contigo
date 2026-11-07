@@ -135,7 +135,7 @@ function TarjetaPregunta({ pregunta, valor, onChange }) {
   return (
     <div style={{
       background: 'rgba(255,255,255,0.04)',
-      border: '2px solid rgba(42,172,176,0.15)',
+      border: '2px solid #FFC107',
       borderRadius: '16px',
       padding: '18px 20px',
       marginBottom: '14px',
@@ -177,7 +177,7 @@ function TarjetaPregunta({ pregunta, valor, onChange }) {
                 alignItems: 'center',
                 gap: '12px',
                 background: seleccionada ? COLOR_VALOR[op.valor] + '22' : 'rgba(255,255,255,0.02)',
-                border: `1px solid ${seleccionada ? COLOR_VALOR[op.valor] : 'rgba(255,255,255,0.08)'}`,
+                border: `1px solid ${seleccionada ? COLOR_VALOR[op.valor] : '#2AACB0'}`,
                 borderRadius: '10px',
                 padding: '10px 14px',
                 cursor: 'pointer',
@@ -403,7 +403,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
           {registroExistente && (
             <div style={{
               background: 'rgba(42,172,176,0.08)',
-              border: '2px solid rgba(42,172,176,0.25)',
+              border: '2px solid #FFC107',
               borderRadius: '12px',
               padding: '12px 16px',
               marginBottom: '16px',
@@ -447,7 +447,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
           {/* Nota libre */}
           <div style={{
             background: 'rgba(255,255,255,0.04)',
-            border: '2px solid rgba(42,172,176,0.15)',
+            border: '2px solid #FFC107',
             borderRadius: '16px',
             padding: '18px 20px',
             marginBottom: '20px',
@@ -534,7 +534,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
               return (
                 <div key={r.id} style={{
                   background: 'rgba(255,255,255,0.04)',
-                  border: '2px solid rgba(42,172,176,0.12)',
+                  border: '2px solid #FFC107',
                   borderRadius: '14px',
                   padding: '14px 16px',
                   marginBottom: '10px',

@@ -51,7 +51,7 @@ function fechaRelativa(desplazamiento) {
 
 const estiloInputPeriodo = {
   background: 'rgba(255,255,255,0.08)',
-  border: '2px solid rgba(42,172,176,0.3)',
+  border: '2px solid #FFC107',
   borderRadius: '10px',
   padding: '7px 10px',
   color: 'white',
@@ -271,7 +271,7 @@ export default function ReportePage({ token, apiUrl }) {
             onChange={e => setModoPeriodo(e.target.value)}
             style={{
               background: 'rgba(255,255,255,0.08)',
-              border: '2px solid rgba(42,172,176,0.3)',
+              border: '2px solid #FFC107',
               borderRadius: '10px',
               padding: '8px 14px',
               color: 'white',
@@ -322,7 +322,7 @@ export default function ReportePage({ token, apiUrl }) {
         {/* ENCABEZADO CON LOGO */}
         <div className="tarjeta-reporte" style={{
           background: 'linear-gradient(135deg, rgba(26,58,92,0.9) 0%, rgba(42,172,176,0.15) 100%)',
-          border: '2px solid rgba(42,172,176,0.3)',
+          border: '2px solid #FFC107',
           borderRadius: '18px',
           padding: '24px',
           marginBottom: '16px',
@@ -364,7 +364,7 @@ export default function ReportePage({ token, apiUrl }) {
         {/* SECCIÓN: ADHERENCIA */}
         <div className="tarjeta-reporte" style={{
           background: 'rgba(255,255,255,0.04)',
-          border: '2px solid rgba(42,172,176,0.45)',
+          border: '2px solid #FFC107',
           borderRadius: '16px',
           padding: '20px',
           marginBottom: '14px',
@@ -399,7 +399,7 @@ export default function ReportePage({ token, apiUrl }) {
         {secciones.estadoMotor && totalHorasRegistradas > 0 && (
           <div className="tarjeta-reporte" style={{
             background: 'rgba(255,255,255,0.04)',
-            border: '2px solid rgba(42,172,176,0.45)',
+            border: '2px solid #FFC107',
             borderRadius: '16px',
             padding: '20px',
             marginBottom: '14px',
@@ -456,7 +456,7 @@ export default function ReportePage({ token, apiUrl }) {
         {secciones.franjas && (
           <div className="tarjeta-reporte" style={{
             background: 'rgba(255,255,255,0.04)',
-            border: '2px solid rgba(42,172,176,0.45)',
+            border: '2px solid #FFC107',
             borderRadius: '16px',
             padding: '20px',
             marginBottom: '14px',
@@ -486,7 +486,7 @@ export default function ReportePage({ token, apiUrl }) {
         {secciones.noMotor && no_motor.dias_registrados > 0 && (
           <div className="tarjeta-reporte" style={{
             background: 'rgba(255,255,255,0.04)',
-            border: '2px solid rgba(42,172,176,0.45)',
+            border: '2px solid #FFC107',
             borderRadius: '16px',
             padding: '20px',
             marginBottom: '14px',
@@ -546,7 +546,7 @@ export default function ReportePage({ token, apiUrl }) {
         {secciones.sintomas && sintomas_motores.frecuentes.length > 0 && (
           <div className="tarjeta-reporte" style={{
             background: 'rgba(255,255,255,0.04)',
-            border: '2px solid rgba(42,172,176,0.45)',
+            border: '2px solid #FFC107',
             borderRadius: '16px',
             padding: '20px',
             marginBottom: '14px',
@@ -586,7 +586,7 @@ export default function ReportePage({ token, apiUrl }) {
         <div style={{ display: secciones.dosis ? 'block' : 'none' }}>
         <div className="tarjeta-reporte" style={{
           background: 'rgba(255,255,255,0.04)',
-          border: '2px solid rgba(42,172,176,0.45)',
+          border: '2px solid #FFC107',
           borderRadius: '16px',
           padding: '20px',
           marginBottom: '14px',
@@ -619,7 +619,7 @@ export default function ReportePage({ token, apiUrl }) {
         <div style={{ display: secciones.tomas ? 'block' : 'none' }}>
         <div className="tarjeta-reporte" style={{
           background: 'rgba(255,255,255,0.04)',
-          border: '2px solid rgba(42,172,176,0.45)',
+          border: '2px solid #FFC107',
           borderRadius: '16px',
           padding: '20px',
           marginBottom: '14px',
@@ -681,7 +681,7 @@ export default function ReportePage({ token, apiUrl }) {
         <div style={{ display: secciones.zona ? 'block' : 'none' }}>
         <div className="tarjeta-reporte" style={{
           background: 'rgba(255,255,255,0.04)',
-          border: '2px solid rgba(42,172,176,0.45)',
+          border: '2px solid #FFC107',
           borderRadius: '16px',
           padding: '20px',
           marginBottom: '14px',

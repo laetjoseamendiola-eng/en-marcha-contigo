@@ -341,7 +341,7 @@ function ResumenDia({ tomas }) {
   return (
     <div style={{
       background: 'rgba(42,172,176,0.08)',
-      border: '2px solid rgba(42,172,176,0.45)',
+      border: '2px solid #FFC107',
       borderRadius: '12px',
       padding: '14px 18px',
       marginBottom: '20px',
@@ -792,7 +792,7 @@ export default function MiDiaPage({ token, apiUrl }) {
       <div style={{ padding: '24px 16px', maxWidth: '600px', margin: '0 auto' }}>
         <div style={{
           background: 'rgba(42,172,176,0.08)',
-          border: '2px solid rgba(42,172,176,0.3)',
+          border: '2px solid #FFC107',
           borderRadius: '16px',
           padding: '32px 24px',
           textAlign: 'center'

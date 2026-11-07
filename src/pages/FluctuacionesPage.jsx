@@ -288,7 +288,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
   });
 
   const estiloTarjeta = {
-    background: 'rgba(255,255,255,0.04)', border: '2px solid rgba(42,172,176,0.45)',
+    background: 'rgba(255,255,255,0.04)', border: '2px solid #FFC107',
     borderRadius: '16px', padding: '20px', marginBottom: '16px'
   };
 
@@ -412,7 +412,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
                     aria-disabled={bloqueado}
                     style={{
                       background: 'rgba(255,255,255,0.04)',
-                      border: `2px solid ${estado.colorBorde}`,
+                      border: `2px solid ${estado.color}`,
                       borderRadius: '16px', padding: '20px 24px', color: 'white',
                       cursor: bloqueado ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
                       display: 'flex', alignItems: 'center', gap: '16px',

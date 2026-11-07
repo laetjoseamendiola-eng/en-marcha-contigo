@@ -158,7 +158,7 @@ const ConfiguracionPage = ({ token, apiUrl } = {}) => {
     horaUsada = 'Zona no válida';
   }
 
-  const tarjeta = { margin: '12px 16px', padding: '14px', borderRadius: '8px', background: 'rgba(255,255,255,0.08)', border: '2px solid rgba(42,172,176,0.3)', color: '#ffffff' };
+  const tarjeta = { margin: '12px 16px', padding: '14px', borderRadius: '8px', background: 'rgba(255,255,255,0.08)', border: '2px solid #FFC107', color: '#ffffff' };
   const boton = { marginTop: '12px', padding: '8px 18px', borderRadius: '6px', border: 'none', background: '#2AACB0', color: '#ffffff', cursor: 'pointer', fontWeight: 'bold' };
 
   return (
