@@ -1,3 +1,4 @@
+import { PALETA } from '../paleta.js';
 import { zonaReloj, hora12, diaClave } from '../zonaReloj';
 import React, { useState, useEffect, useCallback } from 'react';
 
@@ -188,7 +189,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
 
           {/* Hora real de toma */}
           {estado === 'tomada' && tomaHora && (
-            <div style={{ fontSize: '14px', color: '#5dde83', marginTop: '6px', fontWeight: 600 }}>
+            <div style={{ fontSize: '14px', color: PALETA.verdeMenta, marginTop: '6px', fontWeight: 600 }}>
               ✓ Tomado a las {formatHora(tomaHora)}
               {horaVentana !== horario && <span style={{ fontWeight: 400, color: 'rgba(255,255,255,0.8)' }}> (programada {aHora12(horario)})</span>}
             </div>
@@ -218,7 +219,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
               </div>
               <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
                 <button disabled={cargando} onClick={() => { setPanelHora(false); onTomar(idsPendientes, aHora24(hr)); }}
-                  style={{ background: '#2AACB0', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 14px', fontFamily: 'inherit', cursor: 'pointer' }}>
+                  style={{ background: PALETA.turquesa, color: 'white', border: 'none', borderRadius: '8px', padding: '8px 14px', fontFamily: 'inherit', cursor: 'pointer' }}>
                   Guardar toma
                 </button>
                 <button onClick={() => setPanelHora(false)}
@@ -234,7 +235,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
             <div style={{ marginTop: '10px', padding: '12px', borderRadius: '10px', background: 'rgba(220,53,69,0.15)' }}>
               <div style={{ fontSize: '13px', marginBottom: '8px' }}>¿Omitir esta toma de {aHora12(horario)}?</div>
               <button disabled={cargando} onClick={() => { setConfirmarOmitir(false); onOmitir(idsPendientes); }}
-                style={{ background: '#dc3545', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 14px', fontFamily: 'inherit', cursor: 'pointer' }}>
+                style={{ background: PALETA.rojoBoton, color: 'white', border: 'none', borderRadius: '8px', padding: '8px 14px', fontFamily: 'inherit', cursor: 'pointer' }}>
                 Sí, omitir
               </button>{' '}
               <button onClick={() => setConfirmarOmitir(false)}
@@ -289,7 +290,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
               }}
               disabled={cargando}
               style={{
-                background: '#2AACB0',
+                background: PALETA.turquesa,
                 color: 'white',
                 border: 'none',
                 borderRadius: '12px',
@@ -352,7 +353,7 @@ function ResumenDia({ tomas }) {
         <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.93)', marginBottom: '2px' }}>
           Adherencia del día
         </div>
-        <div style={{ fontSize: '22px', fontWeight: 'bold', color: pct >= 80 ? '#28a745' : '#ffc107' }}>
+        <div style={{ fontSize: '22px', fontWeight: 'bold', color: pct >= 80 ? PALETA.verdeBrillante : PALETA.amarillo }}>
           {pct}%
         </div>
       </div>
@@ -391,7 +392,7 @@ const HORAS_12 = Array.from({ length: 12 }, (_, i) => String(i + 1));
 const MINUTOS = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
 const horarioVacio = () => ({ h: '8', m: '00', ap: 'AM' });
 // Opciones con fondo oscuro para que se lean sobre el panel.
-const opcionEstilo = { background: '#14304f', color: 'white' };
+const opcionEstilo = { background: PALETA.azulCard, color: 'white' };
 
 // Pasa de 12 horas a "HH:MM" (24 horas), que es lo que guarda el servidor.
 const aHora24 = ({ h, m, ap }) => {
@@ -442,7 +443,7 @@ function PanelQuitar({ nombre, onConfirmar, onCancelar }) {
       <button
         disabled={!habilitado}
         onClick={onConfirmar}
-        style={{ ...botonPanel('#dc3545'), opacity: habilitado ? 1 : 0.4, cursor: habilitado ? 'pointer' : 'not-allowed' }}
+        style={{ ...botonPanel(PALETA.rojoBoton), opacity: habilitado ? 1 : 0.4, cursor: habilitado ? 'pointer' : 'not-allowed' }}
       >
         Sí, quitar
       </button>{' '}
@@ -577,7 +578,7 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
             )}
           </div>
         ))}
-        <button type="button" style={{ ...boton('transparent'), marginTop: '8px', border: '1px solid #2AACB0' }}
+        <button type="button" style={{ ...boton('transparent'), marginTop: '8px', border: `1px solid ${PALETA.turquesa}` }}
           onClick={() => setForm({ ...form, horarios: [...form.horarios, horarioVacio()] })}>+ Agregar otro horario</button>
       </fieldset>
 
@@ -600,7 +601,7 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
         </div>
       )}
       <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-        <button style={boton('#2AACB0')} onClick={onGuardar}>Guardar</button>
+        <button style={boton(PALETA.turquesa)} onClick={onGuardar}>Guardar</button>
         <button style={boton('transparent')} onClick={onCancelar}>Cancelar</button>
       </div>
     </div>
@@ -612,7 +613,7 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px'
     }}>
       <div style={{
-        background: '#14304f', borderRadius: '16px', padding: '20px', width: '100%',
+        background: PALETA.azulCard, borderRadius: '16px', padding: '20px', width: '100%',
         maxWidth: '520px', maxHeight: '90vh', overflowY: 'auto', color: 'white'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -620,7 +621,7 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
           <button style={boton('transparent')} onClick={onCerrar}>Cerrar</button>
         </div>
 
-        {mensaje && <p style={{ fontSize: '13px', color: '#5dde83', margin: '10px 0 0' }}>{mensaje}</p>}
+        {mensaje && <p style={{ fontSize: '13px', color: PALETA.verdeMenta, margin: '10px 0 0' }}>{mensaje}</p>}
         {cargando && <p style={{ fontSize: '14px' }}>Cargando...</p>}
         {!cargando && lista.length === 0 && !agregando && (
           <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.93)' }}>Aún no tienes medicamentos registrados.</p>
@@ -646,7 +647,7 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
               />
             ) : (
               <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
-                <button style={boton('#2AACB0')} onClick={() => {
+                <button style={boton(PALETA.turquesa)} onClick={() => {
                   setEditando(m.id);
                   const sep = m.separacion_comida_min || 0;
                   setForm({
@@ -660,7 +661,7 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
                   });
                   setMensaje('');
                 }}>Editar</button>
-                <button style={boton('#dc3545')} onClick={() => setConfirmarEliminar(m.id)}>Quitar</button>
+                <button style={boton(PALETA.rojoBoton)} onClick={() => setConfirmarEliminar(m.id)}>Quitar</button>
               </div>
             )}
           </div>
@@ -678,7 +679,7 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
             onClick={() => { setAgregando(true); setForm(vacio); setMensaje(''); }}
             style={{
               width: '48px', height: '48px', borderRadius: '50%', marginTop: '16px',
-              background: '#2AACB0', color: 'white', border: 'none', fontSize: '26px',
+              background: PALETA.turquesa, color: 'white', border: 'none', fontSize: '26px',
               lineHeight: '48px', cursor: 'pointer', display: 'block', marginLeft: 'auto', marginRight: 'auto', padding: 0
             }}
           >
@@ -797,14 +798,14 @@ export default function MiDiaPage({ token, apiUrl }) {
           textAlign: 'center'
         }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>💊</div>
-          <h3 style={{ color: '#2AACB0', margin: '0 0 12px' }}>Aún no hay medicamentos registrados</h3>
+          <h3 style={{ color: PALETA.turquesa, margin: '0 0 12px' }}>Aún no hay medicamentos registrados</h3>
           <p style={{ color: 'rgba(255,255,255,0.93)', fontSize: '14px', lineHeight: '1.6' }}>
             Agrega tus medicamentos, dosis y horarios para ver tus tomas del día.
           </p>
           <button
             onClick={() => setMenuAbierto(true)}
             style={{
-              background: '#2AACB0', color: 'white', border: 'none', borderRadius: '12px',
+              background: PALETA.turquesa, color: 'white', border: 'none', borderRadius: '12px',
               padding: '12px 24px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit'
             }}
           >
@@ -847,7 +848,7 @@ export default function MiDiaPage({ token, apiUrl }) {
           <button
             onClick={() => setMenuAbierto(true)}
             style={{
-              background: 'transparent', color: '#2AACB0', border: '1px solid #2AACB0',
+              background: 'transparent', color: PALETA.turquesa, border: `1px solid ${PALETA.turquesa}`,
               borderRadius: '8px', padding: '6px 12px', fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit'
             }}
           >
@@ -862,7 +863,7 @@ export default function MiDiaPage({ token, apiUrl }) {
         style={{
           width: '100%', marginBottom: '16px', padding: '10px 16px', borderRadius: '10px',
           background: verAyer ? 'rgba(42,172,176,0.2)' : 'transparent',
-          color: '#2AACB0', border: '1px solid #2AACB0',
+          color: PALETA.turquesa, border: `1px solid ${PALETA.turquesa}`,
           fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'center'
         }}
       >
@@ -887,7 +888,7 @@ export default function MiDiaPage({ token, apiUrl }) {
           padding: '10px 16px',
           marginBottom: '16px',
           fontSize: '14px',
-          color: mensaje.includes('Error') ? '#ff6b6b' : '#5dde83'
+          color: mensaje.includes('Error') ? PALETA.rojoClaro : PALETA.verdeMenta
         }}>
           {mensaje}
         </div>

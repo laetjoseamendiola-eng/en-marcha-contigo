@@ -1,3 +1,4 @@
+import { PALETA } from '../paleta.js';
 import { zonaReloj, hora12, diaClave } from '../zonaReloj';
 import React, { useState, useEffect, useCallback } from 'react';
 
@@ -21,7 +22,7 @@ const PREGUNTAS = [
       { valor: 3, label: 'Fatiga marcada', desc: 'La fatiga limitó mis actividades' },
       { valor: 4, label: 'Fatiga severa', desc: 'Apenas pude hacer algo por el cansancio' },
     ],
-    color: '#F39C12',
+    color: PALETA.naranjaAmbar,
   },
   {
     id: 'calidad_sueno',
@@ -35,7 +36,7 @@ const PREGUNTAS = [
       { valor: 3, label: 'Noche difícil', desc: 'Pocas horas de sueño continuo' },
       { valor: 4, label: 'Casi no dormí', desc: 'Noche muy mala, apenas dormí' },
     ],
-    color: '#8E44AD',
+    color: PALETA.morado,
   },
   {
     id: 'somnolencia',
@@ -49,7 +50,7 @@ const PREGUNTAS = [
       { valor: 3, label: 'Somnolencia marcada', desc: 'Me quedé dormido brevemente en actividades' },
       { valor: 4, label: 'Somnolencia severa', desc: 'Me dormí varias veces en momentos inapropiados' },
     ],
-    color: '#2980B9',
+    color: PALETA.azul,
   },
   {
     id: 'animo',
@@ -63,7 +64,7 @@ const PREGUNTAS = [
       { valor: 3, label: 'Ánimo marcadamente bajo', desc: 'Tristeza que afecta mis actividades' },
       { valor: 4, label: 'Ánimo muy bajo', desc: 'Tristeza intensa, dificultad para hacer cualquier cosa' },
     ],
-    color: '#27AE60',
+    color: PALETA.verde,
   },
   {
     id: 'ansiedad',
@@ -77,7 +78,7 @@ const PREGUNTAS = [
       { valor: 3, label: 'Ansiedad marcada', desc: 'Ansiedad difícil de controlar' },
       { valor: 4, label: 'Ansiedad severa', desc: 'Ansiedad intensa que me afectó mucho' },
     ],
-    color: '#E74C3C',
+    color: PALETA.rojo,
   },
   {
     id: 'digestion',
@@ -91,7 +92,7 @@ const PREGUNTAS = [
       { valor: 3, label: 'Dificultad marcada', desc: 'Estreñimiento importante' },
       { valor: 4, label: 'Grave', desc: 'Sin ir al baño desde hace días / dolor' },
     ],
-    color: '#795548',
+    color: PALETA.cafe,
   },
   {
     id: 'nauseas',
@@ -105,7 +106,7 @@ const PREGUNTAS = [
       { valor: 3, label: 'Náuseas marcadas', desc: 'Dificultad para comer por las náuseas' },
       { valor: 4, label: 'Náuseas severas', desc: 'Vómitos o no pude comer nada' },
     ],
-    color: '#00796B',
+    color: PALETA.verdeAzulado,
   },
   {
     id: 'dolor',
@@ -119,16 +120,16 @@ const PREGUNTAS = [
       { valor: 3, label: 'Dolor marcado', desc: 'Dolor que limitó mis actividades' },
       { valor: 4, label: 'Dolor severo', desc: 'Dolor intenso, muy difícil de ignorar' },
     ],
-    color: '#D32F2F',
+    color: PALETA.rojoOscuro,
   },
 ];
 
 const COLOR_VALOR = {
-  0: '#27AE60',
-  1: '#8BC34A',
-  2: '#FFC107',
-  3: '#FF7043',
-  4: '#D32F2F',
+  0: PALETA.verde,
+  1: PALETA.verdeLima,
+  2: PALETA.amarillo,
+  3: PALETA.naranjaRojizo,
+  4: PALETA.rojoOscuro,
 };
 
 function TarjetaPregunta({ pregunta, valor, onChange }) {
@@ -352,8 +353,8 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
   const estiloBtn = (activo) => ({
     padding: '8px 18px',
     borderRadius: '20px',
-    border: `1px solid ${activo ? '#2AACB0' : 'rgba(255,255,255,0.15)'}`,
-    background: activo ? '#2AACB0' : 'transparent',
+    border: `1px solid ${activo ? PALETA.turquesa : 'rgba(255,255,255,0.15)'}`,
+    background: activo ? PALETA.turquesa : 'transparent',
     color: 'white',
     fontSize: '13px',
     fontWeight: activo ? '600' : '400',
@@ -428,7 +429,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
               padding: '10px 16px',
               marginBottom: '16px',
               fontSize: '13px',
-              color: mensaje.includes('Error') ? '#ff6b6b' : '#5dde83',
+              color: mensaje.includes('Error') ? PALETA.rojoClaro : PALETA.verdeMenta,
             }}>
               {mensaje}
             </div>
@@ -485,7 +486,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
             disabled={guardando}
             style={{
               width: '100%',
-              background: guardando ? 'rgba(42,172,176,0.5)' : '#2AACB0',
+              background: guardando ? 'rgba(42,172,176,0.5)' : PALETA.turquesa,
               color: 'white',
               border: 'none',
               borderRadius: '14px',

@@ -1,12 +1,13 @@
+import { PALETA } from '../paleta.js';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { leerPreferencias, guardarPreferencias } from '../preferenciasCuenta';
 
 const COLOR_ESTADO = {
-  ON: { color: '#27AE60', label: 'ON', emoji: '🟢' },
-  OFF: { color: '#E74C3C', label: 'OFF', emoji: '🔴' },
-  ON_DISC_LEVE: { color: '#F39C12', label: 'ON c/mov.', emoji: '🟡' },
-  ON_DISC_GRAVE: { color: '#E67E22', label: 'ON c/discinesia', emoji: '🟠' },
-  DORMIDO: { color: '#4A5568', label: 'Dormido', emoji: '😴' },
+  ON: { color: PALETA.verde, label: 'ON', emoji: '🟢' },
+  OFF: { color: PALETA.rojo, label: 'OFF', emoji: '🔴' },
+  ON_DISC_LEVE: { color: PALETA.naranjaAmbar, label: 'ON c/mov.', emoji: '🟡' },
+  ON_DISC_GRAVE: { color: PALETA.naranja, label: 'ON c/discinesia', emoji: '🟠' },
+  DORMIDO: { color: PALETA.grisOscuro, label: 'Dormido', emoji: '😴' },
 };
 
 // Zona del reloj de la app: la manual si está configurada; si no, la del dispositivo.
@@ -73,12 +74,12 @@ const NO_MOTOR_LABELS = {
 };
 
 const COLOR_PROMEDIO = (v) => {
-  if (v === null || v === undefined) return '#555';
-  if (v <= 0.5) return '#27AE60';
-  if (v <= 1.5) return '#8BC34A';
-  if (v <= 2.5) return '#FFC107';
-  if (v <= 3.5) return '#FF7043';
-  return '#D32F2F';
+  if (v === null || v === undefined) return PALETA.gris555;
+  if (v <= 0.5) return PALETA.verde;
+  if (v <= 1.5) return PALETA.verdeLima;
+  if (v <= 2.5) return PALETA.amarillo;
+  if (v <= 3.5) return PALETA.naranjaRojizo;
+  return PALETA.rojoOscuro;
 };
 
 const LABEL_PROMEDIO = (v) => {
@@ -91,7 +92,7 @@ const LABEL_PROMEDIO = (v) => {
 };
 
 function BarraAdherencia({ pct }) {
-  const color = pct >= 80 ? '#27AE60' : pct >= 60 ? '#FFC107' : '#E74C3C';
+  const color = pct >= 80 ? PALETA.verde : pct >= 60 ? PALETA.amarillo : PALETA.rojo;
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
@@ -214,7 +215,7 @@ export default function ReportePage({ token, apiUrl }) {
 
   if (error) {
     return (
-      <div style={{ padding: '24px', color: '#ff6b6b', textAlign: 'center' }}>
+      <div style={{ padding: '24px', color: PALETA.rojoClaro, textAlign: 'center' }}>
         {error}
       </div>
     );
@@ -279,8 +280,8 @@ export default function ReportePage({ token, apiUrl }) {
               fontSize: '13px',
             }}
           >
-            <option value="hoy" style={{ color: '#000', background: '#fff' }}>Hoy</option>
-            <option value="personalizado" style={{ color: '#000', background: '#fff' }}>Personalizado</option>
+            <option value="hoy" style={{ color: PALETA.negro, background: PALETA.blanco }}>Hoy</option>
+            <option value="personalizado" style={{ color: PALETA.negro, background: PALETA.blanco }}>Personalizado</option>
           </select>
           {modoPeriodo === 'personalizado' && (
             <>
@@ -294,7 +295,7 @@ export default function ReportePage({ token, apiUrl }) {
           <button
             onClick={handleImprimir}
             style={{
-              background: '#2AACB0',
+              background: PALETA.turquesa,
               color: 'white',
               border: 'none',
               borderRadius: '10px',
@@ -333,7 +334,7 @@ export default function ReportePage({ token, apiUrl }) {
           gap: '16px',
         }}>
           <div>
-            <div style={{ display: 'inline-block', background: '#ffffff', borderRadius: '999px', padding: '6px 18px', marginBottom: '12px' }}>
+            <div style={{ display: 'inline-block', background: PALETA.blanco, borderRadius: '999px', padding: '6px 18px', marginBottom: '12px' }}>
               <img
                 src="/assets/Logo_En_Marcha_Contigo_Fondo_Transparente.png"
                 alt="En Marcha Contigo"
@@ -369,7 +370,7 @@ export default function ReportePage({ token, apiUrl }) {
           padding: '20px',
           marginBottom: '14px',
         }}>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: '#2AACB0', marginBottom: '14px' }}>
+          <div style={{ fontSize: '14px', fontWeight: '600', color: PALETA.turquesa, marginBottom: '14px' }}>
             💊 Adherencia al Tratamiento
           </div>
           <BarraAdherencia pct={adherencia.porcentaje} />
@@ -379,8 +380,8 @@ export default function ReportePage({ token, apiUrl }) {
           }}>
             {[
               { label: 'Tomas programadas', valor: adherencia.total_programadas, color: 'rgba(255,255,255,0.93)' },
-              { label: 'Tomadas', valor: adherencia.tomadas, color: '#27AE60' },
-              { label: 'Omitidas', valor: adherencia.omitidas, color: '#E74C3C' },
+              { label: 'Tomadas', valor: adherencia.tomadas, color: PALETA.verde },
+              { label: 'Omitidas', valor: adherencia.omitidas, color: PALETA.rojo },
             ].map(item => (
               <div key={item.label} style={{
                 background: 'rgba(255,255,255,0.03)',
@@ -404,7 +405,7 @@ export default function ReportePage({ token, apiUrl }) {
             padding: '20px',
             marginBottom: '14px',
           }}>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#2AACB0', marginBottom: '14px' }}>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: PALETA.turquesa, marginBottom: '14px' }}>
               🌡️ Estado Motor — Diario de Hauser
             </div>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -461,16 +462,16 @@ export default function ReportePage({ token, apiUrl }) {
             padding: '20px',
             marginBottom: '14px',
           }}>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#2AACB0', marginBottom: '6px' }}>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: PALETA.turquesa, marginBottom: '6px' }}>
               🕐 Franjas del día
             </div>
             <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginBottom: '12px', lineHeight: 1.6 }}>
               Estado OFF: se cuenta por la hora exacta del episodio. Síntomas reportados: se cuentan por la hora en que se capturaron, no por la hora del síntoma.
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr 1fr', gap: '6px', fontSize: '12px', color: 'rgba(255,255,255,0.85)' }}>
-              <div style={{ fontWeight: 700, color: '#2AACB0' }}>Franja</div>
-              <div style={{ fontWeight: 700, color: '#2AACB0' }}>Estado OFF</div>
-              <div style={{ fontWeight: 700, color: '#2AACB0' }}>Síntomas</div>
+              <div style={{ fontWeight: 700, color: PALETA.turquesa }}>Franja</div>
+              <div style={{ fontWeight: 700, color: PALETA.turquesa }}>Estado OFF</div>
+              <div style={{ fontWeight: 700, color: PALETA.turquesa }}>Síntomas</div>
               {FRANJAS.map(f => (
                 <React.Fragment key={f.key}>
                   <div>{f.label}</div>
@@ -491,7 +492,7 @@ export default function ReportePage({ token, apiUrl }) {
             padding: '20px',
             marginBottom: '14px',
           }}>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#2AACB0', marginBottom: '14px' }}>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: PALETA.turquesa, marginBottom: '14px' }}>
               🌿 Síntomas No Motores — Promedio del Período
             </div>
             <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginBottom: '12px' }}>
@@ -551,7 +552,7 @@ export default function ReportePage({ token, apiUrl }) {
             padding: '20px',
             marginBottom: '14px',
           }}>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#2AACB0', marginBottom: '14px' }}>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: PALETA.turquesa, marginBottom: '14px' }}>
               ✏️ Síntomas Reportados ({sintomas_motores.total} en total)
             </div>
             <div style={{ display: 'flex', flex: '1', gap: '8px', flexWrap: 'wrap' }}>
@@ -568,7 +569,7 @@ export default function ReportePage({ token, apiUrl }) {
                   gap: '6px',
                 }}>
                   <span style={{
-                    background: '#2AACB0',
+                    background: PALETA.turquesa,
                     color: 'white',
                     borderRadius: '10px',
                     padding: '1px 7px',
@@ -591,7 +592,7 @@ export default function ReportePage({ token, apiUrl }) {
           padding: '20px',
           marginBottom: '14px',
         }}>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: '#2AACB0', marginBottom: '10px' }}>
+          <div style={{ fontSize: '14px', fontWeight: '600', color: PALETA.turquesa, marginBottom: '10px' }}>
             💊 Dosis y horarios vigentes ({(reporte.historial_dosis || []).length})
           </div>
           {(reporte.historial_dosis || []).length === 0 && (
@@ -624,7 +625,7 @@ export default function ReportePage({ token, apiUrl }) {
           padding: '20px',
           marginBottom: '14px',
         }}>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: '#2AACB0', marginBottom: '10px' }}>
+          <div style={{ fontSize: '14px', fontWeight: '600', color: PALETA.turquesa, marginBottom: '10px' }}>
             🕒 Tomas y dosis vigente ({(reporte.tomas_dosis || []).length})
           </div>
           {(reporte.tomas_dosis || []).length === 0 && (
@@ -634,7 +635,7 @@ export default function ReportePage({ token, apiUrl }) {
           )}
           {(reporte.tomas_dosis || []).length > 0 && (
             <>
-              <div className="cabecera-toma" style={{ display: 'grid', gridTemplateColumns: COLUMNAS_TOMA, gap: '8px', fontSize: '11px', fontWeight: '700', color: '#2AACB0', padding: '0 10px 4px' }}>
+              <div className="cabecera-toma" style={{ display: 'grid', gridTemplateColumns: COLUMNAS_TOMA, gap: '8px', fontSize: '11px', fontWeight: '700', color: PALETA.turquesa, padding: '0 10px 4px' }}>
                 <div>Medicamento</div>
                 <div>Programada</div>
                 <div>Toma real</div>
@@ -644,12 +645,12 @@ export default function ReportePage({ token, apiUrl }) {
               {(reporte.tomas_dosis || []).map((t, i) => (
                 <div key={i} className="fila-toma" style={{ display: 'grid', gridTemplateColumns: COLUMNAS_TOMA, gap: '8px', alignItems: 'start',
                   fontSize: '12px', color: 'rgba(255,255,255,0.85)', padding: '8px 10px', marginBottom: '6px', borderRadius: '8px',
-                  ...(t.omitida ? { background: '#B3261E', border: '2px solid #FFFFFF', color: '#FFFFFF' } : {}) }}>
+                  ...(t.omitida ? { background: PALETA.rojoAlerta, border: `2px solid ${PALETA.blanco}`, color: PALETA.blanco } : {}) }}>
                   <div>
                     <strong>{t.medicamento}</strong>
                     <div>{horaCorta12(t.horario)} · {t.tomada ? 'tomada' : t.omitida ? 'omitida' : t.sin_registro ? 'sin registro' : 'pendiente'}</div>
                     {(t.fuera_de_horario || t.registro_extemporaneo) && (
-                      <div style={{ color: '#FFD84D', fontWeight: '600' }}>
+                      <div style={{ color: PALETA.amarilloBrillante, fontWeight: '600' }}>
                         {/* Texto además del color, por ser daltónico */}
                         {t.fuera_de_horario && 'Fuera de horario'}
                         {t.fuera_de_horario && t.registro_extemporaneo && ' · '}
@@ -686,7 +687,7 @@ export default function ReportePage({ token, apiUrl }) {
           padding: '20px',
           marginBottom: '14px',
         }}>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: '#2AACB0', marginBottom: '10px' }}>
+          <div style={{ fontSize: '14px', fontWeight: '600', color: PALETA.turquesa, marginBottom: '10px' }}>
             🌍 Cambios de zona horaria ({(reporte.cambios_zona || []).length})
           </div>
           {(reporte.cambios_zona || []).length === 0 && (
@@ -713,7 +714,7 @@ export default function ReportePage({ token, apiUrl }) {
           borderTop: '1px solid rgba(255,255,255,0.06)',
         }}>
           <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', lineHeight: '1.7' }}>
-            Reporte generado por <strong style={{ color: '#2AACB0' }}>En Marcha Contigo</strong> · {new Date().toLocaleDateString('es-MX', { timeZone: zonaDelReloj(), day: 'numeric', month: 'long', year: 'numeric' })}<br/>
+            Reporte generado por <strong style={{ color: PALETA.turquesa }}>En Marcha Contigo</strong> · {new Date().toLocaleDateString('es-MX', { timeZone: zonaDelReloj(), day: 'numeric', month: 'long', year: 'numeric' })}<br/>
             Este documento es informativo. No diagnostica ni prescribe tratamiento.<br/>
             Los datos fueron registrados directamente por el paciente en la aplicación.<br/>
             El Reporte refleja registros compartidos por el usuario de manera manual, diaria y voluntaria. No son producto de análisis clínicos.

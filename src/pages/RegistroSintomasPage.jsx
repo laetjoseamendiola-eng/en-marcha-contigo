@@ -1,3 +1,4 @@
+import { PALETA } from '../paleta.js';
 import { zonaReloj, hora12, diaClave } from '../zonaReloj';
 import React, { useState, useEffect } from 'react';
 import './RegistroSintomasPage.css';
@@ -238,13 +239,13 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
 
   const getIntensidadColor = (intensidad) => {
     const colores = {
-      1: '#28a745',
-      2: '#ffc107',
-      3: '#ff9800',
-      4: '#ff6b6b',
-      5: '#d32f2f'
+      1: PALETA.verdeBrillante,
+      2: PALETA.amarillo,
+      3: PALETA.naranjaVivo,
+      4: PALETA.rojoClaro,
+      5: PALETA.rojoOscuro
     };
-    return colores[intensidad] || '#999';
+    return colores[intensidad] || PALETA.gris999;
   };
 
   const getIntensidadLabel = (intensidad) => {
@@ -276,9 +277,9 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
   const estiloPestana = (activa) => ({
     padding: '10px 20px',
     border: 'none',
-    borderBottom: activa ? '3px solid #2AACB0' : '3px solid transparent',
+    borderBottom: activa ? `3px solid ${PALETA.turquesa}` : '3px solid transparent',
     background: 'transparent',
-    color: activa ? '#2AACB0' : 'rgba(255,255,255,0.75)',
+    color: activa ? PALETA.turquesa : 'rgba(255,255,255,0.75)',
     fontSize: '15px',
     fontWeight: activa ? '600' : '400',
     cursor: 'pointer',
@@ -296,7 +297,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
             src="/assets/Logo_En_Marcha_Contigo_Fondo_Transparente.png"
             alt="En Marcha Contigo"
             className="user-bar-logo"
-            style={{ background: '#ffffff', borderRadius: '999px', padding: '4px 14px', boxSizing: 'content-box' }}
+            style={{ background: PALETA.blanco, borderRadius: '999px', padding: '4px 14px', boxSizing: 'content-box' }}
           />
           <span className="user-greeting">Hola, {usuario.nombre}</span>
         </div>
@@ -472,8 +473,8 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
                   onClick={() => setMenuTipoAbierto(!menuTipoAbierto)}
                   style={{
                     width: '100%', textAlign: 'left', padding: '12px 14px',
-                    background: '#fff', color: '#0D2C4D',
-                    border: '1px solid #BFE6E6', borderRadius: '8px',
+                    background: PALETA.blanco, color: PALETA.azulOscuro2,
+                    border: `1px solid ${PALETA.turquesaSuave}`, borderRadius: '8px',
                     fontSize: '16px', fontFamily: 'inherit', cursor: 'pointer'
                   }}
                 >
@@ -494,7 +495,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
                     style={{
                       position: 'absolute', zIndex: 20, left: 0, right: 0, top: '100%',
                       margin: '4px 0 0', padding: 0, listStyle: 'none',
-                      background: '#fff', border: '1px solid #BFE6E6', borderRadius: '8px',
+                      background: PALETA.blanco, border: `1px solid ${PALETA.turquesaSuave}`, borderRadius: '8px',
                       maxHeight: '60vh', overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.25)'
                     }}
                   >
@@ -508,8 +509,8 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
                           }}
                           style={{
                             width: '100%', textAlign: 'left', padding: '14px',
-                            background: formData.tipo === t.nombre ? '#E6F6F6' : 'transparent',
-                            color: '#0D2C4D', border: 'none', borderBottom: '1px solid #eee',
+                            background: formData.tipo === t.nombre ? PALETA.turquesaFondoSuave : 'transparent',
+                            color: PALETA.azulOscuro2, border: 'none', borderBottom: `1px solid ${PALETA.grisFondo}`,
                             fontSize: '16px', fontFamily: 'inherit', cursor: 'pointer', lineHeight: 1.35
                           }}
                         >
@@ -544,7 +545,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
                   onChange={handleChange}
                   className="intensidad-slider"
                   style={{
-                    background: `linear-gradient(to right, #28a745 0%, #ffc107 25%, #ff9800 50%, #ff6b6b 75%, #d32f2f 100%)`
+                    background: `linear-gradient(to right, ${PALETA.verdeBrillante} 0%, ${PALETA.amarillo} 25%, ${PALETA.naranjaVivo} 50%, ${PALETA.rojoClaro} 75%, ${PALETA.rojoOscuro} 100%)`
                   }}
                 />
                 <div className="intensidad-labels">

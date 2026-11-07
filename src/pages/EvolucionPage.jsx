@@ -1,3 +1,4 @@
+import { PALETA } from '../paleta.js';
 import React, { useState, useEffect } from 'react';
 import {
   LineChart, Line, BarChart, Bar,
@@ -7,12 +8,12 @@ import {
 
 // Colores por tipo de síntoma
 const COLORES_TIPO = {
-  temblor: '#2AACB0',
-  rigidez: '#E67E22',
-  lentitud: '#8E44AD',
-  equilibrio: '#27AE60',
-  fatiga: '#E74C3C',
-  otros: '#95A5A6'
+  temblor: PALETA.turquesa,
+  rigidez: PALETA.naranja,
+  lentitud: PALETA.morado,
+  equilibrio: PALETA.verde,
+  fatiga: PALETA.rojo,
+  otros: PALETA.grisOtros
 };
 
 const ETIQUETAS_TIPO = {
@@ -29,15 +30,15 @@ const TooltipPersonalizado = ({ active, payload, label }) => {
   if (!active || !payload || !payload.length) return null;
   return (
     <div style={{
-      background: '#1B3A5C',
-      border: '1px solid #2AACB0',
+      background: PALETA.navy,
+      border: `1px solid ${PALETA.turquesa}`,
       borderRadius: '10px',
       padding: '12px 16px',
       color: 'white',
       fontSize: '14px',
       minWidth: '160px'
     }}>
-      <p style={{ margin: '0 0 8px', fontWeight: 'bold', color: '#2AACB0' }}>
+      <p style={{ margin: '0 0 8px', fontWeight: 'bold', color: PALETA.turquesa }}>
         {label}
       </p>
       {payload.map((entry, i) => (
@@ -100,7 +101,7 @@ export default function EvolucionPage({ token, apiUrl }) {
     padding: '8px 16px',
     borderRadius: '20px',
     border: '1px solid rgba(42,172,176,0.4)',
-    background: activo ? '#2AACB0' : 'rgba(255,255,255,0.05)',
+    background: activo ? PALETA.turquesa : 'rgba(255,255,255,0.05)',
     color: 'white',
     cursor: 'pointer',
     fontSize: '14px',
@@ -114,7 +115,7 @@ export default function EvolucionPage({ token, apiUrl }) {
       <div style={{ padding: '20px', color: 'white', textAlign: 'center' }}>
         <div style={estiloTarjeta}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
-          <p style={{ color: '#2AACB0', fontSize: '18px', marginBottom: '8px' }}>
+          <p style={{ color: PALETA.turquesa, fontSize: '18px', marginBottom: '8px' }}>
             Sin datos aún en este período
           </p>
           <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px' }}>
@@ -157,7 +158,7 @@ export default function EvolucionPage({ token, apiUrl }) {
               {datos.tipos_disponibles.map(t => (
                 <button key={t} onClick={() => setTipoFiltro(t)} style={{
                   ...estiloBtnFiltro(tipoFiltro === t),
-                  borderColor: COLORES_TIPO[t] || '#2AACB0'
+                  borderColor: COLORES_TIPO[t] || PALETA.turquesa
                 }}>
                   {ETIQUETAS_TIPO[t] || t}
                 </button>
@@ -190,7 +191,7 @@ export default function EvolucionPage({ token, apiUrl }) {
       )}
 
       {error && (
-        <div style={{ ...estiloTarjeta, borderColor: '#E74C3C', color: '#E74C3C', textAlign: 'center' }}>
+        <div style={{ ...estiloTarjeta, borderColor: PALETA.rojo, color: PALETA.rojo, textAlign: 'center' }}>
           {error}
         </div>
       )}
@@ -201,7 +202,7 @@ export default function EvolucionPage({ token, apiUrl }) {
           {/* Resumen rápido */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px', marginBottom: '20px' }}>
             <div style={{ ...estiloTarjeta, textAlign: 'center', padding: '16px' }}>
-              <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#2AACB0' }}>
+              <div style={{ fontSize: '28px', fontWeight: 'bold', color: PALETA.turquesa }}>
                 {datos.total_registros}
               </div>
               <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', marginTop: '4px' }}>
@@ -209,7 +210,7 @@ export default function EvolucionPage({ token, apiUrl }) {
               </div>
             </div>
             <div style={{ ...estiloTarjeta, textAlign: 'center', padding: '16px' }}>
-              <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#E67E22' }}>
+              <div style={{ fontSize: '28px', fontWeight: 'bold', color: PALETA.naranja }}>
                 {datos.serie_temporal.length > 0
                   ? Math.round(
                       datos.serie_temporal.reduce((sum, d) => sum + d.intensidad_promedio, 0) /
@@ -222,7 +223,7 @@ export default function EvolucionPage({ token, apiUrl }) {
               </div>
             </div>
             <div style={{ ...estiloTarjeta, textAlign: 'center', padding: '16px' }}>
-              <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#8E44AD' }}>
+              <div style={{ fontSize: '28px', fontWeight: 'bold', color: PALETA.morado }}>
                 {datos.serie_temporal.length}
               </div>
               <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', marginTop: '4px' }}>
@@ -233,7 +234,7 @@ export default function EvolucionPage({ token, apiUrl }) {
 
           {/* Gráfica principal: intensidad promedio diaria */}
           <div style={estiloTarjeta}>
-            <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: '#2AACB0' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: PALETA.turquesa }}>
               Intensidad promedio por día
             </h3>
             <ResponsiveContainer width="100%" height={220}>
@@ -257,9 +258,9 @@ export default function EvolucionPage({ token, apiUrl }) {
                     type="monotone"
                     dataKey="intensidad_promedio"
                     name="Intensidad"
-                    stroke="#2AACB0"
+                    stroke={PALETA.turquesa}
                     strokeWidth={2.5}
-                    dot={{ r: 4, fill: '#2AACB0', stroke: '#1B3A5C', strokeWidth: 2 }}
+                    dot={{ r: 4, fill: PALETA.turquesa, stroke: PALETA.navy, strokeWidth: 2 }}
                     activeDot={{ r: 6 }}
                   />
                 </LineChart>
@@ -277,7 +278,7 @@ export default function EvolucionPage({ token, apiUrl }) {
                     tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }}
                   />
                   <Tooltip content={<TooltipPersonalizado />} />
-                  <Bar dataKey="intensidad_promedio" name="Intensidad" fill="#2AACB0" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="intensidad_promedio" name="Intensidad" fill={PALETA.turquesa} radius={[4, 4, 0, 0]} />
                 </BarChart>
               )}
             </ResponsiveContainer>
@@ -286,7 +287,7 @@ export default function EvolucionPage({ token, apiUrl }) {
           {/* Gráfica por tipo de síntoma (solo si hay varios tipos y no se está filtrando) */}
           {tipoFiltro === 'todos' && datos.tipos_disponibles?.length > 1 && (
             <div style={estiloTarjeta}>
-              <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: '#2AACB0' }}>
+              <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: PALETA.turquesa }}>
                 Evolución por tipo de síntoma
               </h3>
               <ResponsiveContainer width="100%" height={220}>
@@ -313,7 +314,7 @@ export default function EvolucionPage({ token, apiUrl }) {
                       type="monotone"
                       dataKey={`intensidad_${tipo}`}
                       name={`intensidad_${tipo}`}
-                      stroke={COLORES_TIPO[tipo] || '#95A5A6'}
+                      stroke={COLORES_TIPO[tipo] || PALETA.grisOtros}
                       strokeWidth={2}
                       dot={false}
                       connectNulls
@@ -326,7 +327,7 @@ export default function EvolucionPage({ token, apiUrl }) {
 
           {/* Frecuencia de registros por día */}
           <div style={estiloTarjeta}>
-            <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: '#2AACB0' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: PALETA.turquesa }}>
               Frecuencia de registros
             </h3>
             <ResponsiveContainer width="100%" height={140}>

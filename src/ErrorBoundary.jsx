@@ -1,3 +1,4 @@
+import { PALETA } from './paleta.js';
 import React from 'react';
 
 export class ErrorBoundary extends React.Component {
@@ -15,7 +16,7 @@ export class ErrorBoundary extends React.Component {
       return (
         <div style={{
           minHeight: '100vh',
-          background: 'linear-gradient(160deg, #0F2640 0%, #1B3A5C 40%, #2AACB0 100%)',
+          background: `linear-gradient(160deg, ${PALETA.navyOscuro} 0%, ${PALETA.navy} 40%, ${PALETA.turquesa} 100%)`,
           display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center',
           color: 'white', padding: '32px', textAlign: 'center',
@@ -26,13 +27,13 @@ export class ErrorBoundary extends React.Component {
           <pre style={{
             background: 'rgba(0,0,0,0.4)', borderRadius: '12px',
             padding: '16px', fontSize: '12px', textAlign: 'left',
-            maxWidth: '500px', overflowX: 'auto', color: '#ff6b6b'
+            maxWidth: '500px', overflowX: 'auto', color: PALETA.rojoClaro
           }}>
             {this.state.error?.message}
           </pre>
           <button onClick={() => window.location.reload()} style={{
             marginTop: '20px', padding: '12px 28px',
-            background: '#2AACB0', border: 'none', borderRadius: '24px',
+            background: PALETA.turquesa, border: 'none', borderRadius: '24px',
             color: 'white', fontSize: '15px', cursor: 'pointer'
           }}>
             Reintentar
