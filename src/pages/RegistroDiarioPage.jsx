@@ -177,7 +177,7 @@ function TarjetaPregunta({ pregunta, valor, onChange }) {
                 alignItems: 'center',
                 gap: '12px',
                 background: seleccionada ? COLOR_VALOR[op.valor] + '22' : 'rgba(255,255,255,0.02)',
-                border: `1px solid ${seleccionada ? COLOR_VALOR[op.valor] : '#2AACB0'}`,
+                border: `2px solid ${seleccionada ? COLOR_VALOR[op.valor] : '#2AACB0'}`,
                 borderRadius: '10px',
                 padding: '10px 14px',
                 cursor: 'pointer',
