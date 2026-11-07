@@ -156,7 +156,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
   return (
     <div style={{
       background: colorFondo,
-      border: `1px solid ${colorBorde}`,
+      border: `2px solid ${PALETA.amarillo}`,
       borderRadius: '16px',
       padding: '18px 20px',
       marginBottom: '14px',
@@ -219,8 +219,8 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
               </div>
               <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
                 <button disabled={cargando} onClick={() => { setPanelHora(false); onTomar(idsPendientes, aHora24(hr)); }}
-                  style={{ background: PALETA.turquesa, color: 'white', border: 'none', borderRadius: '8px', padding: '8px 14px', fontFamily: 'inherit', cursor: 'pointer' }}>
-                  Guardar toma
+                  style={{ background: PALETA.turquesaFondo, color: PALETA.verdeMenta, border: `2px solid ${PALETA.verdeMenta}`, borderRadius: '8px', padding: '8px 14px', fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>
+                  ✓ Guardar toma
                 </button>
                 <button onClick={() => setPanelHora(false)}
                   style={{ background: 'transparent', color: PALETA.blanco, fontWeight: 700, border: `2px solid ${PALETA.blanco}`, borderRadius: '8px', padding: '8px 14px', fontFamily: 'inherit', cursor: 'pointer' }}>
@@ -322,7 +322,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
                   fontFamily: 'inherit'
                 }}
               >
-                Omitir
+                ✕ Omitir
               </button>
             )}
           </div>
@@ -410,7 +410,7 @@ const desdeHora24 = (txt) => {
 
 const campoEstilo = {
   width: '100%', padding: '10px', borderRadius: '8px', marginTop: '4px',
-  border: '1px solid var(--bordeClaro)', background: PALETA.blanco,
+  border: '1px solid var(--grisTexto)', background: PALETA.blanco,
   color: PALETA.navy, fontFamily: 'inherit', fontSize: '14px', boxSizing: 'border-box'
 };
 
@@ -445,13 +445,13 @@ function PanelQuitar({ nombre, onConfirmar, onCancelar }) {
       <button
         disabled={!habilitado}
         onClick={onConfirmar}
-        style={{ ...botonPanel(PALETA.rojoBoton), opacity: habilitado ? 1 : 0.4, cursor: habilitado ? 'pointer' : 'not-allowed' }}
+        style={{ ...botonPanel(PALETA.turquesaFondo), color: PALETA.rojoIntenso, border: `2px solid ${PALETA.rojoIntenso}`, fontWeight: 700, opacity: habilitado ? 1 : 0.4, cursor: habilitado ? 'pointer' : 'not-allowed' }}
       >
         Sí, quitar
       </button>{' '}
       <button
         onClick={onCancelar}
-        style={{ ...botonPanel('transparent'), border: '1px solid var(--bordeClaro)' }}
+        style={{ ...botonPanel('transparent'), border: '1px solid var(--grisTexto)' }}
       >
         Cancelar
       </button>
@@ -603,7 +603,7 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
         </div>
       )}
       <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-        <button style={boton(PALETA.turquesa)} onClick={onGuardar}>Guardar</button>
+        <button style={{ ...boton(PALETA.turquesaFondo), color: PALETA.verdeMenta, border: `2px solid ${PALETA.verdeMenta}`, fontWeight: 700 }} onClick={onGuardar}>✓ Guardar</button>
         <button style={boton('transparent')} onClick={onCancelar}>Cancelar</button>
       </div>
     </div>
@@ -663,7 +663,7 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
                   });
                   setMensaje('');
                 }}>Editar</button>
-                <button style={boton(PALETA.rojoBoton)} onClick={() => setConfirmarEliminar(m.id)}>Quitar</button>
+                <button style={{ ...boton(PALETA.turquesaFondo), color: PALETA.rojoIntenso, border: `2px solid ${PALETA.rojoIntenso}`, fontWeight: 700 }} onClick={() => setConfirmarEliminar(m.id)}>✕ Quitar</button>
               </div>
             )}
           </div>
@@ -840,11 +840,11 @@ export default function MiDiaPage({ token, apiUrl }) {
 
       {/* Fecha */}
       <div style={{ marginBottom: '16px' }}>
-        <div style={{ fontSize: '13px', color: PALETA.navy, textTransform: 'capitalize' }}>
+        <div style={{ fontSize: '13px', color: PALETA.blanco, fontWeight: 700, textTransform: 'capitalize' }}>
           {verAyer ? `Ayer: ${fechaAyer}` : hoy}
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginTop: '2px' }}>
-          <div style={{ fontSize: '20px', fontWeight: '600', color: PALETA.navy }}>
+          <div style={{ fontSize: '20px', fontWeight: '700', color: PALETA.navy, WebkitTextStroke: `2px ${PALETA.blanco}`, paintOrder: 'stroke fill' }}>
             Mi plan de tomas
           </div>
           <button
@@ -865,7 +865,7 @@ export default function MiDiaPage({ token, apiUrl }) {
         style={{
           width: '100%', marginBottom: '16px', padding: '10px 16px', borderRadius: '10px',
           background: 'transparent',
-          color: PALETA.blanco, fontWeight: 700, border: `2px solid ${PALETA.blanco}`,
+          color: PALETA.naranjaVivo, fontWeight: 700, border: `2px solid ${PALETA.naranjaVivo}`,
           fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'center'
         }}
       >

@@ -159,8 +159,8 @@ const ConfiguracionPage = ({ token, apiUrl } = {}) => {
     horaUsada = 'Zona no válida';
   }
 
-  const tarjeta = { margin: '12px 16px', padding: '14px', borderRadius: '8px', background: PALETA.blanco, border: '1px solid rgba(42,172,176,0.3)', color: PALETA.navy };
-  const boton = { marginTop: '12px', padding: '8px 18px', borderRadius: '6px', border: 'none', background: '#2AACB0', color: PALETA.navy, cursor: 'pointer', fontWeight: 'bold' };
+  const tarjeta = { margin: '12px 16px', padding: '14px', borderRadius: '8px', background: PALETA.blanco, border: `2px solid ${PALETA.amarillo}`, color: PALETA.navy };
+  const boton = { marginTop: '12px', padding: '8px 18px', borderRadius: '6px', border: 'none', background: PALETA.turquesaFondo, color: PALETA.verdeMenta, border: `2px solid ${PALETA.verdeMenta}`, cursor: 'pointer', fontWeight: 'bold' };
 
   return (
     <div className="cfg-page" style={{ padding: '8px 0' }}>
@@ -209,7 +209,7 @@ const ConfiguracionPage = ({ token, apiUrl } = {}) => {
 
         <div>
           <button style={{ ...boton, opacity: hayCambios ? 1 : 0.5 }} disabled={!hayCambios} onClick={guardarConfiguracion}>
-            Guardar configuración
+            ✓ Guardar configuración
           </button>
           {mensajeGuardado && <p style={{ margin: '8px 0 0 0', fontSize: '0.9em' }}>{mensajeGuardado}</p>}
         </div>

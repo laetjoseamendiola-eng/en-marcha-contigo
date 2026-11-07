@@ -44,7 +44,8 @@ const BarraHora = () => {
     <div style={{
       padding: '6px 16px',
       fontSize: '0.85em',
-      color: PALETA.navy,
+      color: PALETA.blanco,
+      fontWeight: 700,
       background: 'rgba(0,0,0,0.25)',
       borderBottom: '1px solid rgba(42,172,176,0.2)',
       textAlign: 'center',
