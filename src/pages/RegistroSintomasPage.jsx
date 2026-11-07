@@ -472,8 +472,8 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
                   onClick={() => setMenuTipoAbierto(!menuTipoAbierto)}
                   style={{
                     width: '100%', textAlign: 'left', padding: '12px 14px',
-                    background: '#fff', color: '#0D2C4D',
-                    border: '1px solid #BFE6E6', borderRadius: '8px',
+                    background: '#0F2640', color: '#FFFFFF',
+                    border: '2px solid #FFFFFF', borderRadius: '8px',
                     fontSize: '16px', fontFamily: 'inherit', cursor: 'pointer'
                   }}
                 >
@@ -494,7 +494,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
                     style={{
                       position: 'absolute', zIndex: 20, left: 0, right: 0, top: '100%',
                       margin: '4px 0 0', padding: 0, listStyle: 'none',
-                      background: '#fff', border: '1px solid #BFE6E6', borderRadius: '8px',
+                      background: '#0F2640', border: '2px solid #FFFFFF', borderRadius: '8px',
                       maxHeight: '60vh', overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.25)'
                     }}
                   >
@@ -508,8 +508,8 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
                           }}
                           style={{
                             width: '100%', textAlign: 'left', padding: '14px',
-                            background: formData.tipo === t.nombre ? '#E6F6F6' : 'transparent',
-                            color: '#0D2C4D', border: 'none', borderBottom: '1px solid #eee',
+                            background: formData.tipo === t.nombre ? '#2AACB0' : 'transparent',
+                            color: '#FFFFFF', border: 'none', borderBottom: '1px solid #FFFFFF',
                             fontSize: '16px', fontFamily: 'inherit', cursor: 'pointer', lineHeight: 1.35
                           }}
                         >

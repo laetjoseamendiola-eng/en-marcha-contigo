@@ -82,14 +82,14 @@ function GrillaDia({ bloques, bloqueActualStr }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '4px', marginBottom: '12px' }}>
         {['6h', '7h', '8h', '9h', '10h', '11h', '12h', '13h', '14h', '15h', '16h', '17h',
           '18h', '19h', '20h', '21h', '22h', '23h'].map(h => (
-          <div key={h} style={{ fontSize: '9px', color: 'rgba(255,255,255,0.93)', textAlign: 'center' }}>{h}</div>
+          <div key={h} style={{ fontSize: '9px', color: '#FFFFFF', textAlign: 'center' }}>{h}</div>
         ))}
       </div>
 
       {extemporaneos.length > 0 && (
         <div style={{ marginBottom: '12px' }}>
           {extemporaneos.map(b => (
-            <div key={b.hora} style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginBottom: '2px' }}>
+            <div key={b.hora} style={{ fontSize: '11px', color: '#FFFFFF', marginBottom: '2px' }}>
               🕒 {hora12(b.hora)} — Registro extemporáneo
             </div>
           ))}
@@ -100,12 +100,12 @@ function GrillaDia({ bloques, bloqueActualStr }) {
         {ESTADOS.map(e => (
           <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: e.color }} />
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)' }}>{e.label}</span>
+            <span style={{ fontSize: '11px', color: '#FFFFFF' }}>{e.label}</span>
           </div>
         ))}
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
           <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'rgba(255,255,255,0.15)' }} />
-          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)' }}>Continúa el último estado →</span>
+          <span style={{ fontSize: '11px', color: '#FFFFFF' }}>Continúa el último estado →</span>
         </div>
       </div>
     </div>
@@ -315,7 +315,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
             <h3 style={{ margin: '0 0 12px', fontSize: '15px', color: '#2AACB0' }}>
               {formulario.modo === 'alta' ? '¿A qué hora ocurrió?' : 'Corregir episodio'}
             </h3>
-            <label style={{ display: 'block', fontSize: '12px', color: 'rgba(255,255,255,0.93)', marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '12px', color: '#FFFFFF', marginBottom: '6px' }}>
               Fecha y hora
             </label>
             <input
@@ -328,7 +328,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
                 background: 'rgba(255,255,255,0.06)', color: 'white', fontFamily: 'inherit', marginBottom: '12px', boxSizing: 'border-box' }}
             />
             {formulario.ocurrio && esExtemporaneo(formulario.ocurrio, ahora) && (
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)', marginBottom: '12px' }}>
+              <div style={{ fontSize: '12px', color: '#FFFFFF', marginBottom: '12px' }}>
                 🕒 Registro extemporáneo
               </div>
             )}
@@ -359,29 +359,29 @@ export default function FluctuacionesPage({ token, apiUrl }) {
         <>
           {/* Último estado registrado (cronológico, aunque sea de ayer) */}
           <div style={{ ...estiloTarjeta, textAlign: 'center' }}>
-            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <div style={{ fontSize: '12px', color: '#FFFFFF', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Último estado registrado
             </div>
             {cargando ? (
-              <div style={{ color: 'rgba(255,255,255,0.93)' }}>Cargando...</div>
+              <div style={{ color: '#FFFFFF' }}>Cargando...</div>
             ) : ultimo ? (
               <>
                 <div style={{ fontSize: '20px', fontWeight: 'bold', color: def(ultimo.estado)?.color }}>
                   {def(ultimo.estado)?.emoji} {def(ultimo.estado)?.label}
                 </div>
-                <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.93)', marginTop: '4px' }}>
+                <div style={{ fontSize: '13px', color: '#FFFFFF', marginTop: '4px' }}>
                   {textoCuandoOcurrio(ultimo.ocurrio_en, ahora)}
                   {ultimo.extemporaneo && ' · 🕒 Registro extemporáneo'}
                 </div>
               </>
             ) : (
-              <div style={{ color: 'rgba(255,255,255,0.93)' }}>Aún no hay registros</div>
+              <div style={{ color: '#FFFFFF' }}>Aún no hay registros</div>
             )}
           </div>
 
           {/* Bloque actual */}
           <div style={{ ...estiloTarjeta, textAlign: 'center', paddingBottom: '16px' }}>
-            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <div style={{ fontSize: '12px', color: '#FFFFFF', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Ahora
             </div>
             <div style={{ fontSize: '36px', fontWeight: 'bold', color: 'white' }}>
@@ -392,7 +392,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
           {confirmado && (
             <div style={{ textAlign: 'center', padding: '20px', fontSize: '48px' }}>
               ✓
-              <div style={{ fontSize: '16px', color: 'rgba(255,255,255,0.93)', marginTop: '8px' }}>Registrado</div>
+              <div style={{ fontSize: '16px', color: '#FFFFFF', marginTop: '8px' }}>Registrado</div>
             </div>
           )}
 
@@ -420,7 +420,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
                     <span style={{ fontSize: '32px', flexShrink: 0 }}>{estado.emoji}</span>
                     <div>
                       <div style={{ fontSize: '20px', fontWeight: '600', color: estado.color }}>{estado.label}</div>
-                      <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.93)', marginTop: '2px' }}>
+                      <div style={{ fontSize: '13px', color: '#FFFFFF', marginTop: '2px' }}>
                         {bloqueado ? `Tu último estado ya es ${estado.label}` : estado.descripcion}
                       </div>
                     </div>
@@ -435,7 +435,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
 
           {mensajeVisual}
 
-          <div style={{ marginTop: '20px', fontSize: '12px', color: 'rgba(255,255,255,0.25)', textAlign: 'center', lineHeight: '1.6' }}>
+          <div style={{ marginTop: '20px', fontSize: '12px', color: '#FFFFFF', fontWeight: 700, textAlign: 'center', lineHeight: '1.6' }}>
             Registra cómo te sientes en este momento.<br />
             Puedes registrar una hora anterior hasta 7 días atrás.
           </div>
@@ -463,7 +463,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
               {dias.find(d => d.fecha === dia)?.etiqueta} — {new Date(`${dia}T12:00:00Z`).toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })}
             </h3>
             {cargando ? (
-              <div style={{ textAlign: 'center', padding: '30px', color: 'rgba(255,255,255,0.93)' }}>Cargando...</div>
+              <div style={{ textAlign: 'center', padding: '30px', color: '#FFFFFF' }}>Cargando...</div>
             ) : (
               <GrillaDia bloques={bloques} bloqueActualStr={dia === fechaHoy ? bloqueActual : null} />
             )}
@@ -472,7 +472,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
           <div style={estiloTarjeta}>
             <h3 style={{ margin: '0 0 8px', fontSize: '15px', color: '#2AACB0' }}>Periodos del día</h3>
             {!cargando && periodos.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '12px', color: 'rgba(255,255,255,0.93)', fontSize: '14px' }}>
+              <div style={{ textAlign: 'center', padding: '12px', color: '#FFFFFF', fontSize: '14px' }}>
                 Sin periodos registrados este día.
               </div>
             )}
@@ -485,16 +485,16 @@ export default function FluctuacionesPage({ token, apiUrl }) {
                 <div key={p.ids[0]} style={{ borderTop: '1px solid rgba(255,255,255,0.08)', padding: '10px 0' }}>
                   <div style={{ fontSize: '15px', color: d?.color, fontWeight: 600 }}>
                     {d?.emoji} {d?.label}
-                    {p.ids.length > 1 && <span style={{ fontSize: '12px', fontWeight: 400, color: 'rgba(255,255,255,0.93)' }}> · {p.ids.length} registros unidos</span>}
+                    {p.ids.length > 1 && <span style={{ fontSize: '12px', fontWeight: 400, color: '#FFFFFF' }}> · {p.ids.length} registros unidos</span>}
                   </div>
-                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)' }}>
+                  <div style={{ fontSize: '12px', color: '#FFFFFF' }}>
                     {hora12(p.inicio.slice(11, 16))} – {p.fin ? hora12(p.fin.slice(11, 16)) : 'sin cierre registrado'}
                     {' · '}{textoDuracion(p.minutosExactos)}
                     {p.extemporaneo && ' · 🕒 extemporáneo'}
                   </div>
 
                   {guardada && (
-                    <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.85)', marginTop: '4px' }}>
+                    <div style={{ fontSize: '12px', color: '#FFFFFF', marginTop: '4px' }}>
                       Duración aproximada: ≈ {textoDuracion(guardada.minutos)}
                       {guardada.origen === 'usuario' ? ' (ajustada por ti)' : ' (sugerencia elegida)'}
                     </div>
@@ -509,7 +509,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
 
                   {editando && (
                     <div style={{ marginTop: '8px', padding: '10px', borderRadius: '10px', background: 'rgba(255,255,255,0.04)' }}>
-                      <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)', marginBottom: '8px' }}>
+                      <div style={{ fontSize: '12px', color: '#FFFFFF', marginBottom: '8px' }}>
                         {sugerida
                           ? `Sugerencia: ${textoDuracion(sugerida)} (redondeo a 15 min). Es aproximada; no cambia las horas.`
                           : 'Sin cierre registrado: escribe cuánto duró, si lo sabes. Es aproximada.'}
@@ -520,7 +520,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
                           Usar sugerencia: {textoDuracion(sugerida)}
                         </button>
                       )}
-                      <label htmlFor={`dur-${idDuracion(p)}`} style={{ display: 'block', fontSize: '12px', color: 'rgba(255,255,255,0.93)', marginBottom: '4px' }}>
+                      <label htmlFor={`dur-${idDuracion(p)}`} style={{ display: 'block', fontSize: '12px', color: '#FFFFFF', marginBottom: '4px' }}>
                         Minutos (ajuste libre, 1 a {DURACION_MAX_MIN})
                       </label>
                       <input id={`dur-${idDuracion(p)}`} type="number" inputMode="numeric" min={1} max={DURACION_MAX_MIN} step={1}
@@ -548,7 +548,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
               );
             })}
             {cruzados.length > 0 && (
-              <div style={{ marginTop: '8px', fontSize: '12px', color: 'rgba(255,255,255,0.93)' }}>
+              <div style={{ marginTop: '8px', fontSize: '12px', color: '#FFFFFF' }}>
                 No se suman en el total {cruzados.length} bloques históricos que se cruzan con un periodo de hora exacta.
               </div>
             )}
@@ -560,7 +560,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
               <button onClick={abrirAlta} disabled={enviando} style={estiloBtnPequeno}>+ Registrar</button>
             </div>
             {listaDia.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '12px', color: 'rgba(255,255,255,0.93)', fontSize: '14px' }}>
+              <div style={{ textAlign: 'center', padding: '12px', color: '#FFFFFF', fontSize: '14px' }}>
                 Sin registros en este día.
               </div>
             )}
@@ -571,7 +571,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
                     <div style={{ fontSize: '15px', color: def(ev.estado)?.color, fontWeight: 600 }}>
                       {def(ev.estado)?.emoji} {def(ev.estado)?.label}
                     </div>
-                    <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)' }}>
+                    <div style={{ fontSize: '12px', color: '#FFFFFF' }}>
                       {hora12(ev.ocurrio_en.slice(11, 16))}
                       {ev.extemporaneo && ' · 🕒 Registro extemporáneo'}
                     </div>
@@ -608,11 +608,11 @@ export default function FluctuacionesPage({ token, apiUrl }) {
           {/* Trazabilidad: corregidos y eliminados, nunca como vigentes */}
           <div style={estiloTarjeta}>
             <h3 style={{ margin: '0 0 6px', fontSize: '15px', color: '#2AACB0' }}>Cambios de los últimos 7 días</h3>
-            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)', marginBottom: '10px' }}>
+            <div style={{ fontSize: '12px', color: '#FFFFFF', marginBottom: '10px' }}>
               Episodios corregidos o eliminados. No cuentan en la gráfica ni en el reporte.
             </div>
             {cambios.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '10px', color: 'rgba(255,255,255,0.93)', fontSize: '14px' }}>
+              <div style={{ textAlign: 'center', padding: '10px', color: '#FFFFFF', fontSize: '14px' }}>
                 Sin cambios en este periodo.
               </div>
             )}
@@ -623,9 +623,9 @@ export default function FluctuacionesPage({ token, apiUrl }) {
                   <div style={{ fontSize: '13px', fontWeight: 600, color: h.motivo_anulacion === 'eliminacion' ? '#E74C3C' : '#F39C12' }}>
                     {t.titulo} · {t.cuando}
                   </div>
-                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)', marginTop: '2px' }}>{t.detalle}</div>
+                  <div style={{ fontSize: '12px', color: '#FFFFFF', marginTop: '2px' }}>{t.detalle}</div>
                   {h.duracion_aproximada && (
-                    <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)', marginTop: '2px' }}>
+                    <div style={{ fontSize: '12px', color: '#FFFFFF', marginTop: '2px' }}>
                       Duración aproximada anotada en este episodio: ≈ {textoDuracion(h.duracion_aproximada.minutos)}. No se pasó al episodio que lo reemplaza.
                     </div>
                   )}
