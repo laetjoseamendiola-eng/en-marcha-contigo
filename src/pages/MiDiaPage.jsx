@@ -166,7 +166,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '28px', fontWeight: 'bold', color: PALETA.navy }}>{aHora12(horaVentana)}</span>
+            <span style={{ fontSize: '28px', fontWeight: 'bold', color: PALETA.blanco }}>{aHora12(horaVentana)}</span>
             <span style={{ fontSize: '22px' }}>{ESTADO_ICONS[estado]}</span>
           </div>
           {/* Lista de medicamentos */}
@@ -174,7 +174,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
             {medicamentos.map((med, i) => (
               <div key={i} style={{
                 fontSize: '14px',
-                color: PALETA.navy,
+                color: PALETA.blanco,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
@@ -182,7 +182,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
               }}>
                 <span>💊</span>
                 <span style={{ fontWeight: '500' }}>{med.nombre}</span>
-                <span style={{ color: PALETA.navy, fontSize: '12px' }}>{med.dosis}</span>
+                <span style={{ color: PALETA.blanco, fontWeight: 700, fontSize: '12px' }}>{med.dosis}</span>
               </div>
             ))}
           </div>
@@ -191,7 +191,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
           {estado === 'tomada' && tomaHora && (
             <div style={{ fontSize: '14px', color: PALETA.verdeMenta, marginTop: '6px', fontWeight: 600 }}>
               ✓ Tomado a las {formatHora(tomaHora)}
-              {horaVentana !== horario && <span style={{ fontWeight: 400, color: PALETA.navy }}> (programada {aHora12(horario)})</span>}
+              {horaVentana !== horario && <span style={{ fontWeight: 400, color: PALETA.blanco }}> (programada {aHora12(horario)})</span>}
             </div>
           )}
 
@@ -223,7 +223,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
                   Guardar toma
                 </button>
                 <button onClick={() => setPanelHora(false)}
-                  style={{ background: 'transparent', color: PALETA.navy, border: '1px solid var(--bordeClaro)', borderRadius: '8px', padding: '8px 14px', fontFamily: 'inherit', cursor: 'pointer' }}>
+                  style={{ background: 'transparent', color: PALETA.blanco, fontWeight: 700, border: `2px solid ${PALETA.blanco}`, borderRadius: '8px', padding: '8px 14px', fontFamily: 'inherit', cursor: 'pointer' }}>
                   Cancelar
                 </button>
               </div>
@@ -239,7 +239,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
                 Sí, omitir
               </button>{' '}
               <button onClick={() => setConfirmarOmitir(false)}
-                style={{ background: 'transparent', color: PALETA.navy, border: '1px solid var(--bordeClaro)', borderRadius: '8px', padding: '8px 14px', fontFamily: 'inherit', cursor: 'pointer' }}>
+                style={{ background: 'transparent', color: PALETA.blanco, fontWeight: 700, border: `2px solid ${PALETA.blanco}`, borderRadius: '8px', padding: '8px 14px', fontFamily: 'inherit', cursor: 'pointer' }}>
                 No
               </button>
             </div>
@@ -259,8 +259,9 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
               disabled={cargando}
               style={{
                 background: 'transparent',
-                color: PALETA.navy,
-                border: '1px solid var(--bordeClaro)',
+                color: PALETA.blanco,
+                fontWeight: 700,
+                border: `2px solid ${PALETA.blanco}`,
                 borderRadius: '12px',
                 padding: '8px 14px',
                 fontSize: '13px',
@@ -311,8 +312,9 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
                 disabled={cargando}
                 style={{
                   background: 'transparent',
-                  color: PALETA.navy,
-                  border: '1px solid var(--bordeClaro)',
+                  color: PALETA.blanco,
+                  fontWeight: 700,
+                  border: `2px solid ${PALETA.blanco}`,
                   borderRadius: '12px',
                   padding: '8px 16px',
                   fontSize: '13px',
@@ -350,7 +352,7 @@ function ResumenDia({ tomas }) {
       alignItems: 'center'
     }}>
       <div>
-        <div style={{ fontSize: '13px', color: PALETA.navy, marginBottom: '2px' }}>
+        <div style={{ fontSize: '13px', color: PALETA.blanco, marginBottom: '2px' }}>
           Adherencia del día
         </div>
         <div style={{ fontSize: '22px', fontWeight: 'bold', color: pct >= 80 ? PALETA.verdeBrillante : PALETA.amarillo }}>
@@ -358,11 +360,11 @@ function ResumenDia({ tomas }) {
         </div>
       </div>
       <div style={{ textAlign: 'right' }}>
-        <div style={{ fontSize: '13px', color: PALETA.navy, marginBottom: '2px' }}>
+        <div style={{ fontSize: '13px', color: PALETA.blanco, marginBottom: '2px' }}>
           Tomas
         </div>
-        <div style={{ fontSize: '18px', color: PALETA.navy }}>
-          {tomadas}/{total} <span style={{ fontSize: '14px', color: PALETA.navy }}>completadas</span>
+        <div style={{ fontSize: '18px', color: PALETA.blanco }}>
+          {tomadas}/{total} <span style={{ fontSize: '14px', color: PALETA.blanco }}>completadas</span>
         </div>
       </div>
     </div>
@@ -848,7 +850,7 @@ export default function MiDiaPage({ token, apiUrl }) {
           <button
             onClick={() => setMenuAbierto(true)}
             style={{
-              background: 'transparent', color: PALETA.turquesaTexto, border: `1px solid ${PALETA.turquesa}`,
+              background: 'transparent', color: PALETA.blanco, fontWeight: 700, border: `2px solid ${PALETA.blanco}`,
               borderRadius: '8px', padding: '6px 12px', fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit'
             }}
           >
@@ -862,8 +864,8 @@ export default function MiDiaPage({ token, apiUrl }) {
         onClick={() => setVerAyer(v => !v)}
         style={{
           width: '100%', marginBottom: '16px', padding: '10px 16px', borderRadius: '10px',
-          background: verAyer ? 'rgba(42,172,176,0.2)' : 'transparent',
-          color: PALETA.turquesaTexto, border: `1px solid ${PALETA.turquesa}`,
+          background: 'transparent',
+          color: PALETA.blanco, fontWeight: 700, border: `2px solid ${PALETA.blanco}`,
           fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'center'
         }}
       >
