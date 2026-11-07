@@ -63,7 +63,7 @@
   margin-bottom: 26px;
   border-radius: 10px;
   overflow: hidden;
-  border: 1px solid var(--grisTexto);
+  border: 1px solid var(--bordeClaro);
 }
 
 .login-tabs .tab {
@@ -122,7 +122,7 @@
 
 .login-form-group input {
   padding: 12px 14px;
-  border: 1.5px solid var(--grisTexto);
+  border: 1.5px solid var(--bordeClaro);
   border-radius: 10px;
   font-size: 15px;
   font-family: inherit;
@@ -257,7 +257,7 @@
 /* ---- Preguntas de seguridad y recuperación (LOGIN-03) ---- */
 .login-select {
   padding: 12px 14px;
-  border: 1.5px solid var(--grisTexto);
+  border: 1.5px solid var(--bordeClaro);
   border-radius: 10px;
   font-size: 15px;
   font-family: inherit;

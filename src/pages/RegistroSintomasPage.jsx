@@ -451,7 +451,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
       <div className="registro-sintomas-wrapper">
         {/* Sección del formulario */}
         <div className="registro-form-section">
-          <h1 style={{ color: PALETA.navy, WebkitTextStroke: `2px ${PALETA.blanco}`, paintOrder: 'stroke fill' }}>Registro de Síntomas</h1>
+          <h1>Registro de Síntomas</h1>
           <p className="subtitle">Documenta tus síntomas para seguimiento neurológico</p>
 
           {mensaje && (

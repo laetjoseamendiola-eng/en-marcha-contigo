@@ -37,7 +37,7 @@ function CeldaBloque({ bloque, esActual }) {
   const color = COLOR_POR_ESTADO[bloque.estado] || COLOR_POR_ESTADO.vacio;
   const estilo = { position: 'relative', borderRadius: '6px', height: '36px', display: 'flex',
     alignItems: 'center', justifyContent: 'center', fontSize: '11px',
-    border: esActual ? `2px solid ${PALETA.navy}` : '1px solid var(--grisTexto)' };
+    border: esActual ? `2px solid ${PALETA.navy}` : '1px solid var(--bordeClaro)' };
   const nombre = def(bloque.estado)?.label || '';
   let titulo = `${hora12(bloque.hora)} — Sin registro`;
 
@@ -277,18 +277,12 @@ export default function FluctuacionesPage({ token, apiUrl }) {
     guardarDuracion(duracionEdit.id, r.valor, r.origen);
   };
 
-    const estiloBtn = (activo) => ({
-    padding: '8px 16px',
-    border: 'none',
-    borderBottom: activo ? `3px solid ${PALETA.blanco}` : '3px solid transparent',
-    background: 'transparent',
-    color: PALETA.blanco,
-    fontSize: '14px',
-    fontWeight: 700,
-    cursor: 'pointer',
-    fontFamily: 'inherit',
-    whiteSpace: 'nowrap',
-    transition: 'all 0.2s'
+  const estiloBtn = (activo) => ({
+    padding: '8px 16px', borderRadius: '20px',
+    border: `1px solid ${activo ? PALETA.turquesa : PALETA.bordeClaro}`,
+    background: activo ? PALETA.turquesa : 'transparent', color: 'white',
+    fontSize: '13px', fontWeight: activo ? '600' : '400', cursor: 'pointer',
+    fontFamily: 'inherit', transition: 'all 0.2s'
   });
 
   const estiloTarjeta = {
@@ -297,7 +291,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
   };
 
   const estiloBtnPequeno = {
-    background: 'transparent', color: PALETA.navy, border: '1px solid var(--grisTexto)',
+    background: 'transparent', color: PALETA.navy, border: '1px solid var(--bordeClaro)',
     borderRadius: '10px', padding: '6px 10px', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit'
   };
 
@@ -331,7 +325,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
               min={restarDias(ahora, 7)}
               max={ahora}
               onChange={e => setFormulario({ ...formulario, ocurrio: e.target.value })}
-              style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid var(--grisTexto)',
+              style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid var(--bordeClaro)',
                 background: PALETA.blanco, color: PALETA.navy, fontFamily: 'inherit', marginBottom: '12px', boxSizing: 'border-box' }}
             />
             {formulario.ocurrio && esExtemporaneo(formulario.ocurrio, ahora) && (
@@ -458,7 +452,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
               <button key={d.fecha} onClick={() => setDiaSeleccionado(d.fecha)}
                 style={{ ...estiloBtnPequeno, whiteSpace: 'nowrap', flexShrink: 0,
                   background: d.fecha === dia ? PALETA.turquesa : 'transparent',
-                  borderColor: d.fecha === dia ? PALETA.turquesa : PALETA.grisTexto,
+                  borderColor: d.fecha === dia ? PALETA.turquesa : PALETA.bordeClaro,
                   fontWeight: d.fecha === dia ? 600 : 400 }}>
                 {d.etiqueta}
               </button>
@@ -489,7 +483,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
               const sugerida = propuestaDuracion(p.minutosExactos);
               const editando = duracionEdit?.id === idDuracion(p);
               return (
-                <div key={p.ids[0]} style={{ borderTop: '1px solid var(--grisTexto)', padding: '10px 0' }}>
+                <div key={p.ids[0]} style={{ borderTop: '1px solid var(--bordeClaro)', padding: '10px 0' }}>
                   <div style={{ fontSize: '15px', color: d?.color, fontWeight: 600 }}>
                     {d?.emoji} {d?.label}
                     {p.ids.length > 1 && <span style={{ fontSize: '12px', fontWeight: 400, color: PALETA.navy }}> · {p.ids.length} registros unidos</span>}
@@ -534,7 +528,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
                         value={duracionEdit.texto}
                         aria-invalid={!!duracionEdit.error}
                         onChange={e => setDuracionEdit({ ...duracionEdit, texto: e.target.value, error: '' })}
-                        style={{ width: '100%', padding: '8px', borderRadius: '10px', border: '1px solid var(--grisTexto)',
+                        style={{ width: '100%', padding: '8px', borderRadius: '10px', border: '1px solid var(--bordeClaro)',
                           background: PALETA.blanco, color: PALETA.navy, fontFamily: 'inherit', boxSizing: 'border-box', marginBottom: '8px' }} />
                       {duracionEdit.error && (
                         <div role="alert" style={{ fontSize: '12px', color: PALETA.rojoClaro, marginBottom: '8px' }}>{duracionEdit.error}</div>
@@ -572,7 +566,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
               </div>
             )}
             {listaDia.map(ev => (
-              <div key={ev.id} style={{ borderTop: '1px solid var(--grisTexto)', padding: '10px 0' }}>
+              <div key={ev.id} style={{ borderTop: '1px solid var(--bordeClaro)', padding: '10px 0' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
                   <div>
                     <div style={{ fontSize: '15px', color: def(ev.estado)?.color, fontWeight: 600 }}>
@@ -626,7 +620,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
             {cambios.map(h => {
               const t = textoTrazabilidad(h, ahora, porId);
               return (
-                <div key={h.id} style={{ borderTop: '1px solid var(--grisTexto)', padding: '10px 0' }}>
+                <div key={h.id} style={{ borderTop: '1px solid var(--bordeClaro)', padding: '10px 0' }}>
                   <div style={{ fontSize: '13px', fontWeight: 600, color: h.motivo_anulacion === 'eliminacion' ? PALETA.rojo : PALETA.naranjaAmbar }}>
                     {t.titulo} · {t.cuando}
                   </div>

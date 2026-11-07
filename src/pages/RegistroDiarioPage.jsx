@@ -178,7 +178,7 @@ function TarjetaPregunta({ pregunta, valor, onChange }) {
                 alignItems: 'center',
                 gap: '12px',
                 background: seleccionada ? COLOR_VALOR[op.valor] + '22' : PALETA.blanco,
-                border: `1px solid ${seleccionada ? COLOR_VALOR[op.valor] : PALETA.grisTexto}`,
+                border: `1px solid ${seleccionada ? COLOR_VALOR[op.valor] : PALETA.bordeClaro}`,
                 borderRadius: '10px',
                 padding: '10px 14px',
                 cursor: 'pointer',
@@ -190,7 +190,7 @@ function TarjetaPregunta({ pregunta, valor, onChange }) {
               <div style={{
                 width: '20px', height: '20px',
                 borderRadius: '50%',
-                border: `2px solid ${seleccionada ? COLOR_VALOR[op.valor] : PALETA.grisTexto}`,
+                border: `2px solid ${seleccionada ? COLOR_VALOR[op.valor] : PALETA.bordeClaro}`,
                 background: seleccionada ? COLOR_VALOR[op.valor] : 'transparent',
                 flexShrink: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -231,7 +231,7 @@ function MiniRadar({ registro }) {
       {dominios.map(d => (
         <div key={d.label} style={{
           background: d.valor !== null ? COLOR_VALOR[d.valor] + '18' : PALETA.blanco,
-          border: `1px solid ${d.valor !== null ? COLOR_VALOR[d.valor] + '60' : PALETA.grisTexto}`,
+          border: `1px solid ${d.valor !== null ? COLOR_VALOR[d.valor] + '60' : PALETA.bordeClaro}`,
           borderRadius: '10px',
           padding: '8px',
           textAlign: 'center',
@@ -350,18 +350,17 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
     timeZone: zonaReloj(), weekday: 'long', day: 'numeric', month: 'long',
   });
 
-    const estiloBtn = (activo) => ({
-    padding: '8px 16px',
-    border: 'none',
-    borderBottom: activo ? `3px solid ${PALETA.blanco}` : '3px solid transparent',
-    background: 'transparent',
-    color: PALETA.blanco,
-    fontSize: '14px',
-    fontWeight: 700,
+  const estiloBtn = (activo) => ({
+    padding: '8px 18px',
+    borderRadius: '20px',
+    border: `1px solid ${activo ? PALETA.turquesa : PALETA.bordeClaro}`,
+    background: activo ? PALETA.turquesa : 'transparent',
+    color: PALETA.navy,
+    fontSize: '13px',
+    fontWeight: activo ? '600' : '400',
     cursor: 'pointer',
     fontFamily: 'inherit',
-    whiteSpace: 'nowrap',
-    transition: 'all 0.2s'
+    transition: 'all 0.2s',
   });
 
   if (cargando) {
@@ -394,7 +393,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
               {hoy}
             </div>
             <div style={{ fontSize: '18px', fontWeight: '600', color: PALETA.navy, marginTop: '2px' }}>
-              <span style={{ color: PALETA.navy, WebkitTextStroke: `2px ${PALETA.blanco}`, paintOrder: 'stroke fill' }}>¿Cómo te sientes hoy?</span>
+              ¿Cómo te sientes hoy?
             </div>
             <div style={{ fontSize: '12px', color: PALETA.navy, marginTop: '4px', lineHeight: '1.5' }}>
               Escala 0–4 · 0 = sin problema · 4 = muy grave
@@ -468,7 +467,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
               style={{
                 width: '100%',
                 background: PALETA.blanco,
-                border: '1px solid var(--grisTexto)',
+                border: '1px solid var(--bordeClaro)',
                 borderRadius: '10px',
                 padding: '10px 12px',
                 color: PALETA.navy,
@@ -595,7 +594,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
                       fontSize: '12px',
                       color: PALETA.navy,
                       fontStyle: 'italic',
-                      borderTop: '1px solid var(--grisTexto)',
+                      borderTop: '1px solid var(--bordeClaro)',
                       paddingTop: '8px',
                     }}>
                       📝 {r.nota_dia}

@@ -24,7 +24,7 @@
   background: var(--blanco);
   padding: 12px 20px;
   border-radius: 12px;
-  border: 1px solid var(--grisTexto);
+  border: 1px solid var(--bordeClaro);
 }
 
 .user-info {
@@ -48,7 +48,7 @@
 .btn-logout {
   background: var(--blanco);
   color: var(--navy);
-  border: 1px solid var(--grisTexto);
+  border: 1px solid var(--bordeClaro);
   padding: 8px 18px;
   border-radius: 8px;
   font-size: 13px;
@@ -137,7 +137,7 @@
 .form-group select,
 .form-group textarea {
   padding: 10px 12px;
-  border: 1.5px solid var(--grisTexto);
+  border: 1.5px solid var(--bordeClaro);
   border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
