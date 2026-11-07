@@ -1,3 +1,4 @@
+import { PALETA } from '../paleta.js';
 import React, { useState, useEffect } from 'react';
 
 // Franja pequeña que muestra la hora que usa la app y de dónde sale (dispositivo o zona manual).
@@ -43,7 +44,7 @@ const BarraHora = () => {
     <div style={{
       padding: '6px 16px',
       fontSize: '0.85em',
-      color: '#ffffff',
+      color: PALETA.navy,
       background: 'rgba(0,0,0,0.25)',
       borderBottom: '1px solid rgba(42,172,176,0.2)',
       textAlign: 'center',

@@ -135,7 +135,7 @@ const COLOR_VALOR = {
 function TarjetaPregunta({ pregunta, valor, onChange }) {
   return (
     <div style={{
-      background: 'rgba(255,255,255,0.04)',
+      background: PALETA.blanco,
       border: '1px solid rgba(42,172,176,0.15)',
       borderRadius: '16px',
       padding: '18px 20px',
@@ -145,8 +145,8 @@ function TarjetaPregunta({ pregunta, valor, onChange }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
         <span style={{ fontSize: '24px' }}>{pregunta.emoji}</span>
         <div>
-          <div style={{ fontSize: '15px', fontWeight: '600', color: 'white' }}>{pregunta.titulo}</div>
-          <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)' }}>{pregunta.pregunta}</div>
+          <div style={{ fontSize: '15px', fontWeight: '600', color: PALETA.navy }}>{pregunta.titulo}</div>
+          <div style={{ fontSize: '12px', color: PALETA.navy }}>{pregunta.pregunta}</div>
         </div>
         {valor !== null && valor !== undefined && (
           <div style={{
@@ -177,8 +177,8 @@ function TarjetaPregunta({ pregunta, valor, onChange }) {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px',
-                background: seleccionada ? COLOR_VALOR[op.valor] + '22' : 'rgba(255,255,255,0.02)',
-                border: `1px solid ${seleccionada ? COLOR_VALOR[op.valor] : 'rgba(255,255,255,0.08)'}`,
+                background: seleccionada ? COLOR_VALOR[op.valor] + '22' : PALETA.blanco,
+                border: `1px solid ${seleccionada ? COLOR_VALOR[op.valor] : PALETA.bordeClaro}`,
                 borderRadius: '10px',
                 padding: '10px 14px',
                 cursor: 'pointer',
@@ -190,7 +190,7 @@ function TarjetaPregunta({ pregunta, valor, onChange }) {
               <div style={{
                 width: '20px', height: '20px',
                 borderRadius: '50%',
-                border: `2px solid ${seleccionada ? COLOR_VALOR[op.valor] : 'rgba(255,255,255,0.2)'}`,
+                border: `2px solid ${seleccionada ? COLOR_VALOR[op.valor] : PALETA.bordeClaro}`,
                 background: seleccionada ? COLOR_VALOR[op.valor] : 'transparent',
                 flexShrink: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -198,10 +198,10 @@ function TarjetaPregunta({ pregunta, valor, onChange }) {
                 {seleccionada && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'white' }} />}
               </div>
               <div>
-                <div style={{ fontSize: '13px', fontWeight: seleccionada ? '600' : '400', color: seleccionada ? 'white' : 'rgba(255,255,255,0.7)' }}>
+                <div style={{ fontSize: '13px', fontWeight: seleccionada ? '600' : '400', color: seleccionada ? 'white' : PALETA.navy }}>
                   {op.label}
                 </div>
-                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginTop: '1px' }}>
+                <div style={{ fontSize: '11px', color: PALETA.navy, marginTop: '1px' }}>
                   {op.desc}
                 </div>
               </div>
@@ -230,14 +230,14 @@ function MiniRadar({ registro }) {
     }}>
       {dominios.map(d => (
         <div key={d.label} style={{
-          background: d.valor !== null ? COLOR_VALOR[d.valor] + '18' : 'rgba(255,255,255,0.04)',
-          border: `1px solid ${d.valor !== null ? COLOR_VALOR[d.valor] + '60' : 'rgba(255,255,255,0.08)'}`,
+          background: d.valor !== null ? COLOR_VALOR[d.valor] + '18' : PALETA.blanco,
+          border: `1px solid ${d.valor !== null ? COLOR_VALOR[d.valor] + '60' : PALETA.bordeClaro}`,
           borderRadius: '10px',
           padding: '8px',
           textAlign: 'center',
         }}>
           <div style={{ fontSize: '20px' }}>{d.label}</div>
-          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginTop: '2px' }}>
+          <div style={{ fontSize: '11px', color: PALETA.navy, marginTop: '2px' }}>
             {d.titulo.split(' ')[0]}
           </div>
           {d.valor !== null ? (
@@ -245,7 +245,7 @@ function MiniRadar({ registro }) {
               {d.valor}
             </div>
           ) : (
-            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)', marginTop: '2px' }}>—</div>
+            <div style={{ fontSize: '12px', color: PALETA.navy, marginTop: '2px' }}>—</div>
           )}
         </div>
       ))}
@@ -353,9 +353,9 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
   const estiloBtn = (activo) => ({
     padding: '8px 18px',
     borderRadius: '20px',
-    border: `1px solid ${activo ? PALETA.turquesa : 'rgba(255,255,255,0.15)'}`,
+    border: `1px solid ${activo ? PALETA.turquesa : PALETA.bordeClaro}`,
     background: activo ? PALETA.turquesa : 'transparent',
-    color: 'white',
+    color: PALETA.navy,
     fontSize: '13px',
     fontWeight: activo ? '600' : '400',
     cursor: 'pointer',
@@ -365,14 +365,14 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
 
   if (cargando) {
     return (
-      <div style={{ textAlign: 'center', padding: '60px 20px', color: 'rgba(255,255,255,0.93)' }}>
+      <div style={{ textAlign: 'center', padding: '60px 20px', color: PALETA.navy }}>
         Cargando...
       </div>
     );
   }
 
   return (
-    <div style={{ padding: '16px 16px 40px', maxWidth: '600px', margin: '0 auto', color: 'white' }}>
+    <div style={{ padding: '16px 16px 40px', maxWidth: '600px', margin: '0 auto', color: PALETA.navy }}>
 
       {/* Selector vista */}
       <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
@@ -389,13 +389,13 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
         <>
           {/* Encabezado */}
           <div style={{ marginBottom: '16px' }}>
-            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)', textTransform: 'capitalize' }}>
+            <div style={{ fontSize: '12px', color: PALETA.navy, textTransform: 'capitalize' }}>
               {hoy}
             </div>
-            <div style={{ fontSize: '18px', fontWeight: '600', color: 'white', marginTop: '2px' }}>
+            <div style={{ fontSize: '18px', fontWeight: '600', color: PALETA.navy, marginTop: '2px' }}>
               ¿Cómo te sientes hoy?
             </div>
-            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)', marginTop: '4px', lineHeight: '1.5' }}>
+            <div style={{ fontSize: '12px', color: PALETA.navy, marginTop: '4px', lineHeight: '1.5' }}>
               Escala 0–4 · 0 = sin problema · 4 = muy grave
             </div>
           </div>
@@ -409,7 +409,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
               padding: '12px 16px',
               marginBottom: '16px',
               fontSize: '13px',
-              color: 'rgba(255,255,255,0.93)',
+              color: PALETA.navy,
             }}>
               ✓ Ya tienes un registro para hoy · puedes actualizarlo
             </div>
@@ -447,7 +447,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
 
           {/* Nota libre */}
           <div style={{
-            background: 'rgba(255,255,255,0.04)',
+            background: PALETA.blanco,
             border: '1px solid rgba(42,172,176,0.15)',
             borderRadius: '16px',
             padding: '18px 20px',
@@ -455,9 +455,9 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
               <span style={{ fontSize: '20px' }}>📝</span>
-              <span style={{ fontSize: '14px', color: 'white', fontWeight: '500' }}>Nota del día</span>
+              <span style={{ fontSize: '14px', color: PALETA.navy, fontWeight: '500' }}>Nota del día</span>
             </div>
-            <style>{`.nota-dia-txt::placeholder { color: rgba(255,255,255,0.8); opacity: 1; }`}</style>
+            <style>{`.nota-dia-txt::placeholder { color: var(--navy); opacity: 1; }`}</style>
             <textarea
               className="nota-dia-txt"
               value={notaDia}
@@ -466,11 +466,11 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
               rows={3}
               style={{
                 width: '100%',
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(255,255,255,0.1)',
+                background: PALETA.blanco,
+                border: '1px solid var(--bordeClaro)',
                 borderRadius: '10px',
                 padding: '10px 12px',
-                color: 'white',
+                color: PALETA.navy,
                 fontFamily: 'inherit',
                 fontSize: '13px',
                 resize: 'vertical',
@@ -487,7 +487,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
             style={{
               width: '100%',
               background: guardando ? 'rgba(42,172,176,0.5)' : PALETA.turquesa,
-              color: 'white',
+              color: PALETA.navy,
               border: 'none',
               borderRadius: '14px',
               padding: '16px',
@@ -501,7 +501,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
             {guardando ? 'Guardando...' : (registroExistente ? 'Actualizar registro' : 'Guardar registro del día')}
           </button>
 
-          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', textAlign: 'center', marginTop: '14px', lineHeight: '1.6' }}>
+          <div style={{ fontSize: '11px', color: PALETA.navy, textAlign: 'center', marginTop: '14px', lineHeight: '1.6' }}>
             Puedes responder solo las preguntas que apliquen.<br/>
             Este registro es tuyo — ayuda a ver patrones con el tiempo.
           </div>
@@ -511,14 +511,14 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
       {/* ── VISTA HISTORIAL ───────────────────────── */}
       {vista === 'historial' && (
         <>
-          <div style={{ marginBottom: '16px', fontSize: '14px', color: 'rgba(255,255,255,0.93)' }}>
+          <div style={{ marginBottom: '16px', fontSize: '14px', color: PALETA.navy }}>
             Últimas 2 semanas de registros diarios
           </div>
           {historial.length === 0 ? (
             <div style={{
               textAlign: 'center',
               padding: '40px 20px',
-              color: 'rgba(255,255,255,0.93)',
+              color: PALETA.navy,
               fontSize: '14px',
             }}>
               Sin registros aún.<br/>
@@ -534,7 +534,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
 
               return (
                 <div key={r.id} style={{
-                  background: 'rgba(255,255,255,0.04)',
+                  background: PALETA.blanco,
                   border: '1px solid rgba(42,172,176,0.12)',
                   borderRadius: '14px',
                   padding: '14px 16px',
@@ -542,10 +542,10 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
                     <div>
-                      <div style={{ fontSize: '14px', fontWeight: '600', color: 'white' }}>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: PALETA.navy }}>
                         {fecha.toLocaleDateString('es-MX', { timeZone: zonaReloj(), weekday: 'short', day: 'numeric', month: 'short' })}
                       </div>
-                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginTop: '2px' }}>
+                      <div style={{ fontSize: '11px', color: PALETA.navy, marginTop: '2px' }}>
                         {dominiosRespondidos.length}/8 dominios registrados
                       </div>
                     </div>
@@ -579,7 +579,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
                           display: 'flex',
                           alignItems: 'center',
                           gap: '4px',
-                          color: 'rgba(255,255,255,0.93)',
+                          color: PALETA.navy,
                         }}>
                           <span>{p.emoji}</span>
                           <span style={{ color: COLOR_VALOR[v], fontWeight: '600' }}>{v}</span>
@@ -592,9 +592,9 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
                     <div style={{
                       marginTop: '10px',
                       fontSize: '12px',
-                      color: 'rgba(255,255,255,0.93)',
+                      color: PALETA.navy,
                       fontStyle: 'italic',
-                      borderTop: '1px solid rgba(255,255,255,0.06)',
+                      borderTop: '1px solid var(--bordeClaro)',
                       paddingTop: '8px',
                     }}>
                       📝 {r.nota_dia}

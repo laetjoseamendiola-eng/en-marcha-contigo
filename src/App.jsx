@@ -66,12 +66,12 @@ function App() {
     return (
       <div style={{
         minHeight: '100vh',
-        background: `linear-gradient(160deg, ${PALETA.navyOscuro} 0%, ${PALETA.navy} 40%, ${PALETA.turquesa} 100%)`,
+        background: `${PALETA.fondoTurquesa}`,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        color: 'white',
+        color: PALETA.navy,
         fontFamily: "'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif",
         gap: '16px'
       }}>

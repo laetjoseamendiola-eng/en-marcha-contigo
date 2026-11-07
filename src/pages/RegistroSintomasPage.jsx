@@ -279,7 +279,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
     border: 'none',
     borderBottom: activa ? `3px solid ${PALETA.turquesa}` : '3px solid transparent',
     background: 'transparent',
-    color: activa ? PALETA.turquesa : 'rgba(255,255,255,0.75)',
+    color: activa ? PALETA.turquesaTexto : PALETA.navy,
     fontSize: '15px',
     fontWeight: activa ? '600' : '400',
     cursor: 'pointer',
@@ -311,7 +311,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
 
       {/* Recordatorio de síntomas abiertos de días anteriores */}
       {sintomasAbiertos.length > 0 && (
-        <div style={{ margin: '12px 16px', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(42,172,176,0.4)' }}>
+        <div style={{ margin: '12px 16px', padding: '12px', borderRadius: '8px', background: PALETA.blanco, border: '1px solid rgba(42,172,176,0.4)' }}>
           <p style={{ margin: '0 0 8px 0' }}>
             Tienes {sintomasAbiertos.length} síntoma(s) de días anteriores marcados como "Todavía presente". ¿Cuánto duró?
           </p>

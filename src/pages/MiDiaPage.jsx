@@ -141,16 +141,16 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
     tomada: 'rgba(40,167,69,0.5)',
     omitida: 'rgba(255,226,89,0.85)',
     pendiente: 'rgba(42,172,176,0.5)',
-    futura: 'rgba(255,255,255,0.1)',
-    sin_registro: 'rgba(255,255,255,0.25)'
+    futura: PALETA.bordeClaro,
+    sin_registro: PALETA.bordeClaro
   }[estado];
 
   const colorFondo = {
     tomada: 'rgba(40,167,69,0.08)',
     omitida: 'rgba(255,226,89,0.12)',
     pendiente: 'rgba(42,172,176,0.08)',
-    futura: 'rgba(255,255,255,0.03)',
-    sin_registro: 'rgba(255,255,255,0.04)'
+    futura: PALETA.bordeClaro,
+    sin_registro: PALETA.bordeClaro
   }[estado];
 
   return (
@@ -166,7 +166,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '28px', fontWeight: 'bold', color: 'white' }}>{aHora12(horaVentana)}</span>
+            <span style={{ fontSize: '28px', fontWeight: 'bold', color: PALETA.navy }}>{aHora12(horaVentana)}</span>
             <span style={{ fontSize: '22px' }}>{ESTADO_ICONS[estado]}</span>
           </div>
           {/* Lista de medicamentos */}
@@ -174,7 +174,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
             {medicamentos.map((med, i) => (
               <div key={i} style={{
                 fontSize: '14px',
-                color: 'rgba(255,255,255,0.85)',
+                color: PALETA.navy,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
@@ -182,7 +182,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
               }}>
                 <span>💊</span>
                 <span style={{ fontWeight: '500' }}>{med.nombre}</span>
-                <span style={{ color: 'rgba(255,255,255,0.93)', fontSize: '12px' }}>{med.dosis}</span>
+                <span style={{ color: PALETA.navy, fontSize: '12px' }}>{med.dosis}</span>
               </div>
             ))}
           </div>
@@ -191,13 +191,13 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
           {estado === 'tomada' && tomaHora && (
             <div style={{ fontSize: '14px', color: PALETA.verdeMenta, marginTop: '6px', fontWeight: 600 }}>
               ✓ Tomado a las {formatHora(tomaHora)}
-              {horaVentana !== horario && <span style={{ fontWeight: 400, color: 'rgba(255,255,255,0.8)' }}> (programada {aHora12(horario)})</span>}
+              {horaVentana !== horario && <span style={{ fontWeight: 400, color: PALETA.navy }}> (programada {aHora12(horario)})</span>}
             </div>
           )}
 
           {/* Toma antes de su hora: se pide la hora real */}
           {panelHora && (
-            <div style={{ marginTop: '10px', padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)' }}>
+            <div style={{ marginTop: '10px', padding: '12px', borderRadius: '10px', background: PALETA.blanco }}>
               <div style={{ fontSize: '13px', marginBottom: '6px' }}>¿A qué hora la tomó?</div>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                 <label style={{ fontSize: '12px' }}>Hora
@@ -223,7 +223,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
                   Guardar toma
                 </button>
                 <button onClick={() => setPanelHora(false)}
-                  style={{ background: 'transparent', color: 'white', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '8px', padding: '8px 14px', fontFamily: 'inherit', cursor: 'pointer' }}>
+                  style={{ background: 'transparent', color: PALETA.navy, border: '1px solid var(--bordeClaro)', borderRadius: '8px', padding: '8px 14px', fontFamily: 'inherit', cursor: 'pointer' }}>
                   Cancelar
                 </button>
               </div>
@@ -239,7 +239,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
                 Sí, omitir
               </button>{' '}
               <button onClick={() => setConfirmarOmitir(false)}
-                style={{ background: 'transparent', color: 'white', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '8px', padding: '8px 14px', fontFamily: 'inherit', cursor: 'pointer' }}>
+                style={{ background: 'transparent', color: PALETA.navy, border: '1px solid var(--bordeClaro)', borderRadius: '8px', padding: '8px 14px', fontFamily: 'inherit', cursor: 'pointer' }}>
                 No
               </button>
             </div>
@@ -259,8 +259,8 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
               disabled={cargando}
               style={{
                 background: 'transparent',
-                color: 'rgba(255,255,255,0.85)',
-                border: '1px solid rgba(255,255,255,0.3)',
+                color: PALETA.navy,
+                border: '1px solid var(--bordeClaro)',
                 borderRadius: '12px',
                 padding: '8px 14px',
                 fontSize: '13px',
@@ -291,7 +291,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
               disabled={cargando}
               style={{
                 background: PALETA.turquesa,
-                color: 'white',
+                color: PALETA.navy,
                 border: 'none',
                 borderRadius: '12px',
                 padding: '12px 20px',
@@ -311,8 +311,8 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
                 disabled={cargando}
                 style={{
                   background: 'transparent',
-                  color: 'rgba(255,255,255,0.93)',
-                  border: '1px solid rgba(255,255,255,0.35)',
+                  color: PALETA.navy,
+                  border: '1px solid var(--bordeClaro)',
                   borderRadius: '12px',
                   padding: '8px 16px',
                   fontSize: '13px',
@@ -350,7 +350,7 @@ function ResumenDia({ tomas }) {
       alignItems: 'center'
     }}>
       <div>
-        <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.93)', marginBottom: '2px' }}>
+        <div style={{ fontSize: '13px', color: PALETA.navy, marginBottom: '2px' }}>
           Adherencia del día
         </div>
         <div style={{ fontSize: '22px', fontWeight: 'bold', color: pct >= 80 ? PALETA.verdeBrillante : PALETA.amarillo }}>
@@ -358,11 +358,11 @@ function ResumenDia({ tomas }) {
         </div>
       </div>
       <div style={{ textAlign: 'right' }}>
-        <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.93)', marginBottom: '2px' }}>
+        <div style={{ fontSize: '13px', color: PALETA.navy, marginBottom: '2px' }}>
           Tomas
         </div>
-        <div style={{ fontSize: '18px', color: 'white' }}>
-          {tomadas}/{total} <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.93)' }}>completadas</span>
+        <div style={{ fontSize: '18px', color: PALETA.navy }}>
+          {tomadas}/{total} <span style={{ fontSize: '14px', color: PALETA.navy }}>completadas</span>
         </div>
       </div>
     </div>
@@ -408,8 +408,8 @@ const desdeHora24 = (txt) => {
 
 const campoEstilo = {
   width: '100%', padding: '10px', borderRadius: '8px', marginTop: '4px',
-  border: '1px solid rgba(255,255,255,0.35)', background: 'rgba(255,255,255,0.06)',
-  color: 'white', fontFamily: 'inherit', fontSize: '14px', boxSizing: 'border-box'
+  border: '1px solid var(--bordeClaro)', background: PALETA.blanco,
+  color: PALETA.navy, fontFamily: 'inherit', fontSize: '14px', boxSizing: 'border-box'
 };
 
 // Panel de confirmación de «Quitar»: «Sí, quitar» se habilita 5 s después de abrirse.
@@ -428,7 +428,7 @@ function PanelQuitar({ nombre, onConfirmar, onCancelar }) {
 
   const habilitado = segundos === 0;
   const botonPanel = (color) => ({
-    background: color, color: 'white', border: 'none', borderRadius: '8px',
+    background: color, color: PALETA.navy, border: 'none', borderRadius: '8px',
     padding: '8px 14px', fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit'
   });
 
@@ -437,7 +437,7 @@ function PanelQuitar({ nombre, onConfirmar, onCancelar }) {
       <p style={{ fontSize: '13px', margin: '0 0 8px' }}>
         Vas a quitar <strong>{nombre}</strong> de tu lista. Su historial se conserva. ¿Confirmas?
       </p>
-      <p aria-live="polite" style={{ fontSize: '13px', margin: '0 0 8px', color: 'rgba(255,255,255,0.93)' }}>
+      <p aria-live="polite" style={{ fontSize: '13px', margin: '0 0 8px', color: PALETA.navy }}>
         {habilitado ? 'Ya puedes confirmar.' : `Disponible en ${segundos} s`}
       </p>
       <button
@@ -449,7 +449,7 @@ function PanelQuitar({ nombre, onConfirmar, onCancelar }) {
       </button>{' '}
       <button
         onClick={onCancelar}
-        style={{ ...botonPanel('transparent'), border: '1px solid rgba(255,255,255,0.3)' }}
+        style={{ ...botonPanel('transparent'), border: '1px solid var(--bordeClaro)' }}
       >
         Cancelar
       </button>
@@ -538,13 +538,13 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
   };
 
   const boton = (color) => ({
-    background: color, color: 'white', border: 'none', borderRadius: '8px',
+    background: color, color: PALETA.navy, border: 'none', borderRadius: '8px',
     padding: '8px 14px', fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit'
   });
 
   // Tres datos por medicamento: sustancia activa, dosis y horarios
   const formulario = (onGuardar, onCancelar, esNuevo) => (
-    <div style={{ marginTop: '10px', padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.04)' }}>
+    <div style={{ marginTop: '10px', padding: '12px', borderRadius: '10px', background: PALETA.blanco }}>
       <label style={{ display: 'block', fontSize: '13px' }}>Sustancia activa
         <input style={campoEstilo} value={form.principio_activo} placeholder="Ej. Levodopa 250 mg / Carbidopa 25 mg" onChange={e => setForm({ ...form, principio_activo: e.target.value })} />
       </label>
@@ -614,7 +614,7 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
     }}>
       <div style={{
         background: PALETA.azulCard, borderRadius: '16px', padding: '20px', width: '100%',
-        maxWidth: '520px', maxHeight: '90vh', overflowY: 'auto', color: 'white'
+        maxWidth: '520px', maxHeight: '90vh', overflowY: 'auto', color: PALETA.navy
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h3 style={{ margin: 0 }}>Mis medicamentos</h3>
@@ -624,13 +624,13 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
         {mensaje && <p style={{ fontSize: '13px', color: PALETA.verdeMenta, margin: '10px 0 0' }}>{mensaje}</p>}
         {cargando && <p style={{ fontSize: '14px' }}>Cargando...</p>}
         {!cargando && lista.length === 0 && !agregando && (
-          <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.93)' }}>Aún no tienes medicamentos registrados.</p>
+          <p style={{ fontSize: '14px', color: PALETA.navy }}>Aún no tienes medicamentos registrados.</p>
         )}
 
         {lista.map(m => (
-          <div key={m.id} style={{ marginTop: '12px', padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)' }}>
+          <div key={m.id} style={{ marginTop: '12px', padding: '12px', borderRadius: '10px', background: PALETA.blanco }}>
             <div style={{ fontWeight: 600 }}>{m.principio_activo || 'Sin sustancia registrada'}</div>
-            <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.93)' }}>
+            <div style={{ fontSize: '13px', color: PALETA.navy }}>
               {m.dosis} · {(m.horarios || []).map(horaCorta12).join(', ')}
             </div>
 
@@ -780,7 +780,7 @@ export default function MiDiaPage({ token, apiUrl }) {
 
   if (cargando) {
     return (
-      <div style={{ textAlign: 'center', padding: '60px 20px', color: 'rgba(255,255,255,0.93)' }}>
+      <div style={{ textAlign: 'center', padding: '60px 20px', color: PALETA.navy }}>
         Cargando plan de tomas...
       </div>
     );
@@ -798,8 +798,8 @@ export default function MiDiaPage({ token, apiUrl }) {
           textAlign: 'center'
         }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>💊</div>
-          <h3 style={{ color: PALETA.turquesa, margin: '0 0 12px' }}>Aún no hay medicamentos registrados</h3>
-          <p style={{ color: 'rgba(255,255,255,0.93)', fontSize: '14px', lineHeight: '1.6' }}>
+          <h3 style={{ color: PALETA.turquesaTexto, margin: '0 0 12px' }}>Aún no hay medicamentos registrados</h3>
+          <p style={{ color: PALETA.navy, fontSize: '14px', lineHeight: '1.6' }}>
             Agrega tus medicamentos, dosis y horarios para ver tus tomas del día.
           </p>
           <button
@@ -834,21 +834,21 @@ export default function MiDiaPage({ token, apiUrl }) {
   const sustanciasAyuno = Object.keys(ayunoPorSustancia);
 
   return (
-    <div style={{ padding: '16px 16px 32px', maxWidth: '600px', margin: '0 auto', color: 'white' }}>
+    <div style={{ padding: '16px 16px 32px', maxWidth: '600px', margin: '0 auto', color: PALETA.navy }}>
 
       {/* Fecha */}
       <div style={{ marginBottom: '16px' }}>
-        <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.93)', textTransform: 'capitalize' }}>
+        <div style={{ fontSize: '13px', color: PALETA.navy, textTransform: 'capitalize' }}>
           {verAyer ? `Ayer: ${fechaAyer}` : hoy}
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginTop: '2px' }}>
-          <div style={{ fontSize: '20px', fontWeight: '600', color: 'white' }}>
+          <div style={{ fontSize: '20px', fontWeight: '600', color: PALETA.navy }}>
             Mi plan de tomas
           </div>
           <button
             onClick={() => setMenuAbierto(true)}
             style={{
-              background: 'transparent', color: PALETA.turquesa, border: `1px solid ${PALETA.turquesa}`,
+              background: 'transparent', color: PALETA.turquesaTexto, border: `1px solid ${PALETA.turquesa}`,
               borderRadius: '8px', padding: '6px 12px', fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit'
             }}
           >
@@ -863,7 +863,7 @@ export default function MiDiaPage({ token, apiUrl }) {
         style={{
           width: '100%', marginBottom: '16px', padding: '10px 16px', borderRadius: '10px',
           background: verAyer ? 'rgba(42,172,176,0.2)' : 'transparent',
-          color: PALETA.turquesa, border: `1px solid ${PALETA.turquesa}`,
+          color: PALETA.turquesaTexto, border: `1px solid ${PALETA.turquesa}`,
           fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'center'
         }}
       >
@@ -915,7 +915,7 @@ export default function MiDiaPage({ token, apiUrl }) {
         <div style={{
           marginTop: '8px',
           fontSize: '12px',
-          color: 'rgba(255,255,255,0.93)',
+          color: PALETA.navy,
           textAlign: 'center',
           lineHeight: '1.6'
         }}>

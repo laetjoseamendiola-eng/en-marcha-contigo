@@ -51,11 +51,11 @@ function fechaRelativa(desplazamiento) {
 }
 
 const estiloInputPeriodo = {
-  background: 'rgba(255,255,255,0.08)',
+  background: PALETA.blanco,
   border: '1px solid rgba(42,172,176,0.3)',
   borderRadius: '10px',
   padding: '7px 10px',
-  color: 'white',
+  color: PALETA.navy,
   fontFamily: 'inherit',
   fontSize: '13px',
   colorScheme: 'dark',
@@ -96,10 +96,10 @@ function BarraAdherencia({ pct }) {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-        <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.93)' }}>Adherencia al tratamiento</span>
+        <span style={{ fontSize: '13px', color: PALETA.navy }}>Adherencia al tratamiento</span>
         <span style={{ fontSize: '18px', fontWeight: 'bold', color }}>{pct}%</span>
       </div>
-      <div style={{ height: '10px', background: 'rgba(255,255,255,0.08)', borderRadius: '5px', overflow: 'hidden' }}>
+      <div style={{ height: '10px', background: PALETA.blanco, borderRadius: '5px', overflow: 'hidden' }}>
         <div style={{
           height: '100%',
           width: `${pct}%`,
@@ -207,7 +207,7 @@ export default function ReportePage({ token, apiUrl }) {
 
   if (cargando) {
     return (
-      <div style={{ textAlign: 'center', padding: '60px 20px', color: 'rgba(255,255,255,0.93)' }}>
+      <div style={{ textAlign: 'center', padding: '60px 20px', color: PALETA.navy }}>
         Generando reporte...
       </div>
     );
@@ -260,7 +260,7 @@ export default function ReportePage({ token, apiUrl }) {
       `}</style>
 
       <div ref={reporteRef} className="reporte-contenido"
-        style={{ padding: '16px 16px 40px', maxWidth: '700px', margin: '0 auto', color: 'white' }}>
+        style={{ padding: '16px 16px 40px', maxWidth: '700px', margin: '0 auto', color: PALETA.navy }}>
 
         {/* Controles (no imprimir) */}
         <div className="no-print" style={{ display: 'flex', gap: '10px', marginBottom: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -271,11 +271,11 @@ export default function ReportePage({ token, apiUrl }) {
             value={modoPeriodo}
             onChange={e => setModoPeriodo(e.target.value)}
             style={{
-              background: 'rgba(255,255,255,0.08)',
+              background: PALETA.blanco,
               border: '1px solid rgba(42,172,176,0.3)',
               borderRadius: '10px',
               padding: '8px 14px',
-              color: 'white',
+              color: PALETA.navy,
               fontFamily: 'inherit',
               fontSize: '13px',
             }}
@@ -287,7 +287,7 @@ export default function ReportePage({ token, apiUrl }) {
             <>
               <input type="date" value={fechaDesde} max={fechaHasta}
                 onChange={e => setFechaDesde(e.target.value)} style={estiloInputPeriodo} />
-              <span style={{ color: 'white', fontSize: '13px' }}>a</span>
+              <span style={{ color: PALETA.navy, fontSize: '13px' }}>a</span>
               <input type="date" value={fechaHasta} min={fechaDesde}
                 onChange={e => setFechaHasta(e.target.value)} style={estiloInputPeriodo} />
             </>
@@ -296,7 +296,7 @@ export default function ReportePage({ token, apiUrl }) {
             onClick={handleImprimir}
             style={{
               background: PALETA.turquesa,
-              color: 'white',
+              color: PALETA.navy,
               border: 'none',
               borderRadius: '10px',
               padding: '8px 18px',
@@ -311,7 +311,7 @@ export default function ReportePage({ token, apiUrl }) {
         </div>
 
         {/* Casillas de secciones (no imprimir). Lo que no está marcado no sale ni en pantalla ni en impresión. */}
-        <div className="no-print" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '16px', fontSize: '12px', color: 'rgba(255,255,255,0.9)' }}>
+        <div className="no-print" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '16px', fontSize: '12px', color: PALETA.navy }}>
           {SECCIONES_ITEMS.map(([clave, texto]) => (
             <label key={clave} style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
               <input type="checkbox" checked={secciones[clave]} onChange={e => setSecciones(s => ({ ...s, [clave]: e.target.checked }))} />
@@ -342,21 +342,21 @@ export default function ReportePage({ token, apiUrl }) {
                 onError={e => { e.target.style.display = 'none'; }}
               />
             </div>
-            <div className="texto-reporte" style={{ fontSize: '18px', fontWeight: 'bold', color: 'white' }}>
+            <div className="texto-reporte" style={{ fontSize: '18px', fontWeight: 'bold', color: PALETA.navy }}>
               Reporte de Seguimiento Neurológico
             </div>
-            <div className="subtexto-reporte" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.93)', marginTop: '4px' }}>
-              Paciente: <strong style={{ color: 'rgba(255,255,255,0.85)' }}>{paciente.nombre}</strong>
+            <div className="subtexto-reporte" style={{ fontSize: '13px', color: PALETA.navy, marginTop: '4px' }}>
+              Paciente: <strong style={{ color: PALETA.navy }}>{paciente.nombre}</strong>
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)' }}>Período analizado</div>
-            <div className="texto-reporte" style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)', fontWeight: '600', marginTop: '2px' }}>
+            <div className="subtexto-reporte" style={{ fontSize: '12px', color: PALETA.navy }}>Período analizado</div>
+            <div className="texto-reporte" style={{ fontSize: '14px', color: PALETA.navy, fontWeight: '600', marginTop: '2px' }}>
               {new Date(periodo.desde + 'T12:00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })}
               {' – '}
               {new Date(periodo.hasta + 'T12:00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}
             </div>
-            <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginTop: '4px' }}>
+            <div className="subtexto-reporte" style={{ fontSize: '11px', color: PALETA.navy, marginTop: '4px' }}>
               {periodo.dias} {periodo.dias === 1 ? 'día' : 'días'} · {plural(no_motor.dias_registrados, 'día', 'días')} con registro completo
             </div>
           </div>
@@ -364,13 +364,13 @@ export default function ReportePage({ token, apiUrl }) {
 
         {/* SECCIÓN: ADHERENCIA */}
         <div className="tarjeta-reporte" style={{
-          background: 'rgba(255,255,255,0.04)',
+          background: PALETA.blanco,
           border: '1px solid rgba(42,172,176,0.45)',
           borderRadius: '16px',
           padding: '20px',
           marginBottom: '14px',
         }}>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: PALETA.turquesa, marginBottom: '14px' }}>
+          <div style={{ fontSize: '14px', fontWeight: '600', color: PALETA.turquesaTexto, marginBottom: '14px' }}>
             💊 Adherencia al Tratamiento
           </div>
           <BarraAdherencia pct={adherencia.porcentaje} />
@@ -379,18 +379,18 @@ export default function ReportePage({ token, apiUrl }) {
             gap: '10px', marginTop: '14px',
           }}>
             {[
-              { label: 'Tomas programadas', valor: adherencia.total_programadas, color: 'rgba(255,255,255,0.93)' },
+              { label: 'Tomas programadas', valor: adherencia.total_programadas, color: PALETA.navy },
               { label: 'Tomadas', valor: adherencia.tomadas, color: PALETA.verde },
               { label: 'Omitidas', valor: adherencia.omitidas, color: PALETA.rojo },
             ].map(item => (
               <div key={item.label} style={{
-                background: 'rgba(255,255,255,0.03)',
+                background: PALETA.blanco,
                 borderRadius: '10px',
                 padding: '10px',
                 textAlign: 'center',
               }}>
                 <div className="texto-reporte" style={{ fontSize: '22px', fontWeight: 'bold', color: item.color }}>{item.valor}</div>
-                <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginTop: '2px' }}>{item.label}</div>
+                <div className="subtexto-reporte" style={{ fontSize: '11px', color: PALETA.navy, marginTop: '2px' }}>{item.label}</div>
               </div>
             ))}
           </div>
@@ -399,13 +399,13 @@ export default function ReportePage({ token, apiUrl }) {
         {/* SECCIÓN: ESTADO MOTOR */}
         {secciones.estadoMotor && totalHorasRegistradas > 0 && (
           <div className="tarjeta-reporte" style={{
-            background: 'rgba(255,255,255,0.04)',
+            background: PALETA.blanco,
             border: '1px solid rgba(42,172,176,0.45)',
             borderRadius: '16px',
             padding: '20px',
             marginBottom: '14px',
           }}>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: PALETA.turquesa, marginBottom: '14px' }}>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: PALETA.turquesaTexto, marginBottom: '14px' }}>
               🌡️ Estado Motor — Diario de Hauser
             </div>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -424,8 +424,8 @@ export default function ReportePage({ token, apiUrl }) {
                   }}>
                     <div style={{ fontSize: '20px', marginBottom: '4px' }}>{def.emoji}</div>
                     <div className="texto-reporte" style={{ fontSize: '18px', fontWeight: 'bold', color: def.color }}>{h}h</div>
-                    <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)' }}>{def.label} · {pct}%</div>
-                    <div className="subtexto-reporte" style={{ fontSize: '10px', color: 'rgba(255,255,255,0.93)', marginTop: '4px' }}>
+                    <div className="subtexto-reporte" style={{ fontSize: '11px', color: PALETA.navy }}>{def.label} · {pct}%</div>
+                    <div className="subtexto-reporte" style={{ fontSize: '10px', color: PALETA.navy, marginTop: '4px' }}>
                       Exacto: {estado_motor.horas_exactas?.[key] ?? 0} h · Bloques: {estado_motor.horas_por_bloque?.[key] ?? 0} h
                     </div>
                   </div>
@@ -433,7 +433,7 @@ export default function ReportePage({ token, apiUrl }) {
               })}
             </div>
             {estado_motor.episodios_exactos?.total > 0 && (
-              <div style={{ marginTop: '14px', fontSize: '12px', color: 'rgba(255,255,255,0.93)', lineHeight: 1.6 }}>
+              <div style={{ marginTop: '14px', fontSize: '12px', color: PALETA.navy, lineHeight: 1.6 }}>
                 Episodios con hora exacta: {estado_motor.episodios_exactos.total}. Cada duración va desde un episodio hasta el siguiente del mismo día.
                 El último episodio de cada día no tiene cierre conocido, así que no se le calcula duración ({estado_motor.episodios_exactos.sin_cierre} sin cierre).
                 {estado_motor.total_bloques > 0 && <> Los bloques históricos de 30 minutos (sin minutos exactos) se suman solo cuando no se cruzan con un intervalo exacto: {estado_motor.total_bloques} bloques contados.</>}
@@ -443,7 +443,7 @@ export default function ReportePage({ token, apiUrl }) {
             {estado_motor.episodios_exactos?.intervalos?.length > 0 && (
               <div style={{ marginTop: '10px' }}>
                 {estado_motor.episodios_exactos.intervalos.slice(-20).reverse().map((it, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', fontSize: '12px', padding: '5px 0', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', fontSize: '12px', padding: '5px 0', borderTop: '1px solid var(--bordeClaro)' }}>
                     <span>{it.fecha} {it.hora} · {COLOR_ESTADO[it.estado]?.label || it.estado}</span>
                     <span>{it.duracion_min == null ? 'sin cierre' : `${Math.floor(it.duracion_min / 60)} h ${String(it.duracion_min % 60).padStart(2, '0')} min`}</span>
                   </div>
@@ -456,22 +456,22 @@ export default function ReportePage({ token, apiUrl }) {
         {/* SECCIÓN: FRANJAS DEL DÍA */}
         {secciones.franjas && (
           <div className="tarjeta-reporte" style={{
-            background: 'rgba(255,255,255,0.04)',
+            background: PALETA.blanco,
             border: '1px solid rgba(42,172,176,0.45)',
             borderRadius: '16px',
             padding: '20px',
             marginBottom: '14px',
           }}>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: PALETA.turquesa, marginBottom: '6px' }}>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: PALETA.turquesaTexto, marginBottom: '6px' }}>
               🕐 Franjas del día
             </div>
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginBottom: '12px', lineHeight: 1.6 }}>
+            <div style={{ fontSize: '11px', color: PALETA.navy, marginBottom: '12px', lineHeight: 1.6 }}>
               Estado OFF: se cuenta por la hora exacta del episodio. Síntomas reportados: se cuentan por la hora en que se capturaron, no por la hora del síntoma.
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr 1fr', gap: '6px', fontSize: '12px', color: 'rgba(255,255,255,0.85)' }}>
-              <div style={{ fontWeight: 700, color: PALETA.turquesa }}>Franja</div>
-              <div style={{ fontWeight: 700, color: PALETA.turquesa }}>Estado OFF</div>
-              <div style={{ fontWeight: 700, color: PALETA.turquesa }}>Síntomas</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr 1fr', gap: '6px', fontSize: '12px', color: PALETA.navy }}>
+              <div style={{ fontWeight: 700, color: PALETA.turquesaTexto }}>Franja</div>
+              <div style={{ fontWeight: 700, color: PALETA.turquesaTexto }}>Estado OFF</div>
+              <div style={{ fontWeight: 700, color: PALETA.turquesaTexto }}>Síntomas</div>
               {FRANJAS.map(f => (
                 <React.Fragment key={f.key}>
                   <div>{f.label}</div>
@@ -486,16 +486,16 @@ export default function ReportePage({ token, apiUrl }) {
         {/* SECCIÓN: SÍNTOMAS NO MOTORES */}
         {secciones.noMotor && no_motor.dias_registrados > 0 && (
           <div className="tarjeta-reporte" style={{
-            background: 'rgba(255,255,255,0.04)',
+            background: PALETA.blanco,
             border: '1px solid rgba(42,172,176,0.45)',
             borderRadius: '16px',
             padding: '20px',
             marginBottom: '14px',
           }}>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: PALETA.turquesa, marginBottom: '14px' }}>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: PALETA.turquesaTexto, marginBottom: '14px' }}>
               🌿 Síntomas No Motores — Promedio del Período
             </div>
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginBottom: '12px' }}>
+            <div style={{ fontSize: '11px', color: PALETA.navy, marginBottom: '12px' }}>
               Escala 0–4 · 0 = sin problema · 4 = severo · Basado en {plural(no_motor.dias_registrados, 'día', 'días')} con registro
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -508,12 +508,12 @@ export default function ReportePage({ token, apiUrl }) {
                     <span style={{ fontSize: '18px', width: '24px', flexShrink: 0 }}>{def.emoji}</span>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
-                        <span className="texto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)' }}>{def.label}</span>
+                        <span className="texto-reporte" style={{ fontSize: '12px', color: PALETA.navy }}>{def.label}</span>
                         <span style={{ fontSize: '12px', fontWeight: '600', color }}>
                           {v} — {LABEL_PROMEDIO(v)}
                         </span>
                       </div>
-                      <div style={{ height: '6px', background: 'rgba(255,255,255,0.06)', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ height: '6px', background: PALETA.blanco, borderRadius: '3px', overflow: 'hidden' }}>
                         <div style={{
                           height: '100%',
                           width: `${(v / 4) * 100}%`,
@@ -528,12 +528,12 @@ export default function ReportePage({ token, apiUrl }) {
             </div>
             {no_motor.registros?.length > 0 && (
               <div style={{ marginTop: '14px' }}>
-                <div style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.85)', marginBottom: '2px' }}>Registro por fecha</div>
-                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginBottom: '6px' }}>Es un registro diario, por eso no tiene hora.</div>
+                <div style={{ fontSize: '12px', fontWeight: '600', color: PALETA.navy, marginBottom: '2px' }}>Registro por fecha</div>
+                <div style={{ fontSize: '11px', color: PALETA.navy, marginBottom: '6px' }}>Es un registro diario, por eso no tiene hora.</div>
                 {no_motor.registros.slice().sort((a, b) => (a.fecha < b.fecha ? 1 : -1)).map(r => (
-                  <div key={r.id} style={{ fontSize: '12px', padding: '6px 0', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div key={r.id} style={{ fontSize: '12px', padding: '6px 0', borderTop: '1px solid var(--bordeClaro)' }}>
                     <div style={{ fontWeight: 600 }}>{new Date(r.fecha + 'T12:00:00').toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' })}</div>
-                    <div style={{ color: 'rgba(255,255,255,0.8)' }}>
+                    <div style={{ color: PALETA.navy }}>
                       {Object.entries(NO_MOTOR_LABELS).filter(([k]) => r[k] !== null && r[k] !== undefined).map(([k, def]) => `${def.label} ${r[k]}`).join(' · ')}
                     </div>
                   </div>
@@ -546,31 +546,31 @@ export default function ReportePage({ token, apiUrl }) {
         {/* SECCIÓN: SÍNTOMAS MOTORES FRECUENTES */}
         {secciones.sintomas && sintomas_motores.frecuentes.length > 0 && (
           <div className="tarjeta-reporte" style={{
-            background: 'rgba(255,255,255,0.04)',
+            background: PALETA.blanco,
             border: '1px solid rgba(42,172,176,0.45)',
             borderRadius: '16px',
             padding: '20px',
             marginBottom: '14px',
           }}>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: PALETA.turquesa, marginBottom: '14px' }}>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: PALETA.turquesaTexto, marginBottom: '14px' }}>
               ✏️ Síntomas Reportados ({sintomas_motores.total} en total)
             </div>
             <div style={{ display: 'flex', flex: '1', gap: '8px', flexWrap: 'wrap' }}>
               {sintomas_motores.frecuentes.map(s => (
                 <div key={s.tipo} style={{
-                  background: 'rgba(255,255,255,0.06)',
-                  border: '1px solid rgba(255,255,255,0.35)',
+                  background: PALETA.blanco,
+                  border: '1px solid var(--bordeClaro)',
                   borderRadius: '20px',
                   padding: '6px 14px',
                   fontSize: '13px',
-                  color: 'rgba(255,255,255,0.93)',
+                  color: PALETA.navy,
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
                 }}>
                   <span style={{
                     background: PALETA.turquesa,
-                    color: 'white',
+                    color: PALETA.navy,
                     borderRadius: '10px',
                     padding: '1px 7px',
                     fontSize: '11px',
@@ -586,24 +586,24 @@ export default function ReportePage({ token, apiUrl }) {
         {/* SECCIÓN: DOSIS Y HORARIOS VIGENTES EN EL PERÍODO (P62) */}
         <div style={{ display: secciones.dosis ? 'block' : 'none' }}>
         <div className="tarjeta-reporte" style={{
-          background: 'rgba(255,255,255,0.04)',
+          background: PALETA.blanco,
           border: '1px solid rgba(42,172,176,0.45)',
           borderRadius: '16px',
           padding: '20px',
           marginBottom: '14px',
         }}>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: PALETA.turquesa, marginBottom: '10px' }}>
+          <div style={{ fontSize: '14px', fontWeight: '600', color: PALETA.turquesaTexto, marginBottom: '10px' }}>
             💊 Dosis y horarios vigentes ({(reporte.historial_dosis || []).length})
           </div>
           {(reporte.historial_dosis || []).length === 0 && (
-            <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)' }}>
+            <div className="subtexto-reporte" style={{ fontSize: '12px', color: PALETA.navy }}>
               Sin registros de dosis en el período.
             </div>
           )}
           {(reporte.historial_dosis || []).map((h, i) => (
-            <div key={i} className="texto-reporte" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginBottom: '8px' }}>
+            <div key={i} className="texto-reporte" style={{ fontSize: '13px', color: PALETA.navy, marginBottom: '8px' }}>
               <strong>{h.medicamento}</strong>: {h.dosis}, a las {h.horarios.map(horaCorta12).join(' y ')}
-              <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)' }}>
+              <div className="subtexto-reporte" style={{ fontSize: '12px', color: PALETA.navy }}>
                 Desde {new Date(h.desde).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short', timeZone: zonaDelReloj() })}{h.hora_utc ? ' UTC' : ''}
                 {' · '}{h.hasta
                   ? `hasta ${new Date(h.hasta).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short', timeZone: zonaDelReloj() })}${h.hora_utc ? ' UTC' : ''}`
@@ -619,23 +619,23 @@ export default function ReportePage({ token, apiUrl }) {
         {/* SECCIÓN: DOSIS VIGENTE EN CADA TOMA (P62 por toma) */}
         <div style={{ display: secciones.tomas ? 'block' : 'none' }}>
         <div className="tarjeta-reporte" style={{
-          background: 'rgba(255,255,255,0.04)',
+          background: PALETA.blanco,
           border: '1px solid rgba(42,172,176,0.45)',
           borderRadius: '16px',
           padding: '20px',
           marginBottom: '14px',
         }}>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: PALETA.turquesa, marginBottom: '10px' }}>
+          <div style={{ fontSize: '14px', fontWeight: '600', color: PALETA.turquesaTexto, marginBottom: '10px' }}>
             🕒 Tomas y dosis vigente ({(reporte.tomas_dosis || []).length})
           </div>
           {(reporte.tomas_dosis || []).length === 0 && (
-            <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)' }}>
+            <div className="subtexto-reporte" style={{ fontSize: '12px', color: PALETA.navy }}>
               Aún no hay tomas ya cumplidas en el período. Las de hoy aparecen cuando llegue su hora.
             </div>
           )}
           {(reporte.tomas_dosis || []).length > 0 && (
             <>
-              <div className="cabecera-toma" style={{ display: 'grid', gridTemplateColumns: COLUMNAS_TOMA, gap: '8px', fontSize: '11px', fontWeight: '700', color: PALETA.turquesa, padding: '0 10px 4px' }}>
+              <div className="cabecera-toma" style={{ display: 'grid', gridTemplateColumns: COLUMNAS_TOMA, gap: '8px', fontSize: '11px', fontWeight: '700', color: PALETA.turquesaTexto, padding: '0 10px 4px' }}>
                 <div>Medicamento</div>
                 <div>Programada</div>
                 <div>Toma real</div>
@@ -644,7 +644,7 @@ export default function ReportePage({ token, apiUrl }) {
               </div>
               {(reporte.tomas_dosis || []).map((t, i) => (
                 <div key={i} className="fila-toma" style={{ display: 'grid', gridTemplateColumns: COLUMNAS_TOMA, gap: '8px', alignItems: 'start',
-                  fontSize: '12px', color: 'rgba(255,255,255,0.85)', padding: '8px 10px', marginBottom: '6px', borderRadius: '8px',
+                  fontSize: '12px', color: PALETA.navy, padding: '8px 10px', marginBottom: '6px', borderRadius: '8px',
                   ...(t.omitida ? { background: PALETA.rojoAlerta, border: `2px solid ${PALETA.blanco}`, color: PALETA.blanco } : {}) }}>
                   <div>
                     <strong>{t.medicamento}</strong>
@@ -681,22 +681,22 @@ export default function ReportePage({ token, apiUrl }) {
         {/* SECCIÓN: CAMBIOS DE ZONA HORARIA (para interpretar jetlag, dosis de más o de menos) */}
         <div style={{ display: secciones.zona ? 'block' : 'none' }}>
         <div className="tarjeta-reporte" style={{
-          background: 'rgba(255,255,255,0.04)',
+          background: PALETA.blanco,
           border: '1px solid rgba(42,172,176,0.45)',
           borderRadius: '16px',
           padding: '20px',
           marginBottom: '14px',
         }}>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: PALETA.turquesa, marginBottom: '10px' }}>
+          <div style={{ fontSize: '14px', fontWeight: '600', color: PALETA.turquesaTexto, marginBottom: '10px' }}>
             🌍 Cambios de zona horaria ({(reporte.cambios_zona || []).length})
           </div>
           {(reporte.cambios_zona || []).length === 0 && (
-            <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)' }}>
+            <div className="subtexto-reporte" style={{ fontSize: '12px', color: PALETA.navy }}>
               Sin cambios de zona en el período.
             </div>
           )}
           {(reporte.cambios_zona || []).map((c, i) => (
-            <div key={i} className="texto-reporte" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginBottom: '6px' }}>
+            <div key={i} className="texto-reporte" style={{ fontSize: '13px', color: PALETA.navy, marginBottom: '6px' }}>
               {new Date(c.fecha_local).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short', timeZone: zonaDelReloj() })}
               {' · '}{c.zona_anterior || 'sin dato'} → {c.zona_nueva} ({c.offset_nuevo})
               {' · '}{c.tipo === 'manual' ? 'manual' : 'automático (dispositivo)'}
@@ -711,10 +711,10 @@ export default function ReportePage({ token, apiUrl }) {
           textAlign: 'center',
           marginTop: '24px',
           paddingTop: '16px',
-          borderTop: '1px solid rgba(255,255,255,0.06)',
+          borderTop: '1px solid var(--bordeClaro)',
         }}>
-          <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', lineHeight: '1.7' }}>
-            Reporte generado por <strong style={{ color: PALETA.turquesa }}>En Marcha Contigo</strong> · {new Date().toLocaleDateString('es-MX', { timeZone: zonaDelReloj(), day: 'numeric', month: 'long', year: 'numeric' })}<br/>
+          <div className="subtexto-reporte" style={{ fontSize: '11px', color: PALETA.navy, lineHeight: '1.7' }}>
+            Reporte generado por <strong style={{ color: PALETA.turquesaTexto }}>En Marcha Contigo</strong> · {new Date().toLocaleDateString('es-MX', { timeZone: zonaDelReloj(), day: 'numeric', month: 'long', year: 'numeric' })}<br/>
             Este documento es informativo. No diagnostica ni prescribe tratamiento.<br/>
             Los datos fueron registrados directamente por el paciente en la aplicación.<br/>
             El Reporte refleja registros compartidos por el usuario de manera manual, diaria y voluntaria. No son producto de análisis clínicos.
