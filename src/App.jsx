@@ -1,4 +1,3 @@
-import { PALETA } from './paleta.js';
 import { leerPreferencias, aplicarRelojDeCuenta } from './preferenciasCuenta';
 import { instalarControlSesion } from './sesionUnica';
 instalarControlSesion();
@@ -66,7 +65,7 @@ function App() {
     return (
       <div style={{
         minHeight: '100vh',
-        background: `linear-gradient(160deg, ${PALETA.navyOscuro} 0%, ${PALETA.navy} 40%, ${PALETA.turquesa} 100%)`,
+        background: 'linear-gradient(160deg, #0F2640 0%, #1B3A5C 40%, #2AACB0 100%)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
