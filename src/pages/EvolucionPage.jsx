@@ -29,15 +29,15 @@ const TooltipPersonalizado = ({ active, payload, label }) => {
   if (!active || !payload || !payload.length) return null;
   return (
     <div style={{
-      background: '#1B3A5C',
-      border: '1px solid #2AACB0',
+      background: '#2AACB0',
+      border: '2px solid #FFC107',
       borderRadius: '10px',
       padding: '12px 16px',
-      color: 'white',
+      color: '#FFFFFF',
       fontSize: '14px',
       minWidth: '160px'
     }}>
-      <p style={{ margin: '0 0 8px', fontWeight: 'bold', color: '#2AACB0' }}>
+      <p style={{ margin: '0 0 8px', fontWeight: 'bold', color: '#1B3A5C', WebkitTextStroke: '0.5px #FFFFFF' }}>
         {label}
       </p>
       {payload.map((entry, i) => (

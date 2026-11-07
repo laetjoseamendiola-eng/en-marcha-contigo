@@ -9,7 +9,7 @@
 
 .registro-sintomas-container {
   min-height: 100vh;
-  background: linear-gradient(160deg, #0F2640 0%, #1B3A5C 40%, #2AACB0 100%);
+  background: #0F2640;
   padding: 20px;
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
@@ -21,11 +21,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(12px);
+  background: #0F2640;
   padding: 12px 20px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid #0F2640;
 }
 
 .user-info {
@@ -41,26 +40,26 @@
 }
 
 .user-greeting {
-  color: white;
+  color: #FFFFFF;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .btn-logout {
-  background: rgba(255, 255, 255, 0.18);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: transparent;
+  color: #FF6B6B;
+  border: 2px solid #FF6B6B;
   padding: 8px 18px;
   border-radius: 8px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: background 0.2s;
   font-family: inherit;
 }
 
 .btn-logout:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 107, 107, 0.15);
 }
 
 .registro-sintomas-wrapper {

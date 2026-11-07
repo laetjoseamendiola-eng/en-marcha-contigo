@@ -290,7 +290,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
               disabled={cargando}
               style={{
                 background: '#2AACB0',
-                color: 'white',
+                color: '#5DDE83',
                 border: 'none',
                 borderRadius: '12px',
                 padding: '12px 20px',
@@ -310,7 +310,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
                 disabled={cargando}
                 style={{
                   background: 'transparent',
-                  color: 'rgba(255,255,255,0.93)',
+                  color: '#DC2626',
                   border: '1px solid rgba(255,255,255,0.35)',
                   borderRadius: '12px',
                   padding: '8px 16px',
@@ -319,7 +319,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
                   fontFamily: 'inherit'
                 }}
               >
-                Omitir
+                ✕ Omitir
               </button>
             )}
           </div>
@@ -847,7 +847,7 @@ export default function MiDiaPage({ token, apiUrl }) {
           <button
             onClick={() => setMenuAbierto(true)}
             style={{
-              background: 'transparent', color: '#2AACB0', border: '1px solid #2AACB0',
+              background: 'transparent', color: '#FFFFFF', border: '2px solid #FFFFFF', fontWeight: 700,
               borderRadius: '8px', padding: '6px 12px', fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit'
             }}
           >
@@ -862,7 +862,7 @@ export default function MiDiaPage({ token, apiUrl }) {
         style={{
           width: '100%', marginBottom: '16px', padding: '10px 16px', borderRadius: '10px',
           background: verAyer ? 'rgba(42,172,176,0.2)' : 'transparent',
-          color: '#2AACB0', border: '1px solid #2AACB0',
+          color: '#FFFFFF', border: '2px solid #FFFFFF', fontWeight: 700,
           fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'center'
         }}
       >
