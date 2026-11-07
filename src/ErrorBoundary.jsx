@@ -16,7 +16,7 @@ export class ErrorBoundary extends React.Component {
       return (
         <div style={{
           minHeight: '100vh',
-          background: `${PALETA.turquesa}`,
+          background: `${PALETA.fondoTurquesa}`,
           display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center',
           color: PALETA.navy, padding: '32px', textAlign: 'center',
