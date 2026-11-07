@@ -63,5 +63,4 @@ export const PALETA = {
   naranjaTexto: '#B56015',
   azulTexto: '#287CB4',
   fondoTurquesa: '#E3F4F5',
-  turquesaFondo: '#1F8083',
 };
