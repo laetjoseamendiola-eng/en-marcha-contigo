@@ -466,7 +466,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
               style={{
                 width: '100%',
                 background: 'rgba(255,255,255,0.04)',
-                border: '2px solid rgba(255,255,255,0.1)',
+                border: 'none',
                 borderRadius: '10px',
                 padding: '10px 12px',
                 color: 'white',
