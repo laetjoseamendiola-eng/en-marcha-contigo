@@ -15,8 +15,11 @@ from sqlalchemy import text
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-# Clave secreta para JWT
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'en-marcha-contigo-dev-key-change-in-prod')
+# Clave secreta para JWT. Debe venir de la variable de entorno SECRET_KEY (Vercel).
+_clave_secreta = os.environ.get('SECRET_KEY')
+if not _clave_secreta:
+    raise RuntimeError('Falta la variable de entorno SECRET_KEY. Configúrala en Vercel o en tu entorno local.')
+app.config['SECRET_KEY'] = _clave_secreta
 
 # Configuración de base de datos: Neon PostgreSQL en producción, SQLite como fallback local.
 database_url = os.environ.get('DATABASE_URL', 'sqlite:////tmp/app.db')
