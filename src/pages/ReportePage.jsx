@@ -264,7 +264,7 @@ export default function ReportePage({ token, apiUrl }) {
         {/* Controles (no imprimir) */}
         <div className="no-print" style={{ display: 'flex', gap: '10px', marginBottom: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
           <style>{`.selector-periodo option { color: #000; background: #fff; }
-            .selector-periodo option:checked, .selector-periodo option:hover { background: #2AACB0 !important; color: #fff !important; }`}</style>
+            .selector-periodo option:checked, .selector-periodo option:hover { background: #00A7A7 !important; color: #fff !important; }`}</style>
           <select
             className="selector-periodo"
             value={modoPeriodo}
@@ -294,7 +294,7 @@ export default function ReportePage({ token, apiUrl }) {
           <button
             onClick={handleImprimir}
             style={{
-              background: '#2AACB0',
+              background: '#00A7A7',
               color: 'white',
               border: 'none',
               borderRadius: '10px',
@@ -321,7 +321,7 @@ export default function ReportePage({ token, apiUrl }) {
 
         {/* ENCABEZADO CON LOGO */}
         <div className="tarjeta-reporte" style={{
-          background: 'linear-gradient(135deg, rgba(26,58,92,0.9) 0%, rgba(42,172,176,0.15) 100%)',
+          background: 'linear-gradient(135deg, rgba(13,44,77,0.9) 0%, rgba(0, 167, 167,0.15) 100%)',
           border: '2px solid #FFC107',
           borderRadius: '18px',
           padding: '24px',
@@ -333,9 +333,11 @@ export default function ReportePage({ token, apiUrl }) {
           gap: '16px',
         }}>
           <div>
-            <div style={{ display: 'inline-block', background: '#ffffff', borderRadius: '999px', padding: '6px 18px', marginBottom: '12px' }}>
-              <img
-                src="/assets/Logo_En_Marcha_Contigo_Fondo_Transparente.png"
+            <div style={{ display: 'inline-block', background: 'transparent', marginBottom: '12px' }}>
+              <style>{'@media print { .no-print { display: none !important; } } @media screen { .solo-impresion { display: none !important; } }'}</style>
+              <img className="solo-impresion" src="/assets/Logo_En_Marcha_Contigo_Fondo_Transparente.png" alt="En Marcha Contigo" style={{ height: '76px', display: 'block' }} />
+              <img className="no-print"
+                src="/assets/logo_negativo_sombra.png"
                 alt="En Marcha Contigo"
                 style={{ height: '76px', display: 'block' }}
                 onError={e => { e.target.style.display = 'none'; }}
@@ -345,7 +347,7 @@ export default function ReportePage({ token, apiUrl }) {
               Reporte de Seguimiento Neurológico
             </div>
             <div className="subtexto-reporte" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.93)', marginTop: '4px' }}>
-              Paciente: <strong style={{ color: 'rgba(255,255,255,0.85)' }}>{paciente.nombre}</strong>
+              Usuario principal: <strong style={{ color: 'rgba(255,255,255,0.85)' }}>{paciente.nombre}</strong>
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
@@ -369,7 +371,7 @@ export default function ReportePage({ token, apiUrl }) {
           padding: '20px',
           marginBottom: '14px',
         }}>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: '#2AACB0', marginBottom: '14px' }}>
+          <div style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '14px' }}>
             💊 Adherencia al Tratamiento
           </div>
           <BarraAdherencia pct={adherencia.porcentaje} />
@@ -404,7 +406,7 @@ export default function ReportePage({ token, apiUrl }) {
             padding: '20px',
             marginBottom: '14px',
           }}>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#2AACB0', marginBottom: '14px' }}>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '14px' }}>
               🌡️ Estado Motor — Diario de Hauser
             </div>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -461,16 +463,16 @@ export default function ReportePage({ token, apiUrl }) {
             padding: '20px',
             marginBottom: '14px',
           }}>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#2AACB0', marginBottom: '6px' }}>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '6px' }}>
               🕐 Franjas del día
             </div>
             <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginBottom: '12px', lineHeight: 1.6 }}>
               Estado OFF: se cuenta por la hora exacta del episodio. Síntomas reportados: se cuentan por la hora en que se capturaron, no por la hora del síntoma.
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr 1fr', gap: '6px', fontSize: '12px', color: 'rgba(255,255,255,0.85)' }}>
-              <div style={{ fontWeight: 700, color: '#2AACB0' }}>Franja</div>
-              <div style={{ fontWeight: 700, color: '#2AACB0' }}>Estado OFF</div>
-              <div style={{ fontWeight: 700, color: '#2AACB0' }}>Síntomas</div>
+              <div style={{ fontWeight: 700, color: '#00A7A7' }}>Franja</div>
+              <div style={{ fontWeight: 700, color: '#00A7A7' }}>Estado OFF</div>
+              <div style={{ fontWeight: 700, color: '#00A7A7' }}>Síntomas</div>
               {FRANJAS.map(f => (
                 <React.Fragment key={f.key}>
                   <div>{f.label}</div>
@@ -491,7 +493,7 @@ export default function ReportePage({ token, apiUrl }) {
             padding: '20px',
             marginBottom: '14px',
           }}>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#2AACB0', marginBottom: '14px' }}>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '14px' }}>
               🌿 Síntomas No Motores — Promedio del Período
             </div>
             <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginBottom: '12px' }}>
@@ -551,7 +553,7 @@ export default function ReportePage({ token, apiUrl }) {
             padding: '20px',
             marginBottom: '14px',
           }}>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#2AACB0', marginBottom: '14px' }}>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '14px' }}>
               ✏️ Síntomas Reportados ({sintomas_motores.total} en total)
             </div>
             <div style={{ display: 'flex', flex: '1', gap: '8px', flexWrap: 'wrap' }}>
@@ -568,7 +570,7 @@ export default function ReportePage({ token, apiUrl }) {
                   gap: '6px',
                 }}>
                   <span style={{
-                    background: '#2AACB0',
+                    background: '#00A7A7',
                     color: 'white',
                     borderRadius: '10px',
                     padding: '1px 7px',
@@ -591,7 +593,7 @@ export default function ReportePage({ token, apiUrl }) {
           padding: '20px',
           marginBottom: '14px',
         }}>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: '#2AACB0', marginBottom: '10px' }}>
+          <div style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '10px' }}>
             💊 Dosis y horarios vigentes ({(reporte.historial_dosis || []).length})
           </div>
           {(reporte.historial_dosis || []).length === 0 && (
@@ -624,7 +626,7 @@ export default function ReportePage({ token, apiUrl }) {
           padding: '20px',
           marginBottom: '14px',
         }}>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: '#2AACB0', marginBottom: '10px' }}>
+          <div style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '10px' }}>
             🕒 Tomas y dosis vigente ({(reporte.tomas_dosis || []).length})
           </div>
           {(reporte.tomas_dosis || []).length === 0 && (
@@ -634,7 +636,7 @@ export default function ReportePage({ token, apiUrl }) {
           )}
           {(reporte.tomas_dosis || []).length > 0 && (
             <>
-              <div className="cabecera-toma" style={{ display: 'grid', gridTemplateColumns: COLUMNAS_TOMA, gap: '8px', fontSize: '11px', fontWeight: '700', color: '#2AACB0', padding: '0 10px 4px' }}>
+              <div className="cabecera-toma" style={{ display: 'grid', gridTemplateColumns: COLUMNAS_TOMA, gap: '8px', fontSize: '11px', fontWeight: '700', color: '#00A7A7', padding: '0 10px 4px' }}>
                 <div>Medicamento</div>
                 <div>Programada</div>
                 <div>Toma real</div>
@@ -686,7 +688,7 @@ export default function ReportePage({ token, apiUrl }) {
           padding: '20px',
           marginBottom: '14px',
         }}>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: '#2AACB0', marginBottom: '10px' }}>
+          <div style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '10px' }}>
             🌍 Cambios de zona horaria ({(reporte.cambios_zona || []).length})
           </div>
           {(reporte.cambios_zona || []).length === 0 && (
@@ -713,9 +715,9 @@ export default function ReportePage({ token, apiUrl }) {
           borderTop: '1px solid rgba(255,255,255,0.06)',
         }}>
           <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', lineHeight: '1.7' }}>
-            Reporte generado por <strong style={{ color: '#2AACB0' }}>En Marcha Contigo</strong> · {new Date().toLocaleDateString('es-MX', { timeZone: zonaDelReloj(), day: 'numeric', month: 'long', year: 'numeric' })}<br/>
-            Este documento es informativo. No diagnostica ni prescribe tratamiento.<br/>
-            Los datos fueron registrados directamente por el paciente en la aplicación.<br/>
+            Reporte generado por <strong style={{ color: '#00A7A7' }}>En Marcha Contigo</strong> · {new Date().toLocaleDateString('es-MX', { timeZone: zonaDelReloj(), day: 'numeric', month: 'long', year: 'numeric' })}<br/>
+            Este documento es informativo. La app acompaña, registra e informa. No diagnostica, no indica ni modifica tratamientos o terapias y no sustituye a ningún integrante de la Red de Apoyo.<br/>
+            Los datos fueron registrados directamente por el usuario principal en la aplicación.<br/>
             El Reporte refleja registros compartidos por el usuario de manera manual, diaria y voluntaria. No son producto de análisis clínicos.
           </div>
         </div>

@@ -45,7 +45,7 @@ const BarraHora = () => {
       fontSize: '0.85em',
       color: '#ffffff',
       background: 'rgba(0,0,0,0.25)',
-      borderBottom: '1px solid rgba(42,172,176,0.2)',
+      borderBottom: '1px solid rgba(0, 167, 167,0.2)',
       textAlign: 'center',
       flexWrap: 'wrap',
     }}>

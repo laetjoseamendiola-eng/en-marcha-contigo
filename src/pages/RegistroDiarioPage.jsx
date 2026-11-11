@@ -177,7 +177,7 @@ function TarjetaPregunta({ pregunta, valor, onChange }) {
                 alignItems: 'center',
                 gap: '12px',
                 background: seleccionada ? COLOR_VALOR[op.valor] + '22' : 'rgba(255,255,255,0.02)',
-                border: `2px solid ${seleccionada ? COLOR_VALOR[op.valor] : '#2AACB0'}`,
+                border: `2px solid ${seleccionada ? COLOR_VALOR[op.valor] : '#00A7A7'}`,
                 borderRadius: '10px',
                 padding: '10px 14px',
                 cursor: 'pointer',
@@ -352,8 +352,8 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
   const estiloBtn = (activo) => ({
     padding: '8px 18px',
     borderRadius: '20px',
-    border: `1px solid ${activo ? '#2AACB0' : 'rgba(255,255,255,0.15)'}`,
-    background: activo ? '#2AACB0' : 'transparent',
+    border: `1px solid ${activo ? '#00A7A7' : 'rgba(255,255,255,0.15)'}`,
+    background: activo ? '#00A7A7' : 'transparent',
     color: 'white',
     fontSize: '13px',
     fontWeight: activo ? '600' : '400',
@@ -402,7 +402,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
           {/* Mini resumen si ya hay registro */}
           {registroExistente && (
             <div style={{
-              background: 'rgba(42,172,176,0.08)',
+              background: 'rgba(0, 167, 167,0.08)',
               border: '2px solid #FFC107',
               borderRadius: '12px',
               padding: '12px 16px',
@@ -485,7 +485,7 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
             disabled={guardando}
             style={{
               width: '100%',
-              background: guardando ? 'rgba(42,172,176,0.5)' : '#2AACB0',
+              background: guardando ? 'rgba(0, 167, 167,0.5)' : '#00A7A7',
               color: 'white',
               border: 'none',
               borderRadius: '14px',

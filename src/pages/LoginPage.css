@@ -1,15 +1,15 @@
 /* =============================================
    En Marcha Contigo — Login & Registro
    Paleta institucional:
-     Navy primario:  #1B3A5C
-     Teal primario:  #2AACB0
-     Navy oscuro:    #0F2640
-     Teal claro:     #35C4C8
+     Navy primario:  #0D2C4D
+     Teal primario:  #00A7A7
+     Navy oscuro:    #0D2C4D
+     Teal claro:     #5EC5C4
    ============================================= */
 
 .login-container {
   min-height: 100vh;
-  background: #0F2640;
+  background: #0D2C4D;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -24,7 +24,7 @@
   width: 100%;
   max-width: 440px;
   box-shadow:
-    0 24px 64px rgba(15, 38, 64, 0.35),
+    0 24px 64px rgba(13, 44, 77, 0.35),
     0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
@@ -42,7 +42,7 @@
 }
 
 .login-header h1 {
-  color: #1B3A5C;
+  color: #0D2C4D;
   font-size: 26px;
   font-weight: 700;
   margin: 0 0 6px 0;
@@ -80,7 +80,7 @@
 }
 
 .login-tabs .tab.activo {
-  background: linear-gradient(135deg, #1B3A5C 0%, #2AACB0 100%);
+  background: linear-gradient(135deg, #0D2C4D 0%, #00A7A7 100%);
   color: white;
   cursor: default;
 }
@@ -115,7 +115,7 @@
 }
 
 .login-form-group label {
-  color: #1B3A5C;
+  color: #0D2C4D;
   font-weight: 600;
   font-size: 14px;
 }
@@ -126,15 +126,15 @@
   border-radius: 10px;
   font-size: 15px;
   font-family: inherit;
-  color: #1B3A5C;
+  color: #0D2C4D;
   transition: border-color 0.25s, box-shadow 0.25s;
   background: #fafbfc;
 }
 
 .login-form-group input:focus {
   outline: none;
-  border-color: #2AACB0;
-  box-shadow: 0 0 0 3px rgba(42, 172, 176, 0.15);
+  border-color: #00A7A7;
+  box-shadow: 0 0 0 3px rgba(0, 167, 167, 0.15);
   background: #fff;
 }
 
@@ -144,7 +144,7 @@
 
 /* ---- Botón principal ---- */
 .login-btn {
-  background: linear-gradient(135deg, #1B3A5C 0%, #2AACB0 100%);
+  background: linear-gradient(135deg, #0D2C4D 0%, #00A7A7 100%);
   color: white;
   border: none;
   padding: 14px 20px;
@@ -160,7 +160,7 @@
 
 .login-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(27, 58, 92, 0.35);
+  box-shadow: 0 8px 24px rgba(13, 44, 77, 0.35);
 }
 
 .login-btn:active:not(:disabled) {
@@ -187,7 +187,7 @@
 .link-btn {
   background: none;
   border: none;
-  color: #2AACB0;
+  color: #00A7A7;
   font-weight: 600;
   cursor: pointer;
   font-size: 14px;
@@ -198,7 +198,7 @@
 }
 
 .link-btn:hover {
-  color: #1B3A5C;
+  color: #0D2C4D;
 }
 
 /* ---- Responsive ---- */
@@ -239,10 +239,10 @@
   position: absolute;
   right: 8px;
   padding: 6px 10px;
-  border: 1.5px solid #2AACB0;
+  border: 1.5px solid #00A7A7;
   border-radius: 8px;
   background: #fff;
-  color: #1B3A5C;
+  color: #0D2C4D;
   font-size: 13px;
   font-weight: 600;
   font-family: inherit;
@@ -250,7 +250,7 @@
 }
 
 .login-toggle-pass:focus-visible {
-  outline: 3px solid #2AACB0;
+  outline: 3px solid #00A7A7;
   outline-offset: 2px;
 }
 
@@ -261,18 +261,18 @@
   border-radius: 10px;
   font-size: 15px;
   font-family: inherit;
-  color: #1B3A5C;
+  color: #0D2C4D;
   background: #fff;
 }
 
 .login-select:focus {
   outline: none;
-  border-color: #2AACB0;
-  box-shadow: 0 0 0 3px rgba(42, 172, 176, 0.15);
+  border-color: #00A7A7;
+  box-shadow: 0 0 0 3px rgba(0, 167, 167, 0.15);
 }
 
 .login-texto {
-  color: #1B3A5C;
+  color: #0D2C4D;
   font-size: 15px;
   margin: 8px 0 4px;
 }
@@ -280,7 +280,7 @@
 .login-ok {
   background: #e6f6f1;
   color: #0F5132;
-  border: 1.5px solid #2AACB0;
+  border: 1.5px solid #00A7A7;
   border-radius: 10px;
   padding: 10px 14px;
   font-size: 14px;

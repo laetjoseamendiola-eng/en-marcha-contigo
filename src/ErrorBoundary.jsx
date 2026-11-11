@@ -15,7 +15,7 @@ export class ErrorBoundary extends React.Component {
       return (
         <div style={{
           minHeight: '100vh',
-          background: '#0F2640',
+          background: '#0D2C4D',
           display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center',
           color: 'white', padding: '32px', textAlign: 'center',
@@ -32,7 +32,7 @@ export class ErrorBoundary extends React.Component {
           </pre>
           <button onClick={() => window.location.reload()} style={{
             marginTop: '20px', padding: '12px 28px',
-            background: '#2AACB0', border: 'none', borderRadius: '24px',
+            background: '#00A7A7', border: 'none', borderRadius: '24px',
             color: 'white', fontSize: '15px', cursor: 'pointer'
           }}>
             Reintentar

@@ -276,9 +276,9 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
   const estiloPestana = (activa) => ({
     padding: '10px 20px',
     border: 'none',
-    borderBottom: activa ? '3px solid #2AACB0' : '3px solid transparent',
+    borderBottom: activa ? '3px solid #00A7A7' : '3px solid transparent',
     background: 'transparent',
-    color: activa ? '#2AACB0' : 'rgba(255,255,255,0.75)',
+    color: activa ? '#00A7A7' : 'rgba(255,255,255,0.75)',
     fontSize: '15px',
     fontWeight: activa ? '600' : '400',
     cursor: 'pointer',
@@ -293,10 +293,10 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
       <div className="user-bar">
         <div className="user-info">
           <img
-            src="/assets/Logo_En_Marcha_Contigo_Fondo_Transparente.png"
+            src="/assets/logo_negativo_sombra.png"
             alt="En Marcha Contigo"
             className="user-bar-logo"
-            style={{ background: '#ffffff', borderRadius: '10px', padding: '4px 14px', boxSizing: 'content-box' }}
+            style={{ background: 'transparent' }}
           />
           <span className="user-greeting">Hola, {usuario.nombre}</span>
         </div>
@@ -310,7 +310,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
 
       {/* Recordatorio de síntomas abiertos de días anteriores */}
       {sintomasAbiertos.length > 0 && (
-        <div style={{ margin: '12px 16px', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(42,172,176,0.4)' }}>
+        <div style={{ margin: '12px 16px', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(0, 167, 167,0.4)' }}>
           <p style={{ margin: '0 0 8px 0' }}>
             Tienes {sintomasAbiertos.length} síntoma(s) de días anteriores marcados como "Todavía presente". ¿Cuánto duró?
           </p>
@@ -334,7 +334,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
       {/* Navegación por pestañas */}
       <div style={{
         display: 'flex',
-        borderBottom: '1px solid rgba(42,172,176,0.2)',
+        borderBottom: '1px solid rgba(0, 167, 167,0.2)',
         padding: '0 16px',
         overflowX: 'auto',
         background: 'rgba(0,0,0,0.15)',
@@ -472,7 +472,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
                   onClick={() => setMenuTipoAbierto(!menuTipoAbierto)}
                   style={{
                     width: '100%', textAlign: 'left', padding: '12px 14px',
-                    background: '#0F2640', color: '#FFFFFF',
+                    background: '#0D2C4D', color: '#FFFFFF',
                     border: '2px solid #FFFFFF', borderRadius: '8px',
                     fontSize: '16px', fontFamily: 'inherit', cursor: 'pointer'
                   }}
@@ -494,7 +494,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
                     style={{
                       position: 'absolute', zIndex: 20, left: 0, right: 0, top: '100%',
                       margin: '4px 0 0', padding: 0, listStyle: 'none',
-                      background: '#0F2640', border: '2px solid #FFFFFF', borderRadius: '8px',
+                      background: '#0D2C4D', border: '2px solid #FFFFFF', borderRadius: '8px',
                       maxHeight: '60vh', overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.25)'
                     }}
                   >
@@ -508,7 +508,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
                           }}
                           style={{
                             width: '100%', textAlign: 'left', padding: '14px',
-                            background: formData.tipo === t.nombre ? '#2AACB0' : 'transparent',
+                            background: formData.tipo === t.nombre ? '#00A7A7' : 'transparent',
                             color: '#FFFFFF', border: 'none', borderBottom: '1px solid #FFFFFF',
                             fontSize: '16px', fontFamily: 'inherit', cursor: 'pointer', lineHeight: 1.35
                           }}

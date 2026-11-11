@@ -281,8 +281,8 @@ export default function FluctuacionesPage({ token, apiUrl }) {
 
   const estiloBtn = (activo) => ({
     padding: '8px 16px', borderRadius: '20px',
-    border: `1px solid ${activo ? '#2AACB0' : 'rgba(255,255,255,0.15)'}`,
-    background: activo ? '#2AACB0' : 'transparent', color: 'white',
+    border: `1px solid ${activo ? '#00A7A7' : 'rgba(255,255,255,0.15)'}`,
+    background: activo ? '#00A7A7' : 'transparent', color: 'white',
     fontSize: '13px', fontWeight: activo ? '600' : '400', cursor: 'pointer',
     fontFamily: 'inherit', transition: 'all 0.2s'
   });
@@ -315,7 +315,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
         {/* Formulario: hora anterior o corrección */}
         {formulario && (
           <div style={estiloTarjeta}>
-            <h3 style={{ margin: '0 0 12px', fontSize: '15px', color: '#2AACB0' }}>
+            <h3 style={{ margin: '0 0 12px', fontSize: '15px', color: '#00A7A7' }}>
               {formulario.modo === 'alta' ? '¿A qué hora ocurrió?' : 'Corregir episodio'}
             </h3>
             <label style={{ display: 'block', fontSize: '12px', color: '#FFFFFF', marginBottom: '6px' }}>
@@ -346,7 +346,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button onClick={guardarFormulario} disabled={enviando}
-                style={{ ...estiloBtnPequeno, flex: 1, background: '#2AACB0', fontWeight: 600 }}>
+                style={{ ...estiloBtnPequeno, flex: 1, background: '#00A7A7', fontWeight: 600 }}>
                 Guardar
               </button>
               <button onClick={() => setFormulario(null)} disabled={enviando}
@@ -453,8 +453,8 @@ export default function FluctuacionesPage({ token, apiUrl }) {
             {dias.map(d => (
               <button key={d.fecha} onClick={() => setDiaSeleccionado(d.fecha)}
                 style={{ ...estiloBtnPequeno, whiteSpace: 'nowrap', flexShrink: 0,
-                  background: d.fecha === dia ? '#2AACB0' : 'transparent',
-                  borderColor: d.fecha === dia ? '#2AACB0' : 'rgba(255,255,255,0.25)',
+                  background: d.fecha === dia ? '#00A7A7' : 'transparent',
+                  borderColor: d.fecha === dia ? '#00A7A7' : 'rgba(255,255,255,0.25)',
                   fontWeight: d.fecha === dia ? 600 : 400 }}>
                 {d.etiqueta}
               </button>
@@ -462,7 +462,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
           </div>
 
           <div style={estiloTarjeta}>
-            <h3 style={{ margin: '0 0 16px', fontSize: '15px', color: '#2AACB0' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: '15px', color: '#00A7A7' }}>
               {dias.find(d => d.fecha === dia)?.etiqueta} — {new Date(`${dia}T12:00:00Z`).toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })}
             </h3>
             {cargando ? (
@@ -473,7 +473,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
           </div>
 
           <div style={estiloTarjeta}>
-            <h3 style={{ margin: '0 0 8px', fontSize: '15px', color: '#2AACB0' }}>Periodos del día</h3>
+            <h3 style={{ margin: '0 0 8px', fontSize: '15px', color: '#00A7A7' }}>Periodos del día</h3>
             {!cargando && periodos.length === 0 && (
               <div style={{ textAlign: 'center', padding: '12px', color: '#FFFFFF', fontSize: '14px' }}>
                 Sin periodos registrados este día.
@@ -537,7 +537,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
                       )}
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <button onClick={guardarAjusteUsuario} disabled={enviando}
-                          style={{ ...estiloBtnPequeno, flex: 1, background: '#2AACB0', fontWeight: 600 }}>
+                          style={{ ...estiloBtnPequeno, flex: 1, background: '#00A7A7', fontWeight: 600 }}>
                           Guardar ajuste
                         </button>
                         <button onClick={() => setDuracionEdit(null)} disabled={enviando}
@@ -559,7 +559,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
 
           <div style={estiloTarjeta}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <h3 style={{ margin: 0, fontSize: '15px', color: '#2AACB0' }}>Registros del día</h3>
+              <h3 style={{ margin: 0, fontSize: '15px', color: '#00A7A7' }}>Registros del día</h3>
               <button onClick={abrirAlta} disabled={enviando} style={estiloBtnPequeno}>+ Registrar</button>
             </div>
             {listaDia.length === 0 && (
@@ -610,7 +610,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
 
           {/* Trazabilidad: corregidos y eliminados, nunca como vigentes */}
           <div style={estiloTarjeta}>
-            <h3 style={{ margin: '0 0 6px', fontSize: '15px', color: '#2AACB0' }}>Cambios de los últimos 7 días</h3>
+            <h3 style={{ margin: '0 0 6px', fontSize: '15px', color: '#00A7A7' }}>Cambios de los últimos 7 días</h3>
             <div style={{ fontSize: '12px', color: '#FFFFFF', marginBottom: '10px' }}>
               Episodios corregidos o eliminados. No cuentan en la gráfica ni en el reporte.
             </div>

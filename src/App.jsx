@@ -65,7 +65,7 @@ function App() {
     return (
       <div style={{
         minHeight: '100vh',
-        background: '#0F2640',
+        background: '#0D2C4D',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',

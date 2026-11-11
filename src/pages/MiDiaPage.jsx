@@ -139,7 +139,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
   const colorBorde = {
     tomada: 'rgba(40,167,69,0.5)',
     omitida: 'rgba(255,226,89,0.85)',
-    pendiente: 'rgba(42,172,176,0.5)',
+    pendiente: 'rgba(0, 167, 167,0.5)',
     futura: 'rgba(255,255,255,0.1)',
     sin_registro: 'rgba(255,255,255,0.25)'
   }[estado];
@@ -147,7 +147,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
   const colorFondo = {
     tomada: 'rgba(40,167,69,0.08)',
     omitida: 'rgba(255,226,89,0.12)',
-    pendiente: 'rgba(42,172,176,0.08)',
+    pendiente: 'rgba(0, 167, 167,0.08)',
     futura: 'rgba(255,255,255,0.03)',
     sin_registro: 'rgba(255,255,255,0.04)'
   }[estado];
@@ -218,7 +218,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
               </div>
               <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
                 <button disabled={cargando} onClick={() => { setPanelHora(false); onTomar(idsPendientes, aHora24(hr)); }}
-                  style={{ background: '#2AACB0', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 14px', fontFamily: 'inherit', cursor: 'pointer' }}>
+                  style={{ background: '#00A7A7', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 14px', fontFamily: 'inherit', cursor: 'pointer' }}>
                   Guardar toma
                 </button>
                 <button onClick={() => setPanelHora(false)}
@@ -289,8 +289,8 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
               }}
               disabled={cargando}
               style={{
-                background: '#2AACB0',
-                color: '#5DDE83',
+                background: '#00A7A7',
+                color: '#FFFFFF',
                 border: 'none',
                 borderRadius: '12px',
                 padding: '12px 20px',
@@ -340,7 +340,7 @@ function ResumenDia({ tomas }) {
 
   return (
     <div style={{
-      background: 'rgba(42,172,176,0.08)',
+      background: 'rgba(0, 167, 167,0.08)',
       border: '2px solid #FFC107',
       borderRadius: '12px',
       padding: '14px 18px',
@@ -392,7 +392,7 @@ const HORAS_12 = Array.from({ length: 12 }, (_, i) => String(i + 1));
 const MINUTOS = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
 const horarioVacio = () => ({ h: '8', m: '00', ap: 'AM' });
 // Opciones con fondo oscuro para que se lean sobre el panel.
-const opcionEstilo = { background: '#14304f', color: 'white' };
+const opcionEstilo = { background: '#223746', color: 'white' };
 
 // Pasa de 12 horas a "HH:MM" (24 horas), que es lo que guarda el servidor.
 const aHora24 = ({ h, m, ap }) => {
@@ -578,7 +578,7 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
             )}
           </div>
         ))}
-        <button type="button" style={{ ...boton('transparent'), marginTop: '8px', border: '1px solid #2AACB0' }}
+        <button type="button" style={{ ...boton('transparent'), marginTop: '8px', border: '1px solid #00A7A7' }}
           onClick={() => setForm({ ...form, horarios: [...form.horarios, horarioVacio()] })}>+ Agregar otro horario</button>
       </fieldset>
 
@@ -601,7 +601,7 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
         </div>
       )}
       <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-        <button style={boton('#2AACB0')} onClick={onGuardar}>Guardar</button>
+        <button style={boton('#00A7A7')} onClick={onGuardar}>Guardar</button>
         <button style={boton('transparent')} onClick={onCancelar}>Cancelar</button>
       </div>
     </div>
@@ -613,7 +613,7 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px'
     }}>
       <div style={{
-        background: '#14304f', borderRadius: '16px', padding: '20px', width: '100%',
+        background: '#223746', borderRadius: '16px', padding: '20px', width: '100%',
         maxWidth: '520px', maxHeight: '90vh', overflowY: 'auto', color: 'white'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -647,7 +647,7 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
               />
             ) : (
               <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
-                <button style={boton('#2AACB0')} onClick={() => {
+                <button style={boton('#00A7A7')} onClick={() => {
                   setEditando(m.id);
                   const sep = m.separacion_comida_min || 0;
                   setForm({
@@ -679,7 +679,7 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
             onClick={() => { setAgregando(true); setForm(vacio); setMensaje(''); }}
             style={{
               width: '48px', height: '48px', borderRadius: '50%', marginTop: '16px',
-              background: '#2AACB0', color: 'white', border: 'none', fontSize: '26px',
+              background: '#00A7A7', color: 'white', border: 'none', fontSize: '26px',
               lineHeight: '48px', cursor: 'pointer', display: 'block', marginLeft: 'auto', marginRight: 'auto', padding: 0
             }}
           >
@@ -791,21 +791,21 @@ export default function MiDiaPage({ token, apiUrl }) {
     return (
       <div style={{ padding: '24px 16px', maxWidth: '600px', margin: '0 auto' }}>
         <div style={{
-          background: 'rgba(42,172,176,0.08)',
+          background: 'rgba(0, 167, 167,0.08)',
           border: '2px solid #FFC107',
           borderRadius: '16px',
           padding: '32px 24px',
           textAlign: 'center'
         }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>💊</div>
-          <h3 style={{ color: '#2AACB0', margin: '0 0 12px' }}>Aún No Hay Medicamentos Registrados</h3>
+          <h3 style={{ color: '#00A7A7', margin: '0 0 12px' }}>Aún No Hay Medicamentos Registrados</h3>
           <p style={{ color: 'rgba(255,255,255,0.93)', fontSize: '14px', lineHeight: '1.6' }}>
             Agrega tus medicamentos, dosis y horarios para ver tus tomas del día.
           </p>
           <button
             onClick={() => setMenuAbierto(true)}
             style={{
-              background: '#2AACB0', color: 'white', border: 'none', borderRadius: '12px',
+              background: '#00A7A7', color: 'white', border: 'none', borderRadius: '12px',
               padding: '12px 24px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit'
             }}
           >
@@ -862,7 +862,7 @@ export default function MiDiaPage({ token, apiUrl }) {
         onClick={() => setVerAyer(v => !v)}
         style={{
           width: '100%', marginBottom: '16px', padding: '10px 16px', borderRadius: '10px',
-          background: verAyer ? 'rgba(42,172,176,0.2)' : 'transparent',
+          background: verAyer ? 'rgba(0, 167, 167,0.2)' : 'transparent',
           color: '#FFFFFF', border: '2px solid #FFFFFF', fontWeight: 700,
           fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'center'
         }}

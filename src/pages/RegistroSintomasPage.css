@@ -1,15 +1,15 @@
 /* =============================================
    En Marcha Contigo — Registro de Síntomas
    Paleta institucional:
-     Navy primario:  #1B3A5C
-     Teal primario:  #2AACB0
-     Navy oscuro:    #0F2640
-     Teal claro:     #35C4C8
+     Navy primario:  #0D2C4D
+     Teal primario:  #00A7A7
+     Navy oscuro:    #0D2C4D
+     Teal claro:     #5EC5C4
    ============================================= */
 
 .registro-sintomas-container {
   min-height: 100vh;
-  background: #0F2640;
+  background: #0D2C4D;
   padding: 20px;
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
@@ -21,10 +21,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #0F2640;
+  background: #0D2C4D;
   padding: 12px 20px;
   border-radius: 12px;
-  border: 2px solid #0F2640;
+  border: 2px solid #0D2C4D;
 }
 
 .user-info {
@@ -73,11 +73,11 @@
 
 /* ---- Formulario ---- */
 .registro-form-section {
-  background: rgba(42,172,176,0.08);
+  background: rgba(0, 167, 167,0.08);
   border: 2px solid #FFC107;
   border-radius: 16px;
   padding: 32px;
-  box-shadow: 0 12px 40px rgba(15, 38, 64, 0.25);
+  box-shadow: 0 12px 40px rgba(13, 44, 77, 0.25);
 }
 
 .registro-form-section h1 {
@@ -143,7 +143,7 @@
   font-size: 14px;
   font-family: inherit;
   color: #FFFFFF;
-  background: #0F2640;
+  background: #0D2C4D;
   transition: border-color 0.25s, box-shadow 0.25s;
 }
 
@@ -151,9 +151,9 @@
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #2AACB0;
-  box-shadow: 0 0 0 3px rgba(42, 172, 176, 0.12);
-  background: #0F2640;
+  border-color: #00A7A7;
+  box-shadow: 0 0 0 3px rgba(0, 167, 167, 0.12);
+  background: #0D2C4D;
 }
 
 .form-group input::placeholder,
@@ -198,9 +198,9 @@
   height: 24px;
   border-radius: 50%;
   background: white;
-  border: 3px solid #1B3A5C;
+  border: 3px solid #0D2C4D;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(15, 38, 64, 0.25);
+  box-shadow: 0 2px 6px rgba(13, 44, 77, 0.25);
 }
 
 .intensidad-slider::-moz-range-thumb {
@@ -208,9 +208,9 @@
   height: 24px;
   border-radius: 50%;
   background: white;
-  border: 3px solid #1B3A5C;
+  border: 3px solid #0D2C4D;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(15, 38, 64, 0.25);
+  box-shadow: 0 2px 6px rgba(13, 44, 77, 0.25);
 }
 
 .intensidad-labels {
@@ -223,7 +223,7 @@
 
 /* ---- Botón submit ---- */
 .btn-submit {
-  background: linear-gradient(135deg, #1B3A5C 0%, #2AACB0 100%);
+  background: linear-gradient(135deg, #0D2C4D 0%, #00A7A7 100%);
   color: white;
   border: none;
   padding: 13px 20px;
@@ -239,7 +239,7 @@
 
 .btn-submit:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(27, 58, 92, 0.35);
+  box-shadow: 0 8px 24px rgba(13, 44, 77, 0.35);
 }
 
 .btn-submit:active:not(:disabled) {
@@ -253,11 +253,11 @@
 
 /* ---- Estadísticas ---- */
 .estadisticas-section {
-  background: rgba(42,172,176,0.08);
+  background: rgba(0, 167, 167,0.08);
   border: 2px solid #FFC107;
   border-radius: 16px;
   padding: 32px;
-  box-shadow: 0 12px 40px rgba(15, 38, 64, 0.25);
+  box-shadow: 0 12px 40px rgba(13, 44, 77, 0.25);
   height: fit-content;
 }
 
@@ -275,12 +275,12 @@
 }
 
 .stat-card {
-  background: linear-gradient(135deg, #1B3A5C 0%, #2AACB0 100%);
+  background: linear-gradient(135deg, #0D2C4D 0%, #00A7A7 100%);
   color: white;
   padding: 20px;
   border-radius: 12px;
   text-align: center;
-  box-shadow: 0 4px 14px rgba(15, 38, 64, 0.2);
+  box-shadow: 0 4px 14px rgba(13, 44, 77, 0.2);
 }
 
 .stat-number {
@@ -306,11 +306,11 @@
 .historial-section {
   max-width: 1200px;
   margin: 0 auto;
-  background: rgba(42,172,176,0.08);
+  background: rgba(0, 167, 167,0.08);
   border: 2px solid #FFC107;
   border-radius: 16px;
   padding: 32px;
-  box-shadow: 0 12px 40px rgba(15, 38, 64, 0.25);
+  box-shadow: 0 12px 40px rgba(13, 44, 77, 0.25);
 }
 
 .historial-section h2 {
@@ -338,17 +338,17 @@
 }
 
 .sintoma-card {
-  background: rgba(42,172,176,0.08);
+  background: rgba(0, 167, 167,0.08);
   border: 2px solid #FFC107;
   border-radius: 10px;
   padding: 20px;
-  box-shadow: 0 2px 10px rgba(15, 38, 64, 0.08);
+  box-shadow: 0 2px 10px rgba(13, 44, 77, 0.08);
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .sintoma-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(15, 38, 64, 0.14);
+  box-shadow: 0 8px 24px rgba(13, 44, 77, 0.14);
 }
 
 .sintoma-header {

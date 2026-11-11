@@ -7,7 +7,7 @@ import {
 
 // Colores por tipo de síntoma
 const COLORES_TIPO = {
-  temblor: '#2AACB0',
+  temblor: '#00A7A7',
   rigidez: '#E67E22',
   lentitud: '#8E44AD',
   equilibrio: '#27AE60',
@@ -29,7 +29,7 @@ const TooltipPersonalizado = ({ active, payload, label }) => {
   if (!active || !payload || !payload.length) return null;
   return (
     <div style={{
-      background: '#2AACB0',
+      background: '#00A7A7',
       border: 'none',
       borderRadius: '10px',
       padding: '12px 16px',
@@ -38,7 +38,7 @@ const TooltipPersonalizado = ({ active, payload, label }) => {
       fontSize: '15px',
       minWidth: '160px'
     }}>
-      <p style={{ margin: '0 0 8px', fontWeight: 'bold', color: '#1B3A5C' }}>
+      <p style={{ margin: '0 0 8px', fontWeight: 'bold', color: '#0D2C4D' }}>
         {label}
       </p>
       {payload.map((entry, i) => (
@@ -100,8 +100,8 @@ export default function EvolucionPage({ token, apiUrl }) {
   const estiloBtnFiltro = (activo) => ({
     padding: '8px 16px',
     borderRadius: '20px',
-    border: '1px solid rgba(42,172,176,0.4)',
-    background: activo ? '#2AACB0' : 'rgba(255,255,255,0.05)',
+    border: '1px solid rgba(0, 167, 167,0.4)',
+    background: activo ? '#00A7A7' : 'rgba(255,255,255,0.05)',
     color: 'white',
     cursor: 'pointer',
     fontSize: '14px',
@@ -115,7 +115,7 @@ export default function EvolucionPage({ token, apiUrl }) {
       <div style={{ padding: '20px', color: 'white', textAlign: 'center' }}>
         <div style={estiloTarjeta}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
-          <p style={{ color: '#2AACB0', fontSize: '18px', marginBottom: '8px' }}>
+          <p style={{ color: '#00A7A7', fontSize: '18px', marginBottom: '8px' }}>
             Sin datos aún en este período
           </p>
           <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px' }}>
@@ -158,7 +158,7 @@ export default function EvolucionPage({ token, apiUrl }) {
               {datos.tipos_disponibles.map(t => (
                 <button key={t} onClick={() => setTipoFiltro(t)} style={{
                   ...estiloBtnFiltro(tipoFiltro === t),
-                  borderColor: COLORES_TIPO[t] || '#2AACB0'
+                  borderColor: COLORES_TIPO[t] || '#00A7A7'
                 }}>
                   {ETIQUETAS_TIPO[t] || t}
                 </button>
@@ -202,7 +202,7 @@ export default function EvolucionPage({ token, apiUrl }) {
           {/* Resumen rápido */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px', marginBottom: '20px' }}>
             <div style={{ ...estiloTarjeta, textAlign: 'center', padding: '16px' }}>
-              <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#2AACB0' }}>
+              <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#00A7A7' }}>
                 {datos.total_registros}
               </div>
               <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', marginTop: '4px' }}>
@@ -234,7 +234,7 @@ export default function EvolucionPage({ token, apiUrl }) {
 
           {/* Gráfica principal: intensidad promedio diaria */}
           <div style={estiloTarjeta}>
-            <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: '#2AACB0' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: '#00A7A7' }}>
               Intensidad Promedio por Día
             </h3>
             <ResponsiveContainer width="100%" height={220}>
@@ -260,7 +260,7 @@ export default function EvolucionPage({ token, apiUrl }) {
                     name="Intensidad"
                     stroke="#FFC107"
                     strokeWidth={4}
-                    dot={{ r: 4, fill: '#FFC107', stroke: '#1B3A5C', strokeWidth: 2 }}
+                    dot={{ r: 4, fill: '#FFC107', stroke: '#0D2C4D', strokeWidth: 2 }}
                     activeDot={{ r: 6 }}
                   />
                 </LineChart>
@@ -287,7 +287,7 @@ export default function EvolucionPage({ token, apiUrl }) {
           {/* Gráfica por tipo de síntoma (solo si hay varios tipos y no se está filtrando) */}
           {tipoFiltro === 'todos' && datos.tipos_disponibles?.length > 1 && (
             <div style={estiloTarjeta}>
-              <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: '#2AACB0' }}>
+              <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: '#00A7A7' }}>
                 Evolución por Tipo de Síntoma
               </h3>
               <ResponsiveContainer width="100%" height={220}>
@@ -327,7 +327,7 @@ export default function EvolucionPage({ token, apiUrl }) {
 
           {/* Frecuencia de Registros por día */}
           <div style={estiloTarjeta}>
-            <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: '#2AACB0' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: '#00A7A7' }}>
               Frecuencia de Registros
             </h3>
             <ResponsiveContainer width="100%" height={140}>
@@ -341,7 +341,7 @@ export default function EvolucionPage({ token, apiUrl }) {
                 />
                 <YAxis tick={{ fill: '#FFFFFF', fontWeight: 700, fontSize: 13 }} allowDecimals={false} />
                 <Tooltip content={<TooltipPersonalizado />} />
-                <Bar dataKey="total_registros" name="Registros" fill="rgba(42,172,176,0.35)" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="total_registros" name="Registros" fill="rgba(0, 167, 167,0.35)" radius={[3, 3, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
