@@ -300,9 +300,18 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
           />
           <span className="user-greeting">Hola, {usuario.nombre}</span>
         </div>
-        <button onClick={onLogout} className="btn-logout">
-          Cerrar sesión
-        </button>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => setPestanaActiva('config')}
+            className="btn-logout"
+            style={pestanaActiva === 'config' ? { outline: '2px solid #FFC107', outlineOffset: '2px' } : undefined}
+          >
+            ⚙️ Configuración
+          </button>
+          <button onClick={onLogout} className="btn-logout">
+            Cerrar sesión
+          </button>
+        </div>
       </div>
 
       {/* Hora que usa la app */}
@@ -360,9 +369,6 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
         </button>
         <button style={estiloPestana(pestanaActiva === 'reporte')} onClick={() => setPestanaActiva('reporte')}>
           📄 Reporte
-        </button>
-        <button style={estiloPestana(pestanaActiva === 'config')} onClick={() => setPestanaActiva('config')}>
-          ⚙️ Configuración
         </button>
       </div>
 
