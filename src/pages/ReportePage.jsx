@@ -49,6 +49,21 @@ function fechaRelativa(desplazamiento) {
   return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
 }
 
+// Convierte la fecha de registro (UTC, texto ISO) a "AAAA-MM-DD" en la zona del reloj.
+function fechaLocalDeIso(iso) {
+  if (!iso) return null;
+  const d = new Date(/Z|[+-]\d\d:?\d\d$/.test(iso) ? iso : iso + 'Z');
+  if (isNaN(d)) return null;
+  return new Intl.DateTimeFormat('en-CA', { timeZone: zonaDelReloj() }).format(d);
+}
+
+// Deja la fecha dentro de [min, max]. Si se sale, regresa el limite mas cercano.
+function clampFecha(valor, min, max) {
+  if (min && valor < min) return min;
+  if (max && valor > max) return max;
+  return valor;
+}
+
 const estiloInputPeriodo = {
   background: 'rgba(255,255,255,0.08)',
   border: '2px solid #FFC107',
@@ -131,13 +146,22 @@ const FRANJAS = [
   { key: 'noche', label: 'Noche (18 a 24 h)' },
 ];
 
-export default function ReportePage({ token, apiUrl }) {
+export default function ReportePage({ token, apiUrl, fechaRegistro }) {
   const [reporte, setReporte] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
   const [modoPeriodo, setModoPeriodo] = useState('hoy'); // 'hoy' | 'personalizado'
   const [fechaDesde, setFechaDesde] = useState(() => fechaRelativa(-6));
   const [fechaHasta, setFechaHasta] = useState(() => fechaRelativa(0));
+  // Limites del selector: desde la fecha de registro hasta hoy.
+  const minFecha = fechaLocalDeIso(fechaRegistro);
+  const maxFecha = fechaRelativa(0);
+  useEffect(() => {
+    const desdeOk = clampFecha(fechaDesde, minFecha, maxFecha);
+    const hastaOk = clampFecha(fechaHasta, minFecha, maxFecha);
+    if (desdeOk !== fechaDesde) setFechaDesde(desdeOk);
+    if (hastaOk !== fechaHasta) setFechaHasta(hastaOk);
+  }, [fechaDesde, fechaHasta, minFecha, maxFecha]);
   const reporteRef = useRef(null);
   const [secciones, setSecciones] = useState({ estadoMotor: true, franjas: true, noMotor: true, sintomas: true, dosis: true, tomas: true, zona: true });
   const prefListoRef = useRef(false);
@@ -284,11 +308,11 @@ export default function ReportePage({ token, apiUrl }) {
           </select>
           {modoPeriodo === 'personalizado' && (
             <>
-              <input type="date" value={fechaDesde} max={fechaHasta}
-                onChange={e => setFechaDesde(e.target.value)} style={estiloInputPeriodo} />
+              <input type="date" value={fechaDesde} min={minFecha || undefined} max={fechaHasta}
+                onChange={e => setFechaDesde(clampFecha(e.target.value, minFecha, maxFecha))} style={estiloInputPeriodo} />
               <span style={{ color: 'white', fontSize: '13px' }}>a</span>
-              <input type="date" value={fechaHasta} min={fechaDesde}
-                onChange={e => setFechaHasta(e.target.value)} style={estiloInputPeriodo} />
+              <input type="date" value={fechaHasta} min={fechaDesde} max={maxFecha}
+                onChange={e => setFechaHasta(clampFecha(e.target.value, minFecha, maxFecha))} style={estiloInputPeriodo} />
             </>
           )}
           <button

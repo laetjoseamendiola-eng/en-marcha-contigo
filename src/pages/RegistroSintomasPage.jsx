@@ -372,7 +372,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
       )}
 
       {pestanaActiva === 'reporte' && (
-        <ReportePage token={token} apiUrl={import.meta.env.VITE_API_URL || ''} />
+        <ReportePage token={token} apiUrl={import.meta.env.VITE_API_URL || ''} fechaRegistro={usuario?.fecha_registro} />
       )}
 
       {/* Pestaña Diario síntomas no motores */}
