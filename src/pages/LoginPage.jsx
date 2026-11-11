@@ -461,7 +461,7 @@ const LoginPage = ({ onLoginExitoso }) => {
           )}
         </div>
         <p style={{ textAlign: 'center', marginTop: '12px' }}>
-          <a href={`mailto:${CORREO_AYUDA}`} style={{ color: '#FFFFFF', textDecoration: 'underline' }}>Ayuda</a>
+          <a href={`mailto:${CORREO_AYUDA}`} style={{ color: '#00A7A7', textDecoration: 'underline' }}>Ayuda</a>
         </p>
       </div>
     </div>
