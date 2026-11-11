@@ -1,3 +1,4 @@
+import { CORREO_AYUDA } from '../ayuda.js';
 import { zonaReloj, hora12, diaClave } from '../zonaReloj';
 import React, { useState, useEffect } from 'react';
 import { guardarPreferencias } from '../preferenciasCuenta';
@@ -224,6 +225,13 @@ const ConfiguracionPage = ({ token, apiUrl } = {}) => {
         ))}
         <p style={{ margin: '8px 0 0 0', fontSize: '0.85em' }}>
           En modo automático no se registran cambios: el celular ajusta la hora solo. En modo manual sí se registra cuando cambia la zona del dispositivo. Limitación: no se detecta si alguien solo cambió la hora a mano sin cambiar la zona.
+        </p>
+      </div>
+
+      <div style={tarjeta}>
+        <h3 style={{ margin: '0 0 8px 0' }}>Ayuda</h3>
+        <p style={{ margin: 0 }}>
+          <a href={`mailto:${CORREO_AYUDA}`} style={{ color: '#FFFFFF', textDecoration: 'underline' }}>Escribir a Ayuda</a>
         </p>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { CORREO_AYUDA } from '../ayuda.js';
 import React, { useState, useEffect } from 'react';
 import './LoginPage.css';
 
@@ -459,6 +460,9 @@ const LoginPage = ({ onLoginExitoso }) => {
             <p><button type="button" className="link-btn" onClick={() => cambiarModo('login')}>Volver a iniciar sesión</button></p>
           )}
         </div>
+        <p style={{ textAlign: 'center', marginTop: '12px' }}>
+          <a href={`mailto:${CORREO_AYUDA}`} style={{ color: '#FFFFFF', textDecoration: 'underline' }}>Ayuda</a>
+        </p>
       </div>
     </div>
   );
