@@ -302,7 +302,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
                 transition: 'opacity 0.2s'
               }}
             >
-              Tomé ✓
+              Tomé <span style={{ color: '#5DDE83' }}>✓</span>
             </button>
             {!panelHora && (
             <button
