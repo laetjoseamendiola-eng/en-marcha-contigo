@@ -3,6 +3,7 @@ import { instalarControlSesion } from './sesionUnica';
 instalarControlSesion();
 import React, { useState, useEffect } from 'react'
 import LoginPage from './pages/LoginPage.jsx'
+import ConsentimientoPage from './pages/ConsentimientoPage.jsx'
 import RegistroSintomasPage from './pages/RegistroSintomasPage.jsx'
 import { ErrorBoundary } from './ErrorBoundary.jsx'
 
@@ -10,8 +11,28 @@ function App() {
   const [usuario, setUsuario] = useState(null);
   const [token, setToken] = useState(null);
   const [verificando, setVerificando] = useState(true);
+  const [consentimientoPendiente, setConsentimientoPendiente] = useState(null);
 
   const apiUrl = import.meta.env.VITE_API_URL || '';
+
+  const verificarConsentimiento = (tok) => {
+    setConsentimientoPendiente(null);
+    fetch(`${apiUrl}/api/auth/consentimiento`, {
+      headers: { 'Authorization': `Bearer ${tok}` }
+    })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error('consentimiento');
+        }
+        return res.json();
+      })
+      .then(data => {
+        setConsentimientoPendiente(Boolean(data.pendiente));
+      })
+      .catch(() => {
+        setConsentimientoPendiente(true);
+      });
+  };
 
   // Verificar sesión guardada al cargar
   useEffect(() => {
@@ -27,11 +48,26 @@ function App() {
           if (res.ok) {
             return res.json();
           }
+          if (res.status === 403) {
+            return res.json().then(datos => {
+              if (datos.codigo === 'consentimiento_pendiente') {
+                return { consentimientoPendiente: true };
+              }
+              throw new Error('Token inválido');
+            });
+          }
           throw new Error('Token inválido');
         })
         .then(data => {
+          if (data.consentimientoPendiente) {
+            setUsuario(JSON.parse(usuarioGuardado));
+            setToken(tokenGuardado);
+            setConsentimientoPendiente(true);
+            return;
+          }
           setUsuario(data.usuario);
           setToken(tokenGuardado);
+          verificarConsentimiento(tokenGuardado);
           leerPreferencias(apiUrl, tokenGuardado).then(aplicarRelojDeCuenta);
         })
         .catch(() => {
@@ -50,12 +86,14 @@ function App() {
   const handleLoginExitoso = (usuarioData, tokenData) => {
     setUsuario(usuarioData);
     setToken(tokenData);
+    verificarConsentimiento(tokenData);
     leerPreferencias(apiUrl, tokenData).then(aplicarRelojDeCuenta);
   };
 
   const handleLogout = () => {
     setUsuario(null);
     setToken(null);
+    setConsentimientoPendiente(null);
     sessionStorage.removeItem('token');
     sessionStorage.removeItem('usuario');
   };
@@ -89,6 +127,17 @@ function App() {
   // Si no hay sesión, mostrar login
   if (!usuario || !token) {
     return <LoginPage onLoginExitoso={handleLoginExitoso} />;
+  }
+
+  if (consentimientoPendiente === null) return null;
+  if (consentimientoPendiente) {
+    return (
+      <ConsentimientoPage
+        token={token}
+        onAceptado={() => setConsentimientoPendiente(false)}
+        onCancelar={handleLogout}
+      />
+    );
   }
 
   // Si hay sesión, mostrar la app

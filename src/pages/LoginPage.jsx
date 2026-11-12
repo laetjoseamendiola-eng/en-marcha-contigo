@@ -13,7 +13,9 @@ const LoginPage = ({ onLoginExitoso }) => {
     codigo: '',
     pregunta_id: '',
     respuesta: '',
-    nueva: ''
+    nueva: '',
+    salud: false,
+    whatsapp: false
   });
   const [error, setError] = useState('');
   const [mensaje, setMensaje] = useState('');
@@ -35,8 +37,8 @@ const LoginPage = ({ onLoginExitoso }) => {
   }, [apiUrl]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     setError('');
   };
 
@@ -58,7 +60,7 @@ const LoginPage = ({ onLoginExitoso }) => {
     setPendiente(null);
     setFormData({
       nombre: '', email: '', password: '', confirmarPassword: '', codigo: '',
-      pregunta_id: '', respuesta: '', nueva: ''
+      pregunta_id: '', respuesta: '', nueva: '', salud: false, whatsapp: false
     });
   };
 
@@ -121,7 +123,7 @@ const LoginPage = ({ onLoginExitoso }) => {
         setMensaje(data.mensaje || 'Contraseña actualizada. Ya puedes iniciar sesión.');
         setFormData({
           nombre: '', email: '', password: '', confirmarPassword: '', codigo: '',
-          pregunta_id: '', respuesta: '', nueva: ''
+          pregunta_id: '', respuesta: '', nueva: '', salud: false, whatsapp: false
         });
       } else {
         setError(data.error || 'No se pudo cambiar la contraseña');
@@ -171,6 +173,10 @@ const LoginPage = ({ onLoginExitoso }) => {
         setError('La respuesta de seguridad debe tener al menos 3 caracteres');
         return;
       }
+      if (!formData.salud) {
+        setError('Debes aceptar el tratamiento de datos de salud para crear tu cuenta');
+        return;
+      }
     }
 
     setCargando(true);
@@ -186,7 +192,9 @@ const LoginPage = ({ onLoginExitoso }) => {
             password: formData.password,
             codigo: formData.codigo.trim(),
             pregunta_id: Number(formData.pregunta_id),
-            respuesta: formData.respuesta
+            respuesta: formData.respuesta,
+            salud: formData.salud,
+            whatsapp: formData.whatsapp
           };
 
       const { ok, data } = await enviar(endpoint, body);
@@ -439,6 +447,30 @@ const LoginPage = ({ onLoginExitoso }) => {
 
                   {renderPreguntaSelect()}
                   {renderRespuesta('Tu respuesta (para recuperar tu contraseña)')}
+
+                  <label style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', color: '#0D2C4D', fontSize: '14px', lineHeight: 1.45, fontWeight: 500 }}>
+                    <input
+                      type="checkbox"
+                      name="salud"
+                      checked={formData.salud}
+                      onChange={handleChange}
+                      style={{ marginTop: '3px', width: '18px', height: '18px', flexShrink: 0 }}
+                    />
+                    <span>Acepto que En Marcha Contigo trate mis datos de salud (síntomas, medicamentos y tomas) para mostrarme mi seguimiento. (Obligatorio)</span>
+                  </label>
+                  <label style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', color: '#0D2C4D', fontSize: '14px', lineHeight: 1.45, fontWeight: 500 }}>
+                    <input
+                      type="checkbox"
+                      name="whatsapp"
+                      checked={formData.whatsapp}
+                      onChange={handleChange}
+                      style={{ marginTop: '3px', width: '18px', height: '18px', flexShrink: 0 }}
+                    />
+                    <span>Quiero recibir avisos por WhatsApp. (Opcional)</span>
+                  </label>
+                  <p style={{ margin: 0, color: '#0D2C4D', fontSize: '14px', lineHeight: 1.45 }}>
+                    Aviso de privacidad integral: próximamente.
+                  </p>
                 </>
               )}
             </>

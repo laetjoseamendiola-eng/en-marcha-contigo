@@ -102,6 +102,33 @@ DURACIONES_VALIDAS = [
     'Todavía presente',
 ]
 
+VERSION_AVISO = 'v2'
+TIPOS_CONSENTIMIENTO = ('salud', 'whatsapp')
+RUTAS_SIN_CONSENTIMIENTO = {'consentimiento_estado', 'consentimiento_registrar'}
+ORIGENES_CONSENTIMIENTO = ('primer_inicio', 'configuracion')
+
+
+class ConsentimientoAviso(db.Model):
+    __tablename__ = 'consentimientos_aviso'
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    tipo = db.Column(db.String(20), nullable=False)
+    aceptado = db.Column(db.Boolean, nullable=False)
+    version_aviso = db.Column(db.String(10), nullable=False)
+    origen = db.Column(db.String(20), nullable=False)
+    fecha_registro = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+
+def estado_consentimiento(usuario):
+    estado = {}
+    for tipo in TIPOS_CONSENTIMIENTO:
+        fila = (ConsentimientoAviso.query
+                .filter_by(usuario_id=usuario.id, tipo=tipo)
+                .order_by(ConsentimientoAviso.id.desc())
+                .first())
+        estado[tipo] = bool(fila and fila.aceptado and fila.version_aviso == VERSION_AVISO)
+    return estado
+
 
 class Sintoma(db.Model):
     __tablename__ = 'sintomas'
@@ -331,6 +358,8 @@ def token_requerido(f):
                 return jsonify({'error': 'Usuario no válido o inactivo'}), 401
             if usuario_actual.sesion_id and datos.get('sid') != usuario_actual.sesion_id:
                 return jsonify({'error': 'La sesión se inició en otro dispositivo. Inicia sesión de nuevo.'}), 401
+            if f.__name__ not in RUTAS_SIN_CONSENTIMIENTO and not estado_consentimiento(usuario_actual)['salud']:
+                return jsonify({'error': 'Debes aceptar el aviso de privacidad para continuar', 'codigo': 'consentimiento_pendiente'}), 403
         except jwt.ExpiredSignatureError:
             return jsonify({'error': 'Token expirado. Inicia sesión nuevamente'}), 401
         except jwt.InvalidTokenError:
@@ -380,6 +409,9 @@ def registro():
         if len(respuesta) < 3:
             return jsonify({'error': 'La respuesta de seguridad debe tener al menos 3 caracteres'}), 400
 
+        if data.get('salud') is not True:
+            return jsonify({'error': 'Debes aceptar el tratamiento de datos de salud para crear tu cuenta'}), 400
+
         codigo = (data.get('codigo') or '').strip()
         if not codigo:
             return jsonify({'error': 'El código de tester es requerido'}), 400
@@ -407,6 +439,16 @@ def registro():
 
         db.session.add(nuevo_usuario)
         db.session.delete(codigo_row)  # el código se descarta al usarse
+        db.session.flush()
+        valores_consentimiento = {'salud': True, 'whatsapp': data.get('whatsapp') is True}
+        for tipo in TIPOS_CONSENTIMIENTO:
+            db.session.add(ConsentimientoAviso(
+                usuario_id=nuevo_usuario.id,
+                tipo=tipo,
+                aceptado=valores_consentimiento[tipo],
+                version_aviso=VERSION_AVISO,
+                origen='registro'
+            ))
         db.session.commit()
 
         token = generar_token(nuevo_usuario)
@@ -539,6 +581,43 @@ def recuperar_contrasena():
     usuario.sesion_id = secrets.token_hex(16)  # cierra sesiones abiertas
     db.session.commit()
     return jsonify({'mensaje': 'Contraseña actualizada. Ya puedes iniciar sesión.'}), 200
+
+
+@app.route('/api/auth/consentimiento', methods=['GET'])
+@token_requerido
+def consentimiento_estado(usuario_actual):
+    estado = estado_consentimiento(usuario_actual)
+    return jsonify({
+        'version_aviso': VERSION_AVISO,
+        'estado': estado,
+        'pendiente': not estado['salud']
+    }), 200
+
+
+@app.route('/api/auth/consentimiento', methods=['POST'])
+@token_requerido
+def consentimiento_registrar(usuario_actual):
+    data = request.get_json(silent=True) or {}
+    if data.get('salud') is not True:
+        return jsonify({'error': 'Debes aceptar el tratamiento de datos de salud para usar la app'}), 400
+    origen = data.get('origen') if data.get('origen') in ORIGENES_CONSENTIMIENTO else 'primer_inicio'
+    valores = {'salud': True, 'whatsapp': data.get('whatsapp') is True}
+    for tipo in TIPOS_CONSENTIMIENTO:
+        db.session.add(ConsentimientoAviso(
+            usuario_id=usuario_actual.id,
+            tipo=tipo,
+            aceptado=valores[tipo],
+            version_aviso=VERSION_AVISO,
+            origen=origen
+        ))
+    db.session.commit()
+    estado = estado_consentimiento(usuario_actual)
+    return jsonify({
+        'mensaje': 'Consentimiento registrado',
+        'version_aviso': VERSION_AVISO,
+        'estado': estado,
+        'pendiente': not estado['salud']
+    }), 201
 
 
 @app.route('/api/auth/perfil', methods=['GET'])
