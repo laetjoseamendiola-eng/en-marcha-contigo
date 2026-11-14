@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { leerPreferencias, guardarPreferencias } from '../preferenciasCuenta';
-import { ResumenEvolucion, GraficaUnificada, fechaCompleta, numeroDeGraficas } from '../components/GraficasEvolucion';
+import { ResumenEvolucion, GraficaUnificada, TablaSintomas, ordenarSintomas, fechaCompleta, numeroDeGraficas } from '../components/GraficasEvolucion';
 import { formatoDuracion, AdherenciaSeccion, TomasResumenSeccion, DosisSeccion, HauserSeccion, FranjasSeccion, NoMotorSeccion, datosEvolucionNoMotor } from '../components/ReporteSecciones';
 import { GraficasPorGrupos } from '../components/GraficasEvolucion';
 
@@ -315,7 +315,9 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
           /* Los paneles pueden partirse entre hojas (evita medias páginas en blanco); las gráficas y filas de tabla no */
           .reporte-contenido .panel-reporte { break-inside: auto; }
           .reporte-contenido .panel-reporte svg, .reporte-contenido .panel-reporte .recharts-responsive-container, .reporte-contenido tr { break-inside: avoid; }
-          .reporte-contenido .seccion-reporte > div:nth-child(-n+2) { break-after: avoid; }
+          /* Un título (y su nota) nunca se queda solo al final de una hoja */
+          .reporte-contenido .tit-sec { break-after: avoid; }
+          .reporte-contenido .panel-reporte:has(svg), .reporte-contenido .panel-reporte:has(.recharts-responsive-container) { break-inside: avoid; }
           .anexos-reporte { break-before: page; }
           .anexos-reporte .tarjeta-reporte { break-inside: auto; }
           .reporte-contenido { font-size: 12px; }
@@ -463,10 +465,10 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
           const serie = d ? d.serie_temporal : [];
           return (
             <div style={{ marginBottom: '14px' }}>
-              <div style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '4px' }}>
+              <div className="tit-sec" style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '4px' }}>
                 📈 Evolución de síntomas
               </div>
-              <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)', marginBottom: '12px' }}>
+              <div className="subtexto-reporte tit-sec" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)', marginBottom: '12px' }}>
                 {periodoTxt}
               </div>
               {evol.cargando && <div style={{ fontSize: '12px', padding: '12px 0' }}>Cargando evolución...</div>}
@@ -477,9 +479,13 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
                 </div>
               )}
               {!evol.cargando && !evol.error && d && d.total_registros > 0 && periodo.dias === 1 && (
-                <div className="tarjeta-reporte" style={{ background: 'rgba(255,255,255,0.04)', border: '2px solid #FFC107', borderRadius: '16px', padding: '16px', fontSize: '13px' }}>
-                  Con un solo día no hay evolución que graficar.
-                </div>
+                <>
+                  <ResumenEvolucion datos={d} />
+                  <div className="tarjeta-reporte" style={{ background: 'rgba(255,255,255,0.04)', border: '2px solid #FFC107', borderRadius: '16px', padding: '16px', fontSize: '13px', marginBottom: '10px' }}>
+                    Con un solo día no hay evolución que graficar.
+                  </div>
+                  <TablaSintomas serie={serie} tipos={ordenarSintomas(serie, d.tipos_disponibles || [])} periodoTxt={periodoTxt} />
+                </>
               )}
               {!evol.cargando && !evol.error && d && d.total_registros > 0 && periodo.dias > 1 && (
                 <>
@@ -494,7 +500,7 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
 
 
         {/* 8. NO MOTORES */}
-        {secciones.noMotor && no_motor.dias_registrados > 0 && (
+        {secciones.noMotor && (
           <NoMotorSeccion noMotor={no_motor} periodo={periodo} NO_MOTOR_LABELS={NO_MOTOR_LABELS} LABEL_PROMEDIO={LABEL_PROMEDIO} />
         )}
 
@@ -510,7 +516,7 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
           padding: '20px',
           marginBottom: '14px',
         }}>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '10px' }}>
+          <div className="tit-sec" style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '10px' }}>
             Anexo A — Tomas y dosis vigente ({(reporte.tomas_dosis || []).length})
           </div>
           {(reporte.tomas_dosis || []).length === 0 && (
@@ -569,7 +575,7 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
           padding: '20px',
           marginBottom: '14px',
         }}>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '10px' }}>
+          <div className="tit-sec" style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '10px' }}>
             Anexo B — Historial de dosis y horarios ({(reporte.historial_dosis || []).length})
           </div>
           {(reporte.historial_dosis || []).length === 0 && (
@@ -591,9 +597,15 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
           ))}
         </div>
             </>)}
+            {anexos.C && !(no_motor.registros?.length > 0) && (
+              <div className="tarjeta-reporte" style={{ background: 'rgba(255,255,255,0.04)', border: '2px solid #FFC107', borderRadius: '16px', padding: '20px', marginBottom: '14px' }}>
+                <div className="tit-sec" style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '4px' }}>Anexo C — Registro por fecha (síntomas no motores)</div>
+                <div style={{ fontSize: '12px' }}>Sin registros en el período.</div>
+              </div>
+            )}
             {anexos.C && no_motor.registros?.length > 0 && (
               <div className="tarjeta-reporte" style={{ background: 'rgba(255,255,255,0.04)', border: '2px solid #FFC107', borderRadius: '16px', padding: '20px', marginBottom: '14px' }}>
-                <div style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '4px' }}>Anexo C — Registro por fecha (síntomas no motores)</div>
+                <div className="tit-sec" style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '4px' }}>Anexo C — Registro por fecha (síntomas no motores)</div>
                 <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginBottom: '6px' }}>Es un registro diario, por eso no tiene hora.</div>
                 {no_motor.registros.slice().sort((a, b) => (a.fecha < b.fecha ? 1 : -1)).map(r => (
                   <div key={r.id} style={{ fontSize: '12px', padding: '6px 0', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
@@ -607,7 +619,7 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
             )}
             {anexos.D && (
               <div className="tarjeta-reporte" style={{ background: 'rgba(255,255,255,0.04)', border: '2px solid #FFC107', borderRadius: '16px', padding: '20px', marginBottom: '14px' }}>
-                <div style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '4px' }}>Anexo D — Episodios de Hauser con hora exacta ({estado_motor.episodios_exactos?.total ?? 0})</div>
+                <div className="tit-sec" style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '4px' }}>Anexo D — Episodios de Hauser con hora exacta ({estado_motor.episodios_exactos?.total ?? 0})</div>
                 <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginBottom: '8px', lineHeight: 1.6 }}>
                   Cada duración va desde un episodio hasta el siguiente. Si pasan más de 16 horas sin otro registro, queda «sin cierre conocido» y no suma horas.
                   {estado_motor.total_bloques > 0 && <> Bloques históricos de 30 minutos contados: {estado_motor.total_bloques}.</>}
@@ -629,7 +641,7 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
           padding: '20px',
           marginBottom: '14px',
         }}>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '10px' }}>
+          <div className="tit-sec" style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '10px' }}>
             Anexo E — Cambios de zona horaria ({(reporte.cambios_zona || []).length})
           </div>
           {(reporte.cambios_zona || []).length === 0 && (

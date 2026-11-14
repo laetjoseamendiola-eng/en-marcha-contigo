@@ -2133,6 +2133,10 @@ def generar_reporte(usuario_actual):
         total_tomas = len(tomas)
         tomas_tomadas = len([t for t in tomas if t.tomada])
         tomas_omitidas = len([t for t in tomas if t.omitida and not t.tomada])
+        ahora_rep = datetime.datetime.now(datetime.timezone.utc).astimezone(zona_reporte).replace(tzinfo=None)
+        # Sin registro = pendiente cuya ventana ya cerró. Pendientes = aún dentro de su ventana (hoy y ayer).
+        tomas_sin_registro = len([t for t in tomas if toma_sin_registro(t, ahora_rep)])
+        tomas_pendientes = total_tomas - tomas_tomadas - tomas_omitidas - tomas_sin_registro
         adherencia_pct = round((tomas_tomadas / total_tomas * 100) if total_tomas > 0 else 0)
         # Resumen por medicamento y por fecha (mismo conjunto de tomas que las cifras de arriba).
         por_medicamento, por_fecha = {}, {}
@@ -2141,8 +2145,10 @@ def generar_reporte(usuario_actual):
             nombre_med = t.medicamento.nombre if t.medicamento else 'Sin nombre'
             fuera, extemp = _banderas_toma(t)
             for dic, clave in ((por_medicamento, nombre_med), (por_fecha, t.fecha_programada.date().isoformat())):
-                r = dic.setdefault(clave, {'programadas': 0, 'tomadas': 0, 'omitidas': 0, 'a_tiempo': 0, 'extemporaneas': 0})
+                r = dic.setdefault(clave, {'programadas': 0, 'tomadas': 0, 'omitidas': 0, 'sin_registro': 0, 'pendientes': 0, 'a_tiempo': 0, 'extemporaneas': 0})
                 r['programadas'] += 1
+                if not t.tomada and not t.omitida:
+                    r['sin_registro' if toma_sin_registro(t, ahora_rep) else 'pendientes'] += 1
                 if t.tomada:
                     r['tomadas'] += 1
                     if not fuera:
@@ -2314,6 +2320,8 @@ def generar_reporte(usuario_actual):
                 'total_programadas': total_tomas,
                 'tomadas': tomas_tomadas,
                 'omitidas': tomas_omitidas,
+                'sin_registro': tomas_sin_registro,
+                'pendientes': tomas_pendientes,
                 'extemporaneas': extemporaneos_total,
                 'porcentaje': adherencia_pct,
                 'por_medicamento': por_medicamento,

@@ -20,8 +20,8 @@ export function SeccionReporte({ titulo, nota, children, style }) {
       background: 'rgba(255,255,255,0.04)', border: '2px solid #FFC107', borderRadius: '16px',
       padding: '20px', marginBottom: '14px', ...style
     }}>
-      <div style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: nota ? '4px' : '12px' }}>{titulo}</div>
-      {nota && <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginBottom: '12px', lineHeight: 1.6 }}>{nota}</div>}
+      <div className="tit-sec" style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: nota ? '4px' : '12px' }}>{titulo}</div>
+      {nota && <div className="subtexto-reporte tit-sec" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginBottom: '12px', lineHeight: 1.6 }}>{nota}</div>}
       {children}
     </div>
   );
@@ -112,6 +112,8 @@ export function AdherenciaSeccion({ adherencia, periodo, BarraAdherencia }) {
     { label: 'Tomas programadas', valor: adherencia.total_programadas },
     { label: 'Tomadas', valor: adherencia.tomadas },
     { label: 'Omitidas', valor: adherencia.omitidas },
+    { label: 'Sin registro', valor: adherencia.sin_registro ?? 0 },
+    ...((adherencia.pendientes ?? 0) > 0 ? [{ label: 'Pendientes (aún en plazo)', valor: adherencia.pendientes }] : []),
     { label: 'Registro extemporáneo', valor: adherencia.extemporaneas ?? 0 },
   ];
   const Tip = ({ active, payload, label }) => {
@@ -127,7 +129,7 @@ export function AdherenciaSeccion({ adherencia, periodo, BarraAdherencia }) {
   return (
     <SeccionReporte titulo="💊 Adherencia al Tratamiento">
       {BarraAdherencia}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', margin: '14px 0' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cifras.length}, 1fr)`, gap: '10px', margin: '14px 0' }}>
         {cifras.map(c => (
           <div key={c.label} style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
             <div className="texto-reporte" style={{ fontSize: '22px', fontWeight: 'bold', color: 'rgba(255,255,255,0.95)' }}>{c.valor}</div>
@@ -187,38 +189,34 @@ export function TomasResumenSeccion({ adherencia }) {
     .sort((a, b) => b.programadas - a.programadas || a.nombre.localeCompare(b.nombre));
   const total = filas.reduce((t, f) => ({
     programadas: t.programadas + f.programadas, tomadas: t.tomadas + f.tomadas, omitidas: t.omitidas + f.omitidas,
+    sin_registro: t.sin_registro + (f.sin_registro || 0), pendientes: t.pendientes + (f.pendientes || 0),
     a_tiempo: t.a_tiempo + f.a_tiempo, extemporaneas: t.extemporaneas + f.extemporaneas
-  }), { programadas: 0, tomadas: 0, omitidas: 0, a_tiempo: 0, extemporaneas: 0 });
+  }), { programadas: 0, tomadas: 0, omitidas: 0, sin_registro: 0, pendientes: 0, a_tiempo: 0, extemporaneas: 0 });
+  const hayPend = total.pendientes > 0;
+  const colsNum = ['programadas', 'tomadas', 'omitidas', 'sin_registro', ...(hayPend ? ['pendientes'] : []), 'a_tiempo', 'extemporaneas'];
+  const titulosCol = { programadas: 'Programadas', tomadas: 'Tomadas', omitidas: 'Omitidas', sin_registro: 'Sin registro', pendientes: 'Pendientes', a_tiempo: 'A tiempo', extemporaneas: 'Extemporáneas' };
   return (
     <SeccionReporte titulo="🕒 Tomas por medicamento"
-      nota="A tiempo: tomada dentro de 30 minutos de su hora. Extemporánea: capturada más de 30 minutos después de tomarla (solo se mide desde el 11/10/2026). El detalle toma por toma está en el Anexo A.">
+      nota="A tiempo: tomada dentro de 30 minutos de su hora. Extemporánea: capturada más de 30 minutos después de tomarla (solo se mide desde el 11/10/2026). Sin registro: pasó el plazo (el día de la toma y el siguiente) y no se marcó tomada ni omitida. Programadas = tomadas + omitidas + sin registro. El detalle toma por toma está en el Anexo A.">
       <PanelBlanco>
         {filas.length === 0 ? <div style={{ fontSize: '13px', padding: '8px' }}>Sin tomas en el período.</div> : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
                 <th style={cab}>Medicamento</th>
-                <th style={{ ...cab, ...num }}>Programadas</th>
-                <th style={{ ...cab, ...num }}>Tomadas</th>
-                <th style={{ ...cab, ...num }}>Omitidas</th>
-                <th style={{ ...cab, ...num }}>A tiempo</th>
-                <th style={{ ...cab, ...num }}>Extemporáneas</th>
+                {colsNum.map(k => <th key={k} style={{ ...cab, ...num }}>{titulosCol[k]}</th>)}
               </tr>
             </thead>
             <tbody>
               {filas.map(f => (
                 <tr key={f.nombre}>
                   <td style={{ ...celda, fontWeight: 700 }}>{f.nombre}</td>
-                  <td style={{ ...celda, ...num }}>{f.programadas}</td>
-                  <td style={{ ...celda, ...num }}>{f.tomadas}</td>
-                  <td style={{ ...celda, ...num }}>{f.omitidas}</td>
-                  <td style={{ ...celda, ...num }}>{f.a_tiempo}</td>
-                  <td style={{ ...celda, ...num }}>{f.extemporaneas}</td>
+                  {colsNum.map(k => <td key={k} style={{ ...celda, ...num }}>{f[k] || 0}</td>)}
                 </tr>
               ))}
               <tr>
                 <td style={{ ...celda, fontWeight: 800, borderTop: '2px solid #1a1a2e' }}>Total</td>
-                {['programadas', 'tomadas', 'omitidas', 'a_tiempo', 'extemporaneas'].map(k => (
+                {colsNum.map(k => (
                   <td key={k} style={{ ...celda, ...num, fontWeight: 800, borderTop: '2px solid #1a1a2e' }}>{total[k]}</td>
                 ))}
               </tr>
@@ -520,6 +518,13 @@ export function NoMotorSeccion({ noMotor, periodo, NO_MOTOR_LABELS, LABEL_PROMED
   const filasProm = claves.filter(k => noMotor.promedios?.[k] != null).map(k => ({ k, v: noMotor.promedios[k] }));
   const { serie, orden, filas, semanal } = datosEvolucionNoMotor(noMotor, periodo, NO_MOTOR_LABELS);
   const periodoTxt = `Período: ${fechaCompleta(periodo.desde)} al ${fechaCompleta(periodo.hasta)}`;
+  if (!noMotor.dias_registrados) {
+    return (
+      <SeccionReporte titulo="🌿 Síntomas No Motores — Promedio del Período">
+        <PanelBlanco><div style={{ fontSize: '13px', padding: '8px' }}>Sin registros en el período.</div></PanelBlanco>
+      </SeccionReporte>
+    );
+  }
   return (
     <SeccionReporte titulo="🌿 Síntomas No Motores — Promedio del Período"
       nota={`Escala 0–4 · 0 = sin problema · 4 = severo · Basado en ${noMotor.dias_registrados} ${noMotor.dias_registrados === 1 ? 'día' : 'días'} con registro. El registro por fecha está en el Anexo C.`}>

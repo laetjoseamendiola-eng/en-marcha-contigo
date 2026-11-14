@@ -400,7 +400,7 @@ function GraficaCinco({ filas, semanal, grupo, titulo, periodoTxt, animar, style
 }
 
 // ─── Tabla con TODOS los síntomas ────────────────────────────────
-function TablaSintomas({ serie, tipos, periodoTxt, style }) {
+export function TablaSintomas({ serie, tipos, periodoTxt, style }) {
   const filas = resumenPorSintoma(serie, tipos);
   const celda = { padding: '8px 10px', borderTop: '1px solid #999999', color: TINTA, fontSize: '13px' };
   const cab = { padding: '8px 10px', textAlign: 'left', color: TINTA, fontSize: '12px', fontWeight: 800, borderBottom: '2px solid #1a1a2e' };
