@@ -1,59 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
-  LineChart, Line, BarChart, Bar,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer, ReferenceLine
-} from 'recharts';
+  ResumenEvolucion, GraficaIntensidad, GraficaPorTipo, GraficaFrecuencia,
+  COLORES_TIPO, ETIQUETAS_TIPO, ESTILO_TARJETA
+} from '../components/GraficasEvolucion';
 
-// Colores por tipo de síntoma
-const COLORES_TIPO = {
-  temblor: '#00A7A7',
-  rigidez: '#E67E22',
-  lentitud: '#8E44AD',
-  equilibrio: '#27AE60',
-  fatiga: '#E74C3C',
-  otros: '#95A5A6'
-};
-
-const ETIQUETAS_TIPO = {
-  temblor: 'Temblor',
-  rigidez: 'Rigidez',
-  lentitud: 'Lentitud / Bradicinesia',
-  equilibrio: 'Equilibrio',
-  fatiga: 'Fatiga',
-  otros: 'Otros'
-};
-
-// Tooltip personalizado con tipografía accesible
-const TooltipPersonalizado = ({ active, payload, label }) => {
-  if (!active || !payload || !payload.length) return null;
-  return (
-    <div style={{
-      background: '#00A7A7',
-      border: 'none',
-      borderRadius: '10px',
-      padding: '12px 16px',
-      color: '#FFFFFF',
-      fontWeight: 700,
-      fontSize: '15px',
-      minWidth: '160px'
-    }}>
-      <p style={{ margin: '0 0 8px', fontWeight: 'bold', color: '#0D2C4D' }}>
-        {label}
-      </p>
-      {payload.map((entry, i) => (
-        <p key={i} style={{ margin: '4px 0', color: '#FFFFFF', fontWeight: 700 }}>
-          {entry.name}: <strong>{entry.value}</strong>
-        </p>
-      ))}
-    </div>
-  );
-};
-
-// Formato de fecha corto para el eje X
-function formatFecha(fechaStr) {
-  const [, mes, dia] = fechaStr.split('-');
-  return `${dia}/${mes}`;
+// Texto del periodo que se escribe en cada gráfica
+function textoPeriodo(dias) {
+  const hoy = new Intl.DateTimeFormat('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date());
+  return `Período: últimos ${dias} días, hasta el ${hoy}`;
 }
 
 export default function EvolucionPage({ token, apiUrl }) {
@@ -89,13 +43,7 @@ export default function EvolucionPage({ token, apiUrl }) {
   }
 
   // ─── Estilos base ───────────────────────────────────────────────
-  const estiloTarjeta = {
-    background: 'rgba(255,255,255,0.05)',
-    borderRadius: '16px',
-    border: '2px solid #FFC107',
-    padding: '20px',
-    marginBottom: '20px'
-  };
+  const estiloTarjeta = ESTILO_TARJETA;
 
   const estiloBtnFiltro = (activo) => ({
     padding: '8px 16px',
@@ -199,152 +147,16 @@ export default function EvolucionPage({ token, apiUrl }) {
       {/* ─── Gráfica de intensidad promedio ──────────────────────── */}
       {!cargando && datos?.serie_temporal?.length > 0 && (
         <>
-          {/* Resumen rápido */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px', marginBottom: '20px' }}>
-            <div style={{ ...estiloTarjeta, textAlign: 'center', padding: '16px' }}>
-              <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#00A7A7' }}>
-                {datos.total_registros}
-              </div>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', marginTop: '4px' }}>
-                Registros totales
-              </div>
-            </div>
-            <div style={{ ...estiloTarjeta, textAlign: 'center', padding: '16px' }}>
-              <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#E67E22' }}>
-                {datos.serie_temporal.length > 0
-                  ? Math.round(
-                      datos.serie_temporal.reduce((sum, d) => sum + d.intensidad_promedio, 0) /
-                      datos.serie_temporal.length * 10
-                    ) / 10
-                  : '—'}
-              </div>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', marginTop: '4px' }}>
-                Intensidad media
-              </div>
-            </div>
-            <div style={{ ...estiloTarjeta, textAlign: 'center', padding: '16px' }}>
-              <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#8E44AD' }}>
-                {datos.serie_temporal.length}
-              </div>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', marginTop: '4px' }}>
-                Días con registro
-              </div>
-            </div>
-          </div>
+          <ResumenEvolucion datos={datos} />
 
-          {/* Gráfica principal: intensidad promedio diaria */}
-          <div style={estiloTarjeta}>
-            <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: '#00A7A7' }}>
-              Intensidad Promedio por Día
-            </h3>
-            <ResponsiveContainer width="100%" height={220}>
-              {vistaActiva === 'lineas' ? (
-                <LineChart data={datos.serie_temporal} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.25)" />
-                  <XAxis
-                    dataKey="fecha"
-                    tickFormatter={formatFecha}
-                    tick={{ fill: '#FFFFFF', fontWeight: 700, fontSize: 13 }}
-                    interval="preserveStartEnd"
-                  />
-                  <YAxis
-                    domain={[0, 10]}
-                    tick={{ fill: '#FFFFFF', fontWeight: 700, fontSize: 13 }}
-                    ticks={[0, 2, 4, 6, 8, 10]}
-                  />
-                  <Tooltip content={<TooltipPersonalizado />} />
-                  <ReferenceLine y={5} stroke="rgba(255,255,255,0.15)" strokeDasharray="4 4" />
-                  <Line
-                    type="monotone"
-                    dataKey="intensidad_promedio"
-                    name="Intensidad"
-                    stroke="#FFC107"
-                    strokeWidth={4}
-                    dot={{ r: 4, fill: '#FFC107', stroke: '#0D2C4D', strokeWidth: 2 }}
-                    activeDot={{ r: 6 }}
-                  />
-                </LineChart>
-              ) : (
-                <BarChart data={datos.serie_temporal} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.25)" />
-                  <XAxis
-                    dataKey="fecha"
-                    tickFormatter={formatFecha}
-                    tick={{ fill: '#FFFFFF', fontWeight: 700, fontSize: 13 }}
-                    interval="preserveStartEnd"
-                  />
-                  <YAxis
-                    domain={[0, 10]}
-                    tick={{ fill: '#FFFFFF', fontWeight: 700, fontSize: 13 }}
-                  />
-                  <Tooltip content={<TooltipPersonalizado />} />
-                  <Bar dataKey="intensidad_promedio" name="Intensidad" fill="#FFC107" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              )}
-            </ResponsiveContainer>
-          </div>
+          <GraficaIntensidad serie={datos.serie_temporal} vista={vistaActiva} periodoTxt={textoPeriodo(diasFiltro)} />
 
           {/* Gráfica por tipo de síntoma (solo si hay varios tipos y no se está filtrando) */}
           {tipoFiltro === 'todos' && datos.tipos_disponibles?.length > 1 && (
-            <div style={estiloTarjeta}>
-              <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: '#00A7A7' }}>
-                Evolución por Tipo de Síntoma
-              </h3>
-              <ResponsiveContainer width="100%" height={220}>
-                <LineChart data={datos.serie_temporal} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.25)" />
-                  <XAxis
-                    dataKey="fecha"
-                    tickFormatter={formatFecha}
-                    tick={{ fill: '#FFFFFF', fontWeight: 700, fontSize: 13 }}
-                    interval="preserveStartEnd"
-                  />
-                  <YAxis
-                    domain={[0, 10]}
-                    tick={{ fill: '#FFFFFF', fontWeight: 700, fontSize: 13 }}
-                  />
-                  <Tooltip content={<TooltipPersonalizado />} />
-                  <Legend
-                    wrapperStyle={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px', paddingTop: '8px' }}
-                    formatter={(value) => ETIQUETAS_TIPO[value.replace('intensidad_', '')] || value}
-                  />
-                  {datos.tipos_disponibles.map(tipo => (
-                    <Line
-                      key={tipo}
-                      type="monotone"
-                      dataKey={`intensidad_${tipo}`}
-                      name={`intensidad_${tipo}`}
-                      stroke={COLORES_TIPO[tipo] || '#95A5A6'}
-                      strokeWidth={4}
-                      dot={false}
-                      connectNulls
-                    />
-                  ))}
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+            <GraficaPorTipo serie={datos.serie_temporal} tipos={datos.tipos_disponibles} periodoTxt={textoPeriodo(diasFiltro)} />
           )}
 
-          {/* Frecuencia de Registros por día */}
-          <div style={estiloTarjeta}>
-            <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: '#00A7A7' }}>
-              Frecuencia de Registros
-            </h3>
-            <ResponsiveContainer width="100%" height={140}>
-              <BarChart data={datos.serie_temporal} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.25)" />
-                <XAxis
-                  dataKey="fecha"
-                  tickFormatter={formatFecha}
-                  tick={{ fill: '#FFFFFF', fontWeight: 700, fontSize: 13 }}
-                  interval="preserveStartEnd"
-                />
-                <YAxis tick={{ fill: '#FFFFFF', fontWeight: 700, fontSize: 13 }} allowDecimals={false} />
-                <Tooltip content={<TooltipPersonalizado />} />
-                <Bar dataKey="total_registros" name="Registros" fill="rgba(0, 167, 167,0.35)" radius={[3, 3, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <GraficaFrecuencia serie={datos.serie_temporal} periodoTxt={textoPeriodo(diasFiltro)} />
         </>
       )}
     </div>

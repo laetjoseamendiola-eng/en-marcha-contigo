@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { leerPreferencias, guardarPreferencias } from '../preferenciasCuenta';
+import { ResumenEvolucion, GraficaIntensidad, GraficaPorTipo, GraficaFrecuencia, fechaCompleta } from '../components/GraficasEvolucion';
 
 const COLOR_ESTADO = {
   ON: { color: '#27AE60', label: 'ON', emoji: '🟢' },
@@ -133,6 +134,7 @@ const SECCIONES_ITEMS = [
   ['estadoMotor', 'Estado motor'],
   ['franjas', 'Franjas del día'],
   ['noMotor', 'Síntomas no motores'],
+  ['evolucion', 'Evolución de síntomas'],
   ['sintomas', 'Síntomas reportados'],
   ['dosis', 'Dosis vigentes'],
   ['tomas', 'Tomas y dosis'],
@@ -163,7 +165,7 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
     if (hastaOk !== fechaHasta) setFechaHasta(hastaOk);
   }, [fechaDesde, fechaHasta, minFecha, maxFecha]);
   const reporteRef = useRef(null);
-  const [secciones, setSecciones] = useState({ estadoMotor: true, franjas: true, noMotor: true, sintomas: true, dosis: true, tomas: true, zona: true });
+  const [secciones, setSecciones] = useState({ estadoMotor: true, franjas: true, noMotor: true, evolucion: true, sintomas: true, dosis: true, tomas: true, zona: true });
   const prefListoRef = useRef(false);
 
   // Periodo guardado en la cuenta: se carga al abrir y se guarda al cambiar.
@@ -211,6 +213,24 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
   useEffect(() => {
     cargarReporte();
   }, [cargarReporte]);
+
+  // Series de la pestaña Evolución para el mismo periodo del reporte.
+  const [evol, setEvol] = useState({ cargando: true, datos: null, error: '' });
+  const periodoRep = reporte && reporte.periodo ? reporte.periodo : null;
+  const evolDesde = periodoRep ? periodoRep.desde : null;
+  const evolHasta = periodoRep ? periodoRep.hasta : null;
+  useEffect(() => {
+    if (!evolDesde || !evolHasta) return;
+    let vigente = true;
+    setEvol({ cargando: true, datos: null, error: '' });
+    fetch(`${apiUrl}/api/sintomas/evolucion?desde=${evolDesde}&hasta=${evolHasta}&zona=${encodeURIComponent(zonaDelReloj())}`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    })
+      .then(r => r.ok ? r.json() : Promise.reject(new Error('No se pudo cargar la evolución')))
+      .then(d => { if (vigente) setEvol({ cargando: false, datos: d, error: '' }); })
+      .catch(e => { if (vigente) setEvol({ cargando: false, datos: null, error: e.message }); });
+    return () => { vigente = false; };
+  }, [apiUrl, token, evolDesde, evolHasta]);
 
   // Nombre del archivo al imprimir o guardar PDF: "Reporte EMC - 16-10-2026 13.34".
   // El navegador usa el titulo de la pagina como nombre; se cambia solo durante la impresion.
@@ -274,6 +294,11 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
             color: #1a1a2e !important;
             -webkit-text-fill-color: #1a1a2e !important;
           }
+          /* Gráficas: el texto de las gráficas es SVG y necesita su propia regla */
+          .reporte-contenido svg text { fill: #1a1a2e !important; }
+          .reporte-contenido .recharts-cartesian-grid line { stroke: #bbbbbb !important; }
+          .reporte-contenido .recharts-bar-rectangle path { fill: #7FD3D3 !important; stroke: #006B6B !important; }
+          .grafica-evolucion, .grafica-evolucion * { break-inside: avoid; }
           .tarjeta-reporte {
             border: 1px solid #ddd !important;
             break-inside: avoid;
@@ -567,6 +592,49 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
             )}
           </div>
         )}
+
+        {/* SECCIÓN: EVOLUCIÓN DE SÍNTOMAS (las mismas gráficas de la pestaña Evolución, para el periodo del reporte) */}
+        {secciones.evolucion && (() => {
+          const periodoTxt = `Período: ${fechaCompleta(periodo.desde)} al ${fechaCompleta(periodo.hasta)}`;
+          const d = evol.datos;
+          const serie = d ? d.serie_temporal : [];
+          return (
+            <div style={{ marginBottom: '14px' }}>
+              <div style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '4px' }}>
+                📈 Evolución de síntomas
+              </div>
+              <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)', marginBottom: '12px' }}>
+                {periodoTxt}
+              </div>
+              {evol.cargando && <div style={{ fontSize: '12px', padding: '12px 0' }}>Cargando evolución...</div>}
+              {evol.error && <div style={{ fontSize: '12px', padding: '12px 0', color: '#ff6b6b' }}>{evol.error}</div>}
+              {!evol.cargando && !evol.error && d && d.total_registros === 0 && (
+                <div className="tarjeta-reporte" style={{ background: 'rgba(255,255,255,0.04)', border: '2px solid #FFC107', borderRadius: '16px', padding: '16px', fontSize: '13px' }}>
+                  Sin síntomas registrados en este período.
+                </div>
+              )}
+              {!evol.cargando && !evol.error && d && d.total_registros > 0 && periodo.dias === 1 && (
+                <div className="tarjeta-reporte" style={{ background: 'rgba(255,255,255,0.04)', border: '2px solid #FFC107', borderRadius: '16px', padding: '16px', fontSize: '13px' }}>
+                  Con un solo día no hay evolución que graficar.
+                </div>
+              )}
+              {!evol.cargando && !evol.error && d && d.total_registros > 0 && periodo.dias > 1 && (
+                <>
+                  <ResumenEvolucion datos={d} />
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+                    <GraficaIntensidad serie={serie} vista="lineas" periodoTxt={periodoTxt} animar={false} style={{ marginBottom: 0 }} />
+                    <GraficaFrecuencia serie={serie} periodoTxt={periodoTxt} animar={false} style={{ marginBottom: 0 }} />
+                    {d.tipos_disponibles && d.tipos_disponibles.length > 1 && (
+                      <div style={{ gridColumn: '1 / -1' }}>
+                        <GraficaPorTipo serie={serie} tipos={d.tipos_disponibles} periodoTxt={periodoTxt} animar={false} style={{ marginBottom: 0 }} />
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          );
+        })()}
 
         {/* SECCIÓN: SÍNTOMAS MOTORES FRECUENTES */}
         {secciones.sintomas && sintomas_motores.frecuentes.length > 0 && (

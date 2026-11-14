@@ -787,17 +787,29 @@ def evolucion_sintomas(usuario_actual):
     Query params:
       - dias: número de días hacia atrás (default 30)
       - tipo: filtrar por tipo de síntoma (opcional)
+      - desde / hasta: periodo por fechas AAAA-MM-DD (ambos días incluidos).
+        Si vienen, mandan sobre 'dias'. Lo usa el Reporte para igualar su periodo.
     """
     try:
         dias = int(request.args.get('dias', 30))
         tipo_filtro = request.args.get('tipo', None)
 
-        fecha_inicio = ahora_req() - datetime.timedelta(days=dias)
-
-        query = Sintoma.query.filter(
-            Sintoma.usuario_id == usuario_actual.id,
-            Sintoma.fecha_registro >= fecha_inicio
-        )
+        query = Sintoma.query.filter(Sintoma.usuario_id == usuario_actual.id)
+        if request.args.get('desde') and request.args.get('hasta'):
+            try:
+                d_ini = datetime.date.fromisoformat(request.args['desde'])
+                d_fin = datetime.date.fromisoformat(request.args['hasta'])
+            except ValueError:
+                return jsonify({'error': 'Fechas inválidas'}), 400
+            if d_fin < d_ini:
+                return jsonify({'error': 'La fecha final es anterior a la inicial'}), 400
+            dias = (d_fin - d_ini).days + 1
+            query = query.filter(
+                Sintoma.fecha_registro >= datetime.datetime(d_ini.year, d_ini.month, d_ini.day),
+                Sintoma.fecha_registro < datetime.datetime(d_fin.year, d_fin.month, d_fin.day) + datetime.timedelta(days=1)
+            )
+        else:
+            query = query.filter(Sintoma.fecha_registro >= ahora_req() - datetime.timedelta(days=dias))
 
         if tipo_filtro:
             query = query.filter(Sintoma.tipo == tipo_filtro)
