@@ -1,20 +1,21 @@
-import React from 'react';
+import React, { useId } from 'react';
 import {
-  LineChart, Line, BarChart, Bar,
+  ComposedChart, Line, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, ReferenceLine
+  ResponsiveContainer
 } from 'recharts';
 
-// Gráficas de la pestaña Evolución. Las usan Evolución y el Reporte,
+// Gráfica unificada de la pestaña Evolución. La usan Evolución y el Reporte,
 // para que títulos, nombres, unidades y ejes sean idénticos en las dos pantallas.
 
+// ─── Identidad de cada síntoma: color + forma + trazo + nombre ────
 export const COLORES_TIPO = {
-  temblor: '#00A7A7',
-  rigidez: '#E67E22',
+  temblor: '#00868A',
+  rigidez: '#1F3A5F',
   lentitud: '#8E44AD',
-  equilibrio: '#27AE60',
-  fatiga: '#E74C3C',
-  otros: '#95A5A6'
+  equilibrio: '#1E8449',
+  fatiga: '#C0392B',
+  otros: '#5D6D7E'
 };
 
 export const ETIQUETAS_TIPO = {
@@ -26,7 +27,6 @@ export const ETIQUETAS_TIPO = {
   otros: 'Otros'
 };
 
-// Una forma distinta por tipo, para no depender solo del color.
 export const FORMAS_TIPO = {
   temblor: 'circulo',
   rigidez: 'cuadrado',
@@ -36,9 +36,52 @@ export const FORMAS_TIPO = {
   otros: 'triangulo_inv'
 };
 
+export const TRAZOS_TIPO = {
+  temblor: '',
+  rigidez: '10 5',
+  lentitud: '2 5',
+  equilibrio: '12 4 2 4',
+  fatiga: '5 4',
+  otros: '16 5'
+};
+
+// Para síntomas que no están en la lista fija (p. ej. Distonía): se reparten estos, en orden alfabético.
+const EXTRA_FORMAS = ['estrella', 'hexagono', 'equis', 'rombo', 'cuadrado', 'triangulo', 'cruz', 'circulo'];
+const EXTRA_TRAZOS = ['8 3 2 3 2 3', '3 3', '14 3', '6 2 1 2', '10 5', '2 5', '5 4', ''];
+const EXTRA_COLORES = ['#B9770E', '#2E86C1', '#7D3C98', '#117A65', '#A04000', '#34495E', '#CB4335', '#B7950B'];
+
+// "dolor_de_cabeza" -> "Dolor de cabeza"
+const NOMBRES_CONOCIDOS = { distonia: 'Distonía', bradicinesia: 'Bradicinesia', discinesia: 'Discinesia', disfagia: 'Disfagia' };
+function nombreBonito(tipo) {
+  if (NOMBRES_CONOCIDOS[String(tipo).toLowerCase()]) return NOMBRES_CONOCIDOS[String(tipo).toLowerCase()];
+  const t = String(tipo).replace(/_/g, ' ').trim();
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
+
+// Devuelve { clave: { nombre, color, forma, trazo } } para todos los síntomas pedidos.
+export function estiloDeTipos(tipos) {
+  const estilos = {};
+  let i = 0;
+  [...tipos].sort().forEach(t => {
+    if (ETIQUETAS_TIPO[t]) {
+      estilos[t] = { nombre: ETIQUETAS_TIPO[t], color: COLORES_TIPO[t], forma: FORMAS_TIPO[t], trazo: TRAZOS_TIPO[t] };
+    } else {
+      estilos[t] = {
+        nombre: nombreBonito(t),
+        color: EXTRA_COLORES[i % EXTRA_COLORES.length],
+        forma: EXTRA_FORMAS[i % EXTRA_FORMAS.length],
+        trazo: EXTRA_TRAZOS[i % EXTRA_TRAZOS.length]
+      };
+      i++;
+    }
+  });
+  return estilos;
+}
+
 export const TITULO_EJE_FECHA = 'Fecha';
 export const TITULO_EJE_INTENSIDAD = 'Intensidad (0 a 10)';
 export const TITULO_EJE_REGISTROS = 'Registros por día';
+export const TITULO_EJE_REGISTROS_SEMANA = 'Registros por semana';
 
 export const ESTILO_TARJETA = {
   background: 'rgba(255,255,255,0.05)',
@@ -48,6 +91,7 @@ export const ESTILO_TARJETA = {
   marginBottom: '20px'
 };
 
+// "AAAA-MM-DD" -> "DD/MM"
 export function formatFecha(fechaStr) {
   const [, mes, dia] = fechaStr.split('-');
   return `${dia}/${mes}`;
@@ -59,18 +103,84 @@ export function fechaCompleta(fechaStr) {
   return `${d}/${m}/${a}`;
 }
 
-const TICK = { fill: '#FFFFFF', fontWeight: 700, fontSize: 13 };
-const TITULO_EJE = { fill: '#FFFFFF', fontWeight: 700, fontSize: 12 };
-const MARGEN = { top: 8, right: 12, bottom: 4, left: 4 };
-const ALTO_EJE_X = 46;
-const ANCHO_EJE_Y = 50;
+// Lunes de la semana de una fecha "AAAA-MM-DD"
+function lunesDe(fechaStr) {
+  const [a, m, d] = fechaStr.split('-').map(Number);
+  const f = new Date(a, m - 1, d, 12);
+  const dif = (f.getDay() + 6) % 7; // lunes = 0
+  f.setDate(f.getDate() - dif);
+  const p2 = n => String(n).padStart(2, '0');
+  return `${f.getFullYear()}-${p2(f.getMonth() + 1)}-${p2(f.getDate())}`;
+}
 
-const etiquetaX = { value: TITULO_EJE_FECHA, position: 'insideBottom', offset: 0, ...TITULO_EJE };
-const etiquetaY = (texto) => ({ value: texto, angle: -90, position: 'insideLeft', offset: 14, style: { textAnchor: 'middle' }, ...TITULO_EJE });
+const MAX_SERIES = 6;       // si hay más, se muestran 5 y el resto va en «Otros»
+const DIAS_MAX_DIARIO = 31; // si el periodo es más largo, se agrupa por semana
 
-// Dibuja una forma (círculo, cuadrado, etc.) centrada en (cx, cy).
-function Forma({ forma, cx, cy, r, color, borde = '#0D2C4D' }) {
-  const comun = { fill: color, stroke: borde, strokeWidth: 1.5 };
+// Convierte la respuesta de la API en filas listas para graficar.
+// Cada síntoma solo tiene valor en los días (o semanas) en que tiene registros; en los demás, null.
+export function prepararDatos(serie, tipos, dias) {
+  const semanal = dias > DIAS_MAX_DIARIO;
+  const conteo = (fila, t) => (fila[`n_${t}`] != null ? fila[`n_${t}`] : (fila[`intensidad_${t}`] != null ? 1 : 0));
+
+  // 1. Qué síntomas se muestran (los 5 más registrados + «Otros» si hay más de 6)
+  const total = {};
+  tipos.forEach(t => { total[t] = serie.reduce((s, f) => s + conteo(f, t), 0); });
+  let grupoDe = {};
+  let claves;
+  if (tipos.length > MAX_SERIES) {
+    const orden = [...tipos].sort((a, b) => total[b] - total[a] || a.localeCompare(b));
+    const visibles = orden.slice(0, MAX_SERIES - 1);
+    tipos.forEach(t => { grupoDe[t] = visibles.includes(t) ? t : 'otros'; });
+    claves = [...visibles];
+    if (!claves.includes('otros')) claves.push('otros');
+  } else {
+    tipos.forEach(t => { grupoDe[t] = t; });
+    claves = [...tipos];
+  }
+
+  // 2. Agrupar por día o por semana, con promedio ponderado por número de registros
+  const cubos = new Map();
+  serie.forEach(f => {
+    const clave = semanal ? lunesDe(f.fecha) : f.fecha;
+    if (!cubos.has(clave)) {
+      cubos.set(clave, { clave, sumaProm: 0, nProm: 0, registros: 0, por: {} });
+    }
+    const c = cubos.get(clave);
+    const nDia = f.total_registros || 0;
+    c.sumaProm += (f.intensidad_promedio || 0) * nDia;
+    c.nProm += nDia;
+    c.registros += nDia;
+    tipos.forEach(t => {
+      const v = f[`intensidad_${t}`];
+      const n = conteo(f, t);
+      if (v == null || n === 0) return;
+      const g = grupoDe[t];
+      if (!c.por[g]) c.por[g] = { suma: 0, n: 0 };
+      c.por[g].suma += v * n;
+      c.por[g].n += n;
+    });
+  });
+
+  const redondea = x => Math.round(x * 10) / 10;
+  const filas = [...cubos.values()]
+    .sort((a, b) => (a.clave < b.clave ? -1 : 1))
+    .map(c => {
+      const fila = {
+        fecha: c.clave,
+        promedio: c.nProm > 0 ? redondea(c.sumaProm / c.nProm) : null,
+        registros: c.registros
+      };
+      claves.forEach(k => {
+        fila[`s_${k}`] = c.por[k] && c.por[k].n > 0 ? redondea(c.por[k].suma / c.por[k].n) : null;
+      });
+      return fila;
+    });
+  return { filas, claves, semanal };
+}
+
+// ─── Formas para los puntos ─────────────────────────────────────
+function Forma({ forma, cx, cy, r, color, borde = '#1a1a2e', relleno }) {
+  const comun = { fill: relleno || color, stroke: borde, strokeWidth: 1.5 };
   switch (forma) {
     case 'cuadrado':
       return <rect x={cx - r} y={cy - r} width={r * 2} height={r * 2} {...comun} />;
@@ -84,63 +194,78 @@ function Forma({ forma, cx, cy, r, color, borde = '#0D2C4D' }) {
       const a = r + 1, g = 2.2;
       return <polygon points={`${cx - g},${cy - a} ${cx + g},${cy - a} ${cx + g},${cy - g} ${cx + a},${cy - g} ${cx + a},${cy + g} ${cx + g},${cy + g} ${cx + g},${cy + a} ${cx - g},${cy + a} ${cx - g},${cy + g} ${cx - a},${cy + g} ${cx - a},${cy - g} ${cx - g},${cy - g}`} {...comun} />;
     }
+    case 'equis': {
+      const a = r + 1, g = 2.2;
+      return <polygon points={`${cx - g},${cy - a} ${cx + g},${cy - a} ${cx + g},${cy - g} ${cx + a},${cy - g} ${cx + a},${cy + g} ${cx + g},${cy + g} ${cx + g},${cy + a} ${cx - g},${cy + a} ${cx - g},${cy + g} ${cx - a},${cy + g} ${cx - a},${cy - g} ${cx - g},${cy - g}`} {...comun} transform={`rotate(45 ${cx} ${cy})`} />;
+    }
+    case 'estrella': {
+      const R = r + 3, rr = (r + 3) * 0.45;
+      const pts = [];
+      for (let i = 0; i < 10; i++) {
+        const ang = -Math.PI / 2 + (i * Math.PI) / 5;
+        const rad = i % 2 === 0 ? R : rr;
+        pts.push(`${cx + rad * Math.cos(ang)},${cy + rad * Math.sin(ang)}`);
+      }
+      return <polygon points={pts.join(' ')} {...comun} />;
+    }
+    case 'hexagono': {
+      const R = r + 2;
+      const pts = [];
+      for (let i = 0; i < 6; i++) {
+        const ang = (i * Math.PI) / 3;
+        pts.push(`${cx + R * Math.cos(ang)},${cy + R * Math.sin(ang)}`);
+      }
+      return <polygon points={pts.join(' ')} {...comun} />;
+    }
     default:
       return <circle cx={cx} cy={cy} r={r} {...comun} />;
   }
 }
 
-function crearPunto(forma, color, r = 5) {
+function crearPunto(forma, color, r = 5, relleno) {
   return function Punto(props) {
     const { cx, cy, index } = props;
     if (cx == null || cy == null) return null;
-    return <Forma key={`p-${index}`} forma={forma} cx={cx} cy={cy} r={r} color={color} />;
+    return <Forma key={`p-${index}`} forma={forma} cx={cx} cy={cy} r={r} color={color} relleno={relleno} />;
   };
 }
 
-// Leyenda con la forma, el color y el nombre de cada serie.
-function Leyenda({ items }) {
+// ─── Leyenda única ───────────────────────────────────────────────
+function Leyenda({ claves, estilos, tituloRegistros, idRayas }) {
+  const item = { display: 'inline-flex', alignItems: 'center', gap: '6px' };
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 18px', marginTop: '10px', fontSize: '13px', fontWeight: 700, color: '#FFFFFF' }}>
-      {items.map(it => (
-        <span key={it.texto} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-            {it.forma === 'barra'
-              ? <rect x="2" y="2" width="12" height="12" fill={it.color} stroke={it.borde || '#0D2C4D'} strokeWidth="1.5" />
-              : <Forma forma={it.forma} cx={8} cy={8} r={5} color={it.color} />}
-          </svg>
-          {it.texto}
-        </span>
-      ))}
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 18px', marginBottom: '8px', fontSize: '13px', fontWeight: 700, color: '#1a1a2e' }}>
+      {claves.map(k => {
+        const e = estilos[k];
+        return (
+          <span key={k} style={item}>
+            <svg width="40" height="18" viewBox="0 0 40 18" aria-hidden="true">
+              <line x1="1" y1="9" x2="39" y2="9" stroke={e.color} strokeWidth="3" strokeDasharray={e.trazo || undefined} />
+              <Forma forma={e.forma} cx={20} cy={9} r={5} color={e.color} />
+            </svg>
+            {e.nombre}
+          </span>
+        );
+      })}
+      <span style={item}>
+        <svg width="40" height="18" viewBox="0 0 40 18" aria-hidden="true">
+          <line x1="1" y1="9" x2="39" y2="9" stroke="#000" strokeWidth="4" strokeDasharray="2 4" strokeLinecap="round" />
+          <circle cx="20" cy="9" r="4" fill="#fff" stroke="#000" strokeWidth="1.5" />
+        </svg>
+        Promedio
+      </span>
+      <span style={item}>
+        <svg width="22" height="18" viewBox="0 0 22 18" aria-hidden="true">
+          <rect x="2" y="2" width="18" height="14" fill="#D9D9D9" stroke="#8A8A8A" strokeWidth="1.2" />
+          <path d="M2 16 L20 2 M2 10 L11 2 M11 16 L20 8" stroke="#8A8A8A" strokeWidth="1" />
+        </svg>
+        {tituloRegistros}
+      </span>
     </div>
   );
 }
 
-export const TooltipPersonalizado = ({ active, payload, label }) => {
-  if (!active || !payload || !payload.length) return null;
-  return (
-    <div style={{
-      background: '#00A7A7',
-      border: 'none',
-      borderRadius: '10px',
-      padding: '12px 16px',
-      color: '#FFFFFF',
-      fontWeight: 700,
-      fontSize: '15px',
-      minWidth: '160px'
-    }}>
-      <p style={{ margin: '0 0 8px', fontWeight: 'bold', color: '#0D2C4D' }}>
-        {label && /^\d{4}-\d{2}-\d{2}$/.test(label) ? fechaCompleta(label) : label}
-      </p>
-      {payload.map((entry, i) => (
-        <p key={i} style={{ margin: '4px 0', color: '#FFFFFF', fontWeight: 700 }}>
-          {entry.name}: <strong>{entry.value}</strong>
-        </p>
-      ))}
-    </div>
-  );
-};
-
-// Tarjeta de cada gráfica: título, periodo y contenido.
+// ─── Tarjeta ─────────────────────────────────────────────────────
 function TarjetaGrafica({ titulo, periodoTxt, style, children }) {
   return (
     <div className="tarjeta-reporte grafica-evolucion" style={{ ...ESTILO_TARJETA, ...style }}>
@@ -178,110 +303,150 @@ export function ResumenEvolucion({ datos }) {
   );
 }
 
-// ─── Intensidad Promedio por Día ─────────────────────────────────
-export function GraficaIntensidad({ serie, vista = 'lineas', periodoTxt, animar = true, style }) {
-  const ejes = [
-    <CartesianGrid key="g" strokeDasharray="3 3" stroke="rgba(255,255,255,0.25)" />,
-    <XAxis key="x" dataKey="fecha" tickFormatter={formatFecha} tick={TICK} interval="preserveStartEnd" height={ALTO_EJE_X} label={etiquetaX} />,
-    <YAxis key="y" domain={[0, 10]} ticks={[0, 2, 4, 6, 8, 10]} tick={TICK} width={ANCHO_EJE_Y} label={etiquetaY(TITULO_EJE_INTENSIDAD)} />,
-    <Tooltip key="t" content={<TooltipPersonalizado />} />
-  ];
-  return (
-    <TarjetaGrafica titulo="Intensidad Promedio por Día" periodoTxt={periodoTxt} style={style}>
-      <ResponsiveContainer width="100%" height={240}>
-        {vista === 'lineas' ? (
-          <LineChart data={serie} margin={MARGEN}>
-            {ejes}
-            <ReferenceLine y={5} stroke="rgba(255,255,255,0.15)" strokeDasharray="4 4" />
-            <Line type="monotone" dataKey="intensidad_promedio" name="Intensidad" stroke="#FFC107" strokeWidth={4}
-              dot={crearPunto('circulo', '#FFC107', 5)} activeDot={{ r: 7 }} isAnimationActive={animar} />
-          </LineChart>
-        ) : (
-          <BarChart data={serie} margin={MARGEN}>
-            {ejes}
-            <Bar dataKey="intensidad_promedio" name="Intensidad" fill="#FFC107" radius={[4, 4, 0, 0]} isAnimationActive={animar} />
-          </BarChart>
-        )}
-      </ResponsiveContainer>
-      <Leyenda items={[{ forma: vista === 'lineas' ? 'circulo' : 'barra', color: '#FFC107', texto: 'Intensidad' }]} />
-    </TarjetaGrafica>
-  );
-}
+// ─── Gráfica unificada ───────────────────────────────────────────
+const TINTA = '#1a1a2e';
+const TICK = { fill: TINTA, fontWeight: 600, fontSize: 12 };
+const TITULO_EJE = { fill: TINTA, fontWeight: 600, fontSize: 12 };
+const ALTO = 400;
+const MARGEN = { top: 12, right: 8, bottom: 4, left: 4 };
 
-// ─── Evolución por Tipo de Síntoma ───────────────────────────────
-export function GraficaPorTipo({ serie, tipos, periodoTxt, animar = true, style }) {
-  const MARGEN_TIPO = { ...MARGEN, right: 128 };
-  // Posición vertical aproximada del último punto de cada tipo, separada para que las etiquetas no se encimen.
+export function GraficaUnificada({ serie, tipos, dias, periodoTxt, animar = true, style }) {
+  const idRayas = 'rayas-' + useId().replace(/:/g, '');
+  const { filas, claves, semanal } = prepararDatos(serie, tipos, dias);
+  const estilos = estiloDeTipos(claves);
+  const tituloRegistros = semanal ? TITULO_EJE_REGISTROS_SEMANA : TITULO_EJE_REGISTROS;
+  const nombreRegistros = tituloRegistros;
+  const maxReg = Math.max(1, ...filas.map(f => f.registros));
+  const topeDerecho = Math.max(4, Math.ceil(maxReg * 2));
+  const altoEjeX = semanal ? 86 : 44;
+  const altoPlot = ALTO - MARGEN.top - MARGEN.bottom - altoEjeX;
+  const pxPorUnidad = altoPlot / 10;
+
+  // Último punto de cada síntoma, para escribir su nombre sin que se encimen.
   const ultimo = {};
-  tipos.forEach(t => {
-    for (let i = serie.length - 1; i >= 0; i--) {
-      if (serie[i][`intensidad_${t}`] != null) { ultimo[t] = { i, v: serie[i][`intensidad_${t}`] }; break; }
+  claves.forEach(k => {
+    for (let i = filas.length - 1; i >= 0; i--) {
+      if (filas[i][`s_${k}`] != null) { ultimo[k] = { i, v: filas[i][`s_${k}`] }; break; }
     }
   });
-  const PX_POR_UNIDAD = 15, GAP = 13;
-  const orden = tipos.filter(t => ultimo[t]).sort((a, b) => ultimo[b].v - ultimo[a].v);
+  const GAP = 14;
   const desplazamiento = {};
   let yPrevio = null;
-  orden.forEach(t => {
-    const yIdeal = (10 - ultimo[t].v) * PX_POR_UNIDAD;
-    const y = yPrevio === null ? yIdeal : Math.max(yIdeal, yPrevio + GAP);
-    desplazamiento[t] = y - yIdeal;
-    yPrevio = y;
-  });
-  const etiquetaFinal = (tipo) => (props) => {
+  claves.filter(k => ultimo[k])
+    .sort((a, b) => ultimo[b].v - ultimo[a].v)
+    .forEach(k => {
+      const yIdeal = (10 - ultimo[k].v) * pxPorUnidad;
+      const y = yPrevio === null ? yIdeal : Math.max(yIdeal, yPrevio + GAP);
+      desplazamiento[k] = y - yIdeal;
+      yPrevio = y;
+    });
+  const etiquetaFinal = (k) => (props) => {
     const { x, y, index } = props;
-    if (!ultimo[tipo] || index !== ultimo[tipo].i || x == null || y == null) return null;
+    if (!ultimo[k] || index !== ultimo[k].i || x == null || y == null) return null;
     return (
-      <text key={`e-${tipo}`} x={x + 10} y={y + (desplazamiento[tipo] || 0)} dy={4}
-        fill="#FFFFFF" fontSize={11} fontWeight={700}>
-        {ETIQUETAS_TIPO[tipo] || tipo}
+      <text key={`e-${k}`} x={x + 4} y={y - 12 + (desplazamiento[k] || 0)} textAnchor="end"
+        fill={estilos[k].color} fontSize={12} fontWeight={800}
+        stroke="#FFFFFF" strokeWidth={3} paintOrder="stroke">
+        {estilos[k].nombre}
       </text>
     );
   };
+
+  const formatoX = (f) => (semanal ? `Semana del ${formatFecha(f)}` : formatFecha(f));
+
+  const Tip = ({ active, payload, label }) => {
+    if (!active || !payload || !payload.length) return null;
+    const fila = payload[0].payload;
+    return (
+      <div style={{ background: '#FFFFFF', border: '2px solid #1a1a2e', borderRadius: '10px', padding: '10px 14px', color: TINTA, fontSize: '13px', fontWeight: 700, minWidth: '170px' }}>
+        <p style={{ margin: '0 0 6px', fontWeight: 800 }}>{semanal ? `Semana del ${fechaCompleta(label)}` : fechaCompleta(label)}</p>
+        {claves.filter(k => fila[`s_${k}`] != null).map(k => (
+          <p key={k} style={{ margin: '3px 0', color: estilos[k].color }}>{estilos[k].nombre}: <strong>{fila[`s_${k}`]}</strong></p>
+        ))}
+        {fila.promedio != null && <p style={{ margin: '3px 0' }}>Promedio: <strong>{fila.promedio}</strong></p>}
+        <p style={{ margin: '3px 0', color: '#555' }}>{nombreRegistros}: <strong>{fila.registros}</strong></p>
+      </div>
+    );
+  };
+
   return (
-    <TarjetaGrafica titulo="Evolución por Tipo de Síntoma" periodoTxt={periodoTxt} style={style}>
-      <ResponsiveContainer width="100%" height={260}>
-        <LineChart data={serie} margin={MARGEN_TIPO}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.25)" />
-          <XAxis dataKey="fecha" tickFormatter={formatFecha} tick={TICK} interval="preserveStartEnd" height={ALTO_EJE_X} label={etiquetaX} />
-          <YAxis domain={[0, 10]} ticks={[0, 2, 4, 6, 8, 10]} tick={TICK} width={ANCHO_EJE_Y} label={etiquetaY(TITULO_EJE_INTENSIDAD)} />
-          <Tooltip content={<TooltipPersonalizado />} />
-          {tipos.map(tipo => (
+    <TarjetaGrafica titulo="Evolución de síntomas" periodoTxt={periodoTxt} style={style}>
+      <div style={{ background: '#FFFFFF', borderRadius: '12px', padding: '14px 10px 8px', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
+        <Leyenda claves={claves} estilos={estilos} tituloRegistros={tituloRegistros} />
+        <ResponsiveContainer width="100%" height={ALTO}>
+          <ComposedChart data={filas} margin={MARGEN}>
+            <defs>
+              <pattern id={idRayas} width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <rect width="8" height="8" fill="#E3E3E3" />
+                <line x1="0" y1="0" x2="0" y2="8" stroke="#9A9A9A" strokeWidth="2" />
+              </pattern>
+            </defs>
+            <CartesianGrid stroke="#CCCCCC" strokeDasharray="1 3" vertical={false} />
+            <XAxis
+              dataKey="fecha"
+              tickFormatter={formatoX}
+              tick={semanal ? { ...TICK, textAnchor: 'end' } : TICK}
+              angle={semanal ? -35 : 0}
+              interval="preserveStartEnd"
+              minTickGap={semanal ? 18 : 14}
+              height={altoEjeX}
+              padding={{ left: 14, right: 14 }}
+              label={{ value: TITULO_EJE_FECHA, position: 'insideBottom', offset: 0, ...TITULO_EJE }}
+            />
+            <YAxis
+              yAxisId="izq"
+              domain={[0, 10]}
+              ticks={[0, 2, 4, 6, 8, 10]}
+              tick={TICK}
+              width={48}
+              label={{ value: TITULO_EJE_INTENSIDAD, angle: -90, position: 'insideLeft', offset: 8, style: { textAnchor: 'middle' }, ...TITULO_EJE }}
+            />
+            <YAxis
+              yAxisId="der"
+              orientation="right"
+              domain={[0, topeDerecho]}
+              allowDecimals={false}
+              tick={TICK}
+              width={48}
+              label={{ value: tituloRegistros, angle: 90, position: 'insideRight', offset: 8, style: { textAnchor: 'middle' }, ...TITULO_EJE }}
+            />
+            <Tooltip content={<Tip />} />
+            <Bar yAxisId="der" dataKey="registros" name={nombreRegistros} fill={`url(#${idRayas})`} stroke="#8A8A8A" strokeWidth={1}
+              maxBarSize={48} isAnimationActive={animar} />
+            {claves.map(k => (
+              <Line
+                key={k}
+                yAxisId="izq"
+                type="linear"
+                dataKey={`s_${k}`}
+                name={estilos[k].nombre}
+                stroke={estilos[k].color}
+                strokeWidth={3}
+                strokeDasharray={estilos[k].trazo || undefined}
+                dot={crearPunto(estilos[k].forma, estilos[k].color, 5)}
+                activeDot={{ r: 7 }}
+                connectNulls
+                label={etiquetaFinal(k)}
+                isAnimationActive={animar}
+              />
+            ))}
             <Line
-              key={tipo}
-              type="monotone"
-              dataKey={`intensidad_${tipo}`}
-              name={ETIQUETAS_TIPO[tipo] || tipo}
-              stroke={COLORES_TIPO[tipo] || '#95A5A6'}
-              strokeWidth={3}
-              dot={crearPunto(FORMAS_TIPO[tipo] || 'circulo', COLORES_TIPO[tipo] || '#95A5A6', 4)}
+              yAxisId="izq"
+              type="linear"
+              dataKey="promedio"
+              name="Promedio"
+              stroke="#000000"
+              strokeWidth={4}
+              strokeDasharray="2 5"
+              strokeLinecap="round"
+              dot={crearPunto('circulo', '#000000', 4, '#FFFFFF')}
               activeDot={{ r: 6 }}
               connectNulls
-              label={etiquetaFinal(tipo)}
               isAnimationActive={animar}
             />
-          ))}
-        </LineChart>
-      </ResponsiveContainer>
-      <Leyenda items={tipos.map(t => ({ forma: FORMAS_TIPO[t] || 'circulo', color: COLORES_TIPO[t] || '#95A5A6', texto: ETIQUETAS_TIPO[t] || t }))} />
-    </TarjetaGrafica>
-  );
-}
-
-// ─── Frecuencia de Registros ─────────────────────────────────────
-export function GraficaFrecuencia({ serie, periodoTxt, animar = true, style }) {
-  return (
-    <TarjetaGrafica titulo="Frecuencia de Registros" periodoTxt={periodoTxt} style={style}>
-      <ResponsiveContainer width="100%" height={180}>
-        <BarChart data={serie} margin={MARGEN}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.25)" />
-          <XAxis dataKey="fecha" tickFormatter={formatFecha} tick={TICK} interval="preserveStartEnd" height={ALTO_EJE_X} label={etiquetaX} />
-          <YAxis tick={TICK} allowDecimals={false} width={ANCHO_EJE_Y} label={etiquetaY(TITULO_EJE_REGISTROS)} />
-          <Tooltip content={<TooltipPersonalizado />} />
-          <Bar dataKey="total_registros" name="Registros" fill="rgba(0, 167, 167,0.35)" stroke="#00A7A7" strokeWidth={1.5} radius={[3, 3, 0, 0]} isAnimationActive={animar} />
-        </BarChart>
-      </ResponsiveContainer>
-      <Leyenda items={[{ forma: 'barra', color: 'rgba(0, 167, 167,0.35)', borde: '#00A7A7', texto: 'Registros' }]} />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
     </TarjetaGrafica>
   );
 }

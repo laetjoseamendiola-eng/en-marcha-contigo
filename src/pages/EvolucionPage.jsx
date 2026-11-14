@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
-  ResumenEvolucion, GraficaIntensidad, GraficaPorTipo, GraficaFrecuencia,
+  ResumenEvolucion, GraficaUnificada, fechaCompleta,
   COLORES_TIPO, ETIQUETAS_TIPO, ESTILO_TARJETA
 } from '../components/GraficasEvolucion';
 
-// Texto del periodo que se escribe en cada gráfica
-function textoPeriodo(dias) {
-  const hoy = new Intl.DateTimeFormat('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date());
-  return `Período: últimos ${dias} días, hasta el ${hoy}`;
+// Texto del periodo que se escribe en la gráfica
+function textoPeriodo(datos) {
+  if (datos && datos.desde && datos.hasta) return `Período: ${fechaCompleta(datos.desde)} al ${fechaCompleta(datos.hasta)}`;
+  return '';
 }
 
 export default function EvolucionPage({ token, apiUrl }) {
@@ -16,7 +16,6 @@ export default function EvolucionPage({ token, apiUrl }) {
   const [error, setError] = useState(null);
   const [diasFiltro, setDiasFiltro] = useState(30);
   const [tipoFiltro, setTipoFiltro] = useState('todos');
-  const [vistaActiva, setVistaActiva] = useState('lineas'); // 'lineas' | 'barras'
 
   useEffect(() => {
     cargarEvolucion();
@@ -115,20 +114,6 @@ export default function EvolucionPage({ token, apiUrl }) {
           </div>
         )}
 
-        {/* Vista */}
-        <div>
-          <p style={{ margin: '0 0 8px', fontSize: '12px', color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Vista
-          </p>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={() => setVistaActiva('lineas')} style={estiloBtnFiltro(vistaActiva === 'lineas')}>
-              〰 Líneas
-            </button>
-            <button onClick={() => setVistaActiva('barras')} style={estiloBtnFiltro(vistaActiva === 'barras')}>
-              ▐ Barras
-            </button>
-          </div>
-        </div>
       </div>
 
       {/* ─── Estado cargando ─────────────────────────────────────── */}
@@ -149,14 +134,8 @@ export default function EvolucionPage({ token, apiUrl }) {
         <>
           <ResumenEvolucion datos={datos} />
 
-          <GraficaIntensidad serie={datos.serie_temporal} vista={vistaActiva} periodoTxt={textoPeriodo(diasFiltro)} />
-
-          {/* Gráfica por tipo de síntoma (solo si hay varios tipos y no se está filtrando) */}
-          {tipoFiltro === 'todos' && datos.tipos_disponibles?.length > 1 && (
-            <GraficaPorTipo serie={datos.serie_temporal} tipos={datos.tipos_disponibles} periodoTxt={textoPeriodo(diasFiltro)} />
-          )}
-
-          <GraficaFrecuencia serie={datos.serie_temporal} periodoTxt={textoPeriodo(diasFiltro)} />
+          <GraficaUnificada serie={datos.serie_temporal} tipos={datos.tipos_disponibles || []}
+            dias={datos.dias_consultados || diasFiltro} periodoTxt={textoPeriodo(datos)} />
         </>
       )}
     </div>

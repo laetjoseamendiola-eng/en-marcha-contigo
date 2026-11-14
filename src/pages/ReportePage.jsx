@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { leerPreferencias, guardarPreferencias } from '../preferenciasCuenta';
-import { ResumenEvolucion, GraficaIntensidad, GraficaPorTipo, GraficaFrecuencia, fechaCompleta } from '../components/GraficasEvolucion';
+import { ResumenEvolucion, GraficaUnificada, fechaCompleta } from '../components/GraficasEvolucion';
 
 const COLOR_ESTADO = {
   ON: { color: '#27AE60', label: 'ON', emoji: '🟢' },
@@ -294,10 +294,8 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
             color: #1a1a2e !important;
             -webkit-text-fill-color: #1a1a2e !important;
           }
-          /* Gráficas: el texto de las gráficas es SVG y necesita su propia regla */
+          /* Gráfica: su texto es SVG y necesita su propia regla */
           .reporte-contenido svg text { fill: #1a1a2e !important; }
-          .reporte-contenido .recharts-cartesian-grid line { stroke: #bbbbbb !important; }
-          .reporte-contenido .recharts-bar-rectangle path { fill: #7FD3D3 !important; stroke: #006B6B !important; }
           .grafica-evolucion, .grafica-evolucion * { break-inside: avoid; }
           .tarjeta-reporte {
             border: 1px solid #ddd !important;
@@ -621,15 +619,8 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
               {!evol.cargando && !evol.error && d && d.total_registros > 0 && periodo.dias > 1 && (
                 <>
                   <ResumenEvolucion datos={d} />
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
-                    <GraficaIntensidad serie={serie} vista="lineas" periodoTxt={periodoTxt} animar={false} style={{ marginBottom: 0 }} />
-                    <GraficaFrecuencia serie={serie} periodoTxt={periodoTxt} animar={false} style={{ marginBottom: 0 }} />
-                    {d.tipos_disponibles && d.tipos_disponibles.length > 1 && (
-                      <div style={{ gridColumn: '1 / -1' }}>
-                        <GraficaPorTipo serie={serie} tipos={d.tipos_disponibles} periodoTxt={periodoTxt} animar={false} style={{ marginBottom: 0 }} />
-                      </div>
-                    )}
-                  </div>
+                  <GraficaUnificada serie={serie} tipos={d.tipos_disponibles || []} dias={periodo.dias}
+                    periodoTxt={periodoTxt} animar={false} style={{ marginBottom: 0 }} />
                 </>
               )}
             </div>

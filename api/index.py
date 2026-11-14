@@ -795,6 +795,9 @@ def evolucion_sintomas(usuario_actual):
         tipo_filtro = request.args.get('tipo', None)
 
         query = Sintoma.query.filter(Sintoma.usuario_id == usuario_actual.id)
+        hoy_local = ahora_req().date()
+        desde_txt = (hoy_local - datetime.timedelta(days=dias)).isoformat()
+        hasta_txt = hoy_local.isoformat()
         if request.args.get('desde') and request.args.get('hasta'):
             try:
                 d_ini = datetime.date.fromisoformat(request.args['desde'])
@@ -804,6 +807,7 @@ def evolucion_sintomas(usuario_actual):
             if d_fin < d_ini:
                 return jsonify({'error': 'La fecha final es anterior a la inicial'}), 400
             dias = (d_fin - d_ini).days + 1
+            desde_txt, hasta_txt = d_ini.isoformat(), d_fin.isoformat()
             query = query.filter(
                 Sintoma.fecha_registro >= datetime.datetime(d_ini.year, d_ini.month, d_ini.day),
                 Sintoma.fecha_registro < datetime.datetime(d_fin.year, d_fin.month, d_fin.day) + datetime.timedelta(days=1)
@@ -858,12 +862,16 @@ def evolucion_sintomas(usuario_actual):
                 entrada[f'intensidad_{tipo}'] = round(
                     sum(info['intensidades']) / len(info['intensidades']), 1
                 )
+                # Cuántos registros de ese síntoma hubo ese día (para promedios ponderados por semana)
+                entrada[f'n_{tipo}'] = info['count']
             serie_temporal.append(entrada)
 
         return jsonify({
             'serie_temporal': serie_temporal,
             'tipos_disponibles': sorted(list(tipos_encontrados)),
             'dias_consultados': dias,
+            'desde': desde_txt,
+            'hasta': hasta_txt,
             'total_registros': len(sintomas)
         }), 200
 
