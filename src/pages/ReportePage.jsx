@@ -620,7 +620,7 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
                 <>
                   <ResumenEvolucion datos={d} />
                   <GraficaUnificada serie={serie} tipos={d.tipos_disponibles || []} dias={periodo.dias}
-                    periodoTxt={periodoTxt} animar={false} style={{ marginBottom: 0 }} />
+                    periodoTxt={periodoTxt} animar={false} />
                 </>
               )}
             </div>

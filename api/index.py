@@ -864,6 +864,7 @@ def evolucion_sintomas(usuario_actual):
                 )
                 # Cuántos registros de ese síntoma hubo ese día (para promedios ponderados por semana)
                 entrada[f'n_{tipo}'] = info['count']
+                entrada[f'max_{tipo}'] = max(info['intensidades'])
             serie_temporal.append(entrada)
 
         return jsonify({
