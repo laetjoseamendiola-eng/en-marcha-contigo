@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { leerPreferencias, guardarPreferencias } from '../preferenciasCuenta';
 import { ResumenEvolucion, GraficaUnificada, fechaCompleta, numeroDeGraficas } from '../components/GraficasEvolucion';
-import { AdherenciaSeccion, TomasResumenSeccion, DosisSeccion, HauserSeccion, FranjasSeccion, NoMotorSeccion, datosEvolucionNoMotor } from '../components/ReporteSecciones';
+import { formatoDuracion, AdherenciaSeccion, TomasResumenSeccion, DosisSeccion, HauserSeccion, FranjasSeccion, NoMotorSeccion, datosEvolucionNoMotor } from '../components/ReporteSecciones';
 import { GraficasPorGrupos } from '../components/GraficasEvolucion';
 
 const COLOR_ESTADO = {
@@ -614,7 +614,7 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
                 {(estado_motor.episodios_exactos?.intervalos || []).slice().reverse().map((it, i) => (
                   <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', fontSize: '12px', padding: '5px 0', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                     <span>{it.fecha} {it.hora} · {COLOR_ESTADO[it.estado]?.label || it.estado}</span>
-                    <span>{it.duracion_min == null ? (it.sin_cierre_conocido ? 'sin cierre conocido (más de 16 h)' : 'sin cierre') : `${Math.floor(it.duracion_min / 60)} h ${String(it.duracion_min % 60).padStart(2, '0')} min`}</span>
+                    <span>{it.duracion_min == null ? (it.sin_cierre_conocido ? 'sin cierre conocido (más de 16 h)' : 'sin cierre') : formatoDuracion(it.duracion_min)}</span>
                   </div>
                 ))}
               </div>

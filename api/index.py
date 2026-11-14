@@ -1640,7 +1640,8 @@ def calcular_intervalos_exactos(filas, zona, ventana=None):
         if total_min > LIMITE_EPISODIO_MIN:
             if dentro(ep['ocurrio']):
                 sin_cierre_largo.append({'fecha': ep['fecha'], 'hora': ep['hora'], 'estado': ep['estado'],
-                                         'horas_transcurridas': round(total_min / 60, 1)})
+                                         'horas_transcurridas': round(total_min / 60, 1),
+                                         'minutos_transcurridos': total_min})
                 intervalos.append({'fecha': ep['fecha'], 'hora': ep['hora'], 'estado': ep['estado'],
                                    'duracion_min': None, 'sin_cierre_conocido': True})
             continue

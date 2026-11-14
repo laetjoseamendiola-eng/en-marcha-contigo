@@ -73,6 +73,17 @@ function Patrones({ id }) {
   );
 }
 
+// Duraciones: 24 h o más = «X días Y h»; menos de 24 h = «Y h Z min».
+export function formatoDuracion(minutos) {
+  const m = Math.max(0, Math.round(minutos));
+  if (m >= 1440) {
+    const d = Math.floor(m / 1440);
+    const h = Math.floor((m % 1440) / 60);
+    return `${d} ${d === 1 ? 'día' : 'días'} ${h} h`;
+  }
+  return `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min`;
+}
+
 const celda = { padding: '6px 8px', borderTop: '1px solid #999999', color: TINTA, fontSize: '13px' };
 const cab = { padding: '6px 8px', textAlign: 'left', color: TINTA, fontSize: '12px', fontWeight: 800, borderBottom: '2px solid #1a1a2e' };
 const num = { textAlign: 'right', whiteSpace: 'nowrap' };
@@ -382,31 +393,46 @@ export function HauserSeccion({ estadoMotor, periodo, COLOR_ESTADO }) {
       <PanelBlanco style={{ marginTop: '10px' }}>
         <SubTitulo>Horas por estado en el período</SubTitulo>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead><tr><th style={cab}>Estado</th><th style={{ ...cab, ...num }}>Horas</th><th style={{ ...cab, ...num }}>%</th></tr></thead>
+          <thead><tr><th style={cab}>Estado</th><th style={{ ...cab, ...num }}>Tiempo</th><th style={{ ...cab, ...num }}>%</th></tr></thead>
           <tbody>
             {ESTADOS_TODOS.filter(e => (horas[e] || 0) > 0).map(e => (
               <tr key={e}>
                 <td style={{ ...celda, fontWeight: 700 }}>{COLOR_ESTADO[e].label}</td>
-                <td style={{ ...celda, ...num }}>{horas[e]} h</td>
+                <td style={{ ...celda, ...num }}>{formatoDuracion(horas[e] * 60)}</td>
                 <td style={{ ...celda, ...num }}>{totalH > 0 ? Math.round(horas[e] / totalH * 100) : 0}%</td>
               </tr>
             ))}
             <tr>
               <td style={{ ...celda, fontWeight: 800, borderTop: '2px solid #1a1a2e' }}>Total con registro</td>
-              <td style={{ ...celda, ...num, fontWeight: 800, borderTop: '2px solid #1a1a2e' }}>{Math.round(totalH * 100) / 100} h</td>
+              <td style={{ ...celda, ...num, fontWeight: 800, borderTop: '2px solid #1a1a2e' }}>{formatoDuracion(totalH * 60)}</td>
               <td style={{ ...celda, ...num, fontWeight: 800, borderTop: '2px solid #1a1a2e' }}>100%</td>
             </tr>
           </tbody>
         </table>
-        {(largo.length > 0 || exactos.sin_cierre > 0) && (
-          <div style={{ fontSize: '12px', color: TINTA, padding: '8px 8px 2px', lineHeight: 1.5 }}>
-            <strong>Sin cierre conocido</strong> (no suman horas):
-            {exactos.sin_cierre > 0 && <> {exactos.sin_cierre} {exactos.sin_cierre === 1 ? 'episodio' : 'episodios'} sin otro registro después (el último de cada serie).</>}
-            {largo.length > 0 && <> {largo.length} {largo.length === 1 ? 'episodio' : 'episodios'} con más de 16 horas hasta el siguiente registro:
-              {' '}{largo.map(l => `${fechaCompleta(l.fecha)} ${l.hora} ${COLOR_ESTADO[l.estado]?.label || l.estado} (${l.horas_transcurridas} h)`).join('; ')}.</>}
-          </div>
-        )}
       </PanelBlanco>
+      {(largo.length > 0 || exactos.sin_cierre > 0) && (
+        <PanelBlanco style={{ marginTop: '10px' }}>
+          <SubTitulo>Episodios sin cierre conocido (no suman horas)</SubTitulo>
+          {largo.length > 0 && (
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead><tr><th style={cab}>Inicio del episodio</th><th style={cab}>Estado</th><th style={{ ...cab, ...num }}>Tiempo sin registro</th></tr></thead>
+              <tbody>
+                {largo.map((l, i) => (
+                  <tr key={i}>
+                    <td style={{ ...celda, whiteSpace: 'nowrap' }}>{fechaCompleta(l.fecha)} {l.hora}</td>
+                    <td style={{ ...celda, fontWeight: 700 }}>{COLOR_ESTADO[l.estado]?.label || l.estado}</td>
+                    <td style={{ ...celda, ...num, fontWeight: 700 }}>{formatoDuracion(l.minutos_transcurridos != null ? l.minutos_transcurridos : l.horas_transcurridas * 60)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          <div style={{ fontSize: '11px', color: TINTA, padding: '6px 8px 2px', lineHeight: 1.5 }}>
+            Pasaron más de 16 horas hasta el siguiente registro, así que no se sabe cuánto duró el estado.
+            {exactos.sin_cierre > 0 && <> Además, {exactos.sin_cierre} {exactos.sin_cierre === 1 ? 'episodio no tiene' : 'episodios no tienen'} otro registro después, y por eso tampoco {exactos.sin_cierre === 1 ? 'tiene' : 'tienen'} duración.</>}
+          </div>
+        </PanelBlanco>
+      )}
     </SeccionReporte>
   );
 }
