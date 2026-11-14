@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { leerPreferencias, guardarPreferencias } from '../preferenciasCuenta';
-import { ResumenEvolucion, GraficaUnificada, fechaCompleta } from '../components/GraficasEvolucion';
+import { ResumenEvolucion, GraficaUnificada, fechaCompleta, numeroDeGraficas } from '../components/GraficasEvolucion';
+import { AdherenciaSeccion, TomasResumenSeccion, DosisSeccion, HauserSeccion, FranjasSeccion, NoMotorSeccion, datosEvolucionNoMotor } from '../components/ReporteSecciones';
+import { GraficasPorGrupos } from '../components/GraficasEvolucion';
 
 const COLOR_ESTADO = {
   ON: { color: '#27AE60', label: 'ON', emoji: '🟢' },
@@ -131,14 +133,22 @@ const plural = (n, singular, pluralTxt) => `${n} ${n === 1 ? singular : pluralTx
 
 // Secciones del Reporte que se pueden mostrar u ocultar con casillas (no se guardan en la base).
 const SECCIONES_ITEMS = [
+  ['tomas', 'Tomas por medicamento'],
+  ['dosis', 'Dosis y horarios'],
   ['estadoMotor', 'Estado motor'],
   ['franjas', 'Franjas del día'],
-  ['noMotor', 'Síntomas no motores'],
   ['evolucion', 'Evolución de síntomas'],
-  ['sintomas', 'Síntomas reportados'],
-  ['dosis', 'Dosis vigentes'],
-  ['tomas', 'Tomas y dosis'],
-  ['zona', 'Cambios de zona'],
+  ['noMotor', 'Síntomas no motores'],
+];
+
+// Anexos (apagados por defecto): el detalle completo que no cabe en el Reporte resumido.
+const ANEXOS_ITEMS = [
+  ['A', 'A. Detalle de tomas'],
+  ['B', 'B. Historial de dosis'],
+  ['C', 'C. Registro por fecha (no motores)'],
+  ['D', 'D. Episodios de Hauser'],
+  ['E', 'E. Cambios de zona horaria'],
+  ['F', 'F. Más gráficas de evolución'],
 ];
 
 const FRANJAS = [
@@ -165,7 +175,8 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
     if (hastaOk !== fechaHasta) setFechaHasta(hastaOk);
   }, [fechaDesde, fechaHasta, minFecha, maxFecha]);
   const reporteRef = useRef(null);
-  const [secciones, setSecciones] = useState({ estadoMotor: true, franjas: true, noMotor: true, evolucion: true, sintomas: true, dosis: true, tomas: true, zona: true });
+  const [secciones, setSecciones] = useState({ estadoMotor: true, franjas: true, noMotor: true, evolucion: true, dosis: true, tomas: true });
+  const [anexos, setAnexos] = useState({ A: false, B: false, C: false, D: false, E: false, F: false });
   const prefListoRef = useRef(false);
 
   // Periodo guardado en la cuenta: se carga al abrir y se guarda al cambiar.
@@ -297,6 +308,15 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
           /* Gráfica: su texto es SVG y necesita su propia regla */
           .reporte-contenido svg text { fill: #1a1a2e !important; }
           .grafica-evolucion, .grafica-evolucion * { break-inside: avoid; }
+          /* Reporte resumido: compacto y con los anexos en hoja nueva */
+          .reporte-contenido .tarjeta-reporte { padding: 10px 12px !important; margin-bottom: 8px !important; }
+          @page { margin: 10mm; }
+          .reporte-contenido .seccion-reporte { break-inside: auto !important; }
+          .reporte-contenido .panel-reporte { break-inside: avoid; }
+          .reporte-contenido .seccion-reporte > div:nth-child(-n+2) { break-after: avoid; }
+          .anexos-reporte { break-before: page; }
+          .anexos-reporte .tarjeta-reporte { break-inside: auto; }
+          .reporte-contenido { font-size: 12px; }
           .tarjeta-reporte {
             border: 1px solid #ddd !important;
             break-inside: avoid;
@@ -356,11 +376,20 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
           </button>
         </div>
 
-        {/* Casillas de secciones (no imprimir). Lo que no está marcado no sale ni en pantalla ni en impresión. */}
-        <div className="no-print" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '16px', fontSize: '12px', color: 'rgba(255,255,255,0.9)' }}>
+        {/* Casillas de secciones y anexos (no imprimir). Lo que no está marcado no sale ni en pantalla ni en impresión. */}
+        <div className="no-print" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '8px', fontSize: '12px', color: 'rgba(255,255,255,0.9)' }}>
           {SECCIONES_ITEMS.map(([clave, texto]) => (
             <label key={clave} style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
-              <input type="checkbox" checked={secciones[clave]} onChange={e => setSecciones(s => ({ ...s, [clave]: e.target.checked }))} />
+              <input type="checkbox" checked={secciones[clave]} onChange={e => setSecciones(x => ({ ...x, [clave]: e.target.checked }))} />
+              {texto}
+            </label>
+          ))}
+        </div>
+        <div className="no-print" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '16px', fontSize: '12px', color: 'rgba(255,255,255,0.9)' }}>
+          <strong>Anexos:</strong>
+          {ANEXOS_ITEMS.map(([clave, texto]) => (
+            <label key={clave} style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+              <input type="checkbox" checked={anexos[clave]} onChange={e => setAnexos(x => ({ ...x, [clave]: e.target.checked }))} />
               {texto}
             </label>
           ))}
@@ -410,188 +439,22 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
           </div>
         </div>
 
-        {/* SECCIÓN: ADHERENCIA */}
-        <div className="tarjeta-reporte" style={{
-          background: 'rgba(255,255,255,0.04)',
-          border: '2px solid #FFC107',
-          borderRadius: '16px',
-          padding: '20px',
-          marginBottom: '14px',
-        }}>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '14px' }}>
-            💊 Adherencia al Tratamiento
-          </div>
-          <BarraAdherencia pct={adherencia.porcentaje} />
-          <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: '10px', marginTop: '14px',
-          }}>
-            {[
-              { label: 'Tomas programadas', valor: adherencia.total_programadas, color: 'rgba(255,255,255,0.93)' },
-              { label: 'Tomadas', valor: adherencia.tomadas, color: '#27AE60' },
-              { label: 'Omitidas', valor: adherencia.omitidas, color: '#E74C3C' },
-            ].map(item => (
-              <div key={item.label} style={{
-                background: 'rgba(255,255,255,0.03)',
-                borderRadius: '10px',
-                padding: '10px',
-                textAlign: 'center',
-              }}>
-                <div className="texto-reporte" style={{ fontSize: '22px', fontWeight: 'bold', color: item.color }}>{item.valor}</div>
-                <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginTop: '2px' }}>{item.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* 2. ADHERENCIA */}
+        <AdherenciaSeccion adherencia={adherencia} periodo={periodo} BarraAdherencia={<BarraAdherencia pct={adherencia.porcentaje} />} />
 
-        {/* SECCIÓN: ESTADO MOTOR */}
-        {secciones.estadoMotor && totalHorasRegistradas > 0 && (
-          <div className="tarjeta-reporte" style={{
-            background: 'rgba(255,255,255,0.04)',
-            border: '2px solid #FFC107',
-            borderRadius: '16px',
-            padding: '20px',
-            marginBottom: '14px',
-          }}>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '14px' }}>
-              🌡️ Estado Motor — Diario de Hauser
-            </div>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {Object.entries(COLOR_ESTADO).map(([key, def]) => {
-                const h = horas[key] || 0;
-                if (h === 0) return null;
-                const pct = totalHorasRegistradas > 0 ? Math.round((h / totalHorasRegistradas) * 100) : 0;
-                return (
-                  <div key={key} style={{
-                    background: def.color + '18',
-                    border: `1px solid ${def.color + '50'}`,
-                    borderRadius: '12px',
-                    padding: '12px 16px',
-                    flex: '1 1 120px',
-                    minWidth: '100px',
-                  }}>
-                    <div style={{ fontSize: '20px', marginBottom: '4px' }}>{def.emoji}</div>
-                    <div className="texto-reporte" style={{ fontSize: '18px', fontWeight: 'bold', color: def.color }}>{h}h</div>
-                    <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)' }}>{def.label} · {pct}%</div>
-                    <div className="subtexto-reporte" style={{ fontSize: '10px', color: 'rgba(255,255,255,0.93)', marginTop: '4px' }}>
-                      Exacto: {estado_motor.horas_exactas?.[key] ?? 0} h · Bloques: {estado_motor.horas_por_bloque?.[key] ?? 0} h
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            {estado_motor.episodios_exactos?.total > 0 && (
-              <div style={{ marginTop: '14px', fontSize: '12px', color: 'rgba(255,255,255,0.93)', lineHeight: 1.6 }}>
-                Episodios con hora exacta: {estado_motor.episodios_exactos.total}. Cada duración va desde un episodio hasta el siguiente del mismo día.
-                El último episodio de cada día no tiene cierre conocido, así que no se le calcula duración ({estado_motor.episodios_exactos.sin_cierre} sin cierre).
-                {estado_motor.total_bloques > 0 && <> Los bloques históricos de 30 minutos (sin minutos exactos) se suman solo cuando no se cruzan con un intervalo exacto: {estado_motor.total_bloques} bloques contados.</>}
-                {estado_motor.bloques_en_conflicto > 0 && <> Se omitieron {estado_motor.bloques_en_conflicto} bloques que se cruzan con un intervalo exacto, para no duplicar tiempo ni inventar minutos.</>}
-              </div>
-            )}
-            {estado_motor.episodios_exactos?.intervalos?.length > 0 && (
-              <div style={{ marginTop: '10px' }}>
-                {estado_motor.episodios_exactos.intervalos.slice(-20).reverse().map((it, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', fontSize: '12px', padding: '5px 0', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                    <span>{it.fecha} {it.hora} · {COLOR_ESTADO[it.estado]?.label || it.estado}</span>
-                    <span>{it.duracion_min == null ? 'sin cierre' : `${Math.floor(it.duracion_min / 60)} h ${String(it.duracion_min % 60).padStart(2, '0')} min`}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+        {/* 3. TOMAS: RESUMEN POR MEDICAMENTO */}
+        {secciones.tomas && <TomasResumenSeccion adherencia={adherencia} />}
 
-        {/* SECCIÓN: FRANJAS DEL DÍA */}
-        {secciones.franjas && (
-          <div className="tarjeta-reporte" style={{
-            background: 'rgba(255,255,255,0.04)',
-            border: '2px solid #FFC107',
-            borderRadius: '16px',
-            padding: '20px',
-            marginBottom: '14px',
-          }}>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '6px' }}>
-              🕐 Franjas del día
-            </div>
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginBottom: '12px', lineHeight: 1.6 }}>
-              Estado OFF: se cuenta por la hora exacta del episodio. Síntomas reportados: se cuentan por la hora en que se capturaron, no por la hora del síntoma.
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr 1fr', gap: '6px', fontSize: '12px', color: 'rgba(255,255,255,0.85)' }}>
-              <div style={{ fontWeight: 700, color: '#00A7A7' }}>Franja</div>
-              <div style={{ fontWeight: 700, color: '#00A7A7' }}>Estado OFF</div>
-              <div style={{ fontWeight: 700, color: '#00A7A7' }}>Síntomas</div>
-              {FRANJAS.map(f => (
-                <React.Fragment key={f.key}>
-                  <div>{f.label}</div>
-                  <div>{reporte.franjas?.estado_motor_off?.[f.key] ?? 0}</div>
-                  <div>{reporte.franjas?.sintomas_reportados?.[f.key] ?? 0}</div>
-                </React.Fragment>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* 4. DOSIS VIGENTE Y CAMBIOS */}
+        {secciones.dosis && <DosisSeccion historial={reporte.historial_dosis || []} periodo={periodo} />}
 
-        {/* SECCIÓN: SÍNTOMAS NO MOTORES */}
-        {secciones.noMotor && no_motor.dias_registrados > 0 && (
-          <div className="tarjeta-reporte" style={{
-            background: 'rgba(255,255,255,0.04)',
-            border: '2px solid #FFC107',
-            borderRadius: '16px',
-            padding: '20px',
-            marginBottom: '14px',
-          }}>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '14px' }}>
-              🌿 Síntomas No Motores — Promedio del Período
-            </div>
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginBottom: '12px' }}>
-              Escala 0–4 · 0 = sin problema · 4 = severo · Basado en {plural(no_motor.dias_registrados, 'día', 'días')} con registro
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {Object.entries(NO_MOTOR_LABELS).map(([key, def]) => {
-                const v = no_motor.promedios?.[key];
-                if (v === null || v === undefined) return null;
-                const color = COLOR_PROMEDIO(v);
-                return (
-                  <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '18px', width: '24px', flexShrink: 0 }}>{def.emoji}</span>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
-                        <span className="texto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)' }}>{def.label}</span>
-                        <span style={{ fontSize: '12px', fontWeight: '600', color }}>
-                          {v} — {LABEL_PROMEDIO(v)}
-                        </span>
-                      </div>
-                      <div style={{ height: '6px', background: 'rgba(255,255,255,0.06)', borderRadius: '3px', overflow: 'hidden' }}>
-                        <div style={{
-                          height: '100%',
-                          width: `${(v / 4) * 100}%`,
-                          background: color,
-                          borderRadius: '3px',
-                        }} />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            {no_motor.registros?.length > 0 && (
-              <div style={{ marginTop: '14px' }}>
-                <div style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.85)', marginBottom: '2px' }}>Registro por fecha</div>
-                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginBottom: '6px' }}>Es un registro diario, por eso no tiene hora.</div>
-                {no_motor.registros.slice().sort((a, b) => (a.fecha < b.fecha ? 1 : -1)).map(r => (
-                  <div key={r.id} style={{ fontSize: '12px', padding: '6px 0', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                    <div style={{ fontWeight: 600 }}>{new Date(r.fecha + 'T12:00:00').toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' })}</div>
-                    <div style={{ color: 'rgba(255,255,255,0.8)' }}>
-                      {Object.entries(NO_MOTOR_LABELS).filter(([k]) => r[k] !== null && r[k] !== undefined).map(([k, def]) => `${def.label} ${r[k]}`).join(' · ')}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+        {/* 5. DIARIO DE HAUSER */}
+        {secciones.estadoMotor && <HauserSeccion estadoMotor={estado_motor} periodo={periodo} COLOR_ESTADO={COLOR_ESTADO} />}
 
-        {/* SECCIÓN: EVOLUCIÓN DE SÍNTOMAS (las mismas gráficas de la pestaña Evolución, para el periodo del reporte) */}
+        {/* 6. FRANJAS DEL DÍA */}
+        {secciones.franjas && <FranjasSeccion franjas={reporte.franjas} FRANJAS={FRANJAS} />}
+
+        {/* 7. EVOLUCIÓN DE SÍNTOMAS: primera gráfica + tabla; el resto va al Anexo F */}
         {secciones.evolucion && (() => {
           const periodoTxt = `Período: ${fechaCompleta(periodo.desde)} al ${fechaCompleta(periodo.hasta)}`;
           const d = evol.datos;
@@ -620,55 +483,24 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
                 <>
                   <ResumenEvolucion datos={d} />
                   <GraficaUnificada serie={serie} tipos={d.tipos_disponibles || []} dias={periodo.dias}
-                    periodoTxt={periodoTxt} animar={false} />
+                    periodoTxt={periodoTxt} animar={false} fin={1} alto={230} />
                 </>
               )}
             </div>
           );
         })()}
 
-        {/* SECCIÓN: SÍNTOMAS MOTORES FRECUENTES */}
-        {secciones.sintomas && sintomas_motores.frecuentes.length > 0 && (
-          <div className="tarjeta-reporte" style={{
-            background: 'rgba(255,255,255,0.04)',
-            border: '2px solid #FFC107',
-            borderRadius: '16px',
-            padding: '20px',
-            marginBottom: '14px',
-          }}>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '14px' }}>
-              ✏️ Síntomas Reportados ({sintomas_motores.total} en total)
-            </div>
-            <div style={{ display: 'flex', flex: '1', gap: '8px', flexWrap: 'wrap' }}>
-              {sintomas_motores.frecuentes.map(s => (
-                <div key={s.tipo} style={{
-                  background: 'rgba(255,255,255,0.06)',
-                  border: '1px solid rgba(255,255,255,0.35)',
-                  borderRadius: '20px',
-                  padding: '6px 14px',
-                  fontSize: '13px',
-                  color: 'rgba(255,255,255,0.93)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                }}>
-                  <span style={{
-                    background: '#00A7A7',
-                    color: 'white',
-                    borderRadius: '10px',
-                    padding: '1px 7px',
-                    fontSize: '11px',
-                    fontWeight: 'bold',
-                  }}>{s.conteo}×</span>
-                  {s.tipo}
-                </div>
-              ))}
-            </div>
-          </div>
+
+        {/* 8. NO MOTORES */}
+        {secciones.noMotor && no_motor.dias_registrados > 0 && (
+          <NoMotorSeccion noMotor={no_motor} periodo={periodo} NO_MOTOR_LABELS={NO_MOTOR_LABELS} LABEL_PROMEDIO={LABEL_PROMEDIO} />
         )}
 
-        {/* SECCIÓN: DOSIS Y HORARIOS VIGENTES EN EL PERÍODO (P62) */}
-        <div style={{ display: secciones.dosis ? 'block' : 'none' }}>
+        {/* ANEXOS (apagados por defecto): empiezan en hoja nueva al imprimir */}
+        {Object.values(anexos).some(Boolean) && (
+          <div className="anexos-reporte">
+            <div style={{ fontSize: '16px', fontWeight: 800, color: '#00A7A7', margin: '8px 0 12px' }}>Anexos</div>
+            {anexos.A && (<>
         <div className="tarjeta-reporte" style={{
           background: 'rgba(255,255,255,0.04)',
           border: '2px solid #FFC107',
@@ -677,40 +509,7 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
           marginBottom: '14px',
         }}>
           <div style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '10px' }}>
-            💊 Dosis y horarios vigentes ({(reporte.historial_dosis || []).length})
-          </div>
-          {(reporte.historial_dosis || []).length === 0 && (
-            <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)' }}>
-              Sin registros de dosis en el período.
-            </div>
-          )}
-          {(reporte.historial_dosis || []).map((h, i) => (
-            <div key={i} className="texto-reporte" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginBottom: '8px' }}>
-              <strong>{h.medicamento}</strong>: {h.dosis}, a las {h.horarios.map(horaCorta12).join(' y ')}
-              <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)' }}>
-                Desde {new Date(h.desde).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short', timeZone: zonaDelReloj() })}{h.hora_utc ? ' UTC' : ''}
-                {' · '}{h.hasta
-                  ? `hasta ${new Date(h.hasta).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short', timeZone: zonaDelReloj() })}${h.hora_utc ? ' UTC' : ''}`
-                  : 'vigente'}
-                {h.hora_utc ? ' · registrado en hora UTC, antes del cambio a hora local' : ''}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        </div>
-
-        {/* SECCIÓN: DOSIS VIGENTE EN CADA TOMA (P62 por toma) */}
-        <div style={{ display: secciones.tomas ? 'block' : 'none' }}>
-        <div className="tarjeta-reporte" style={{
-          background: 'rgba(255,255,255,0.04)',
-          border: '2px solid #FFC107',
-          borderRadius: '16px',
-          padding: '20px',
-          marginBottom: '14px',
-        }}>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '10px' }}>
-            🕒 Tomas y dosis vigente ({(reporte.tomas_dosis || []).length})
+            Anexo A — Tomas y dosis vigente ({(reporte.tomas_dosis || []).length})
           </div>
           {(reporte.tomas_dosis || []).length === 0 && (
             <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)' }}>
@@ -759,11 +558,8 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
             </>
           )}
         </div>
-
-        </div>
-
-        {/* SECCIÓN: CAMBIOS DE ZONA HORARIA (para interpretar jetlag, dosis de más o de menos) */}
-        <div style={{ display: secciones.zona ? 'block' : 'none' }}>
+            </>)}
+            {anexos.B && (<>
         <div className="tarjeta-reporte" style={{
           background: 'rgba(255,255,255,0.04)',
           border: '2px solid #FFC107',
@@ -772,7 +568,67 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
           marginBottom: '14px',
         }}>
           <div style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '10px' }}>
-            🌍 Cambios de zona horaria ({(reporte.cambios_zona || []).length})
+            Anexo B — Historial de dosis y horarios ({(reporte.historial_dosis || []).length})
+          </div>
+          {(reporte.historial_dosis || []).length === 0 && (
+            <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)' }}>
+              Sin registros de dosis en el período.
+            </div>
+          )}
+          {(reporte.historial_dosis || []).map((h, i) => (
+            <div key={i} className="texto-reporte" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginBottom: '8px' }}>
+              <strong>{h.medicamento}</strong>: {h.dosis}, a las {h.horarios.map(horaCorta12).join(' y ')}
+              <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)' }}>
+                Desde {new Date(h.desde).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short', timeZone: zonaDelReloj() })}{h.hora_utc ? ' UTC' : ''}
+                {' · '}{h.hasta
+                  ? `hasta ${new Date(h.hasta).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short', timeZone: zonaDelReloj() })}${h.hora_utc ? ' UTC' : ''}`
+                  : 'vigente'}
+                {h.hora_utc ? ' · registrado en hora UTC, antes del cambio a hora local' : ''}
+              </div>
+            </div>
+          ))}
+        </div>
+            </>)}
+            {anexos.C && no_motor.registros?.length > 0 && (
+              <div className="tarjeta-reporte" style={{ background: 'rgba(255,255,255,0.04)', border: '2px solid #FFC107', borderRadius: '16px', padding: '20px', marginBottom: '14px' }}>
+                <div style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '4px' }}>Anexo C — Registro por fecha (síntomas no motores)</div>
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginBottom: '6px' }}>Es un registro diario, por eso no tiene hora.</div>
+                {no_motor.registros.slice().sort((a, b) => (a.fecha < b.fecha ? 1 : -1)).map(r => (
+                  <div key={r.id} style={{ fontSize: '12px', padding: '6px 0', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div style={{ fontWeight: 600 }}>{new Date(r.fecha + 'T12:00:00').toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' })}</div>
+                    <div style={{ color: 'rgba(255,255,255,0.8)' }}>
+                      {Object.entries(NO_MOTOR_LABELS).filter(([k]) => r[k] !== null && r[k] !== undefined).map(([k, def]) => `${def.label} ${r[k]}`).join(' · ')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {anexos.D && (
+              <div className="tarjeta-reporte" style={{ background: 'rgba(255,255,255,0.04)', border: '2px solid #FFC107', borderRadius: '16px', padding: '20px', marginBottom: '14px' }}>
+                <div style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '4px' }}>Anexo D — Episodios de Hauser con hora exacta ({estado_motor.episodios_exactos?.total ?? 0})</div>
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginBottom: '8px', lineHeight: 1.6 }}>
+                  Cada duración va desde un episodio hasta el siguiente. Si pasan más de 16 horas sin otro registro, queda «sin cierre conocido» y no suma horas.
+                  {estado_motor.total_bloques > 0 && <> Bloques históricos de 30 minutos contados: {estado_motor.total_bloques}.</>}
+                  {estado_motor.bloques_en_conflicto > 0 && <> Bloques omitidos por cruzarse con un intervalo exacto: {estado_motor.bloques_en_conflicto}.</>}
+                </div>
+                {(estado_motor.episodios_exactos?.intervalos || []).slice().reverse().map((it, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', fontSize: '12px', padding: '5px 0', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                    <span>{it.fecha} {it.hora} · {COLOR_ESTADO[it.estado]?.label || it.estado}</span>
+                    <span>{it.duracion_min == null ? (it.sin_cierre_conocido ? 'sin cierre conocido (más de 16 h)' : 'sin cierre') : `${Math.floor(it.duracion_min / 60)} h ${String(it.duracion_min % 60).padStart(2, '0')} min`}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {anexos.E && (<>
+        <div className="tarjeta-reporte" style={{
+          background: 'rgba(255,255,255,0.04)',
+          border: '2px solid #FFC107',
+          borderRadius: '16px',
+          padding: '20px',
+          marginBottom: '14px',
+        }}>
+          <div style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '10px' }}>
+            Anexo E — Cambios de zona horaria ({(reporte.cambios_zona || []).length})
           </div>
           {(reporte.cambios_zona || []).length === 0 && (
             <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)' }}>
@@ -787,8 +643,24 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
             </div>
           ))}
         </div>
-
-        </div>
+            </>)}
+            {anexos.F && (() => {
+              const periodoTxtF = `Período: ${fechaCompleta(periodo.desde)} al ${fechaCompleta(periodo.hasta)}`;
+              const hayMotor = evol.datos && evol.datos.total_registros > 0 && periodo.dias > 1 && numeroDeGraficas(evol.datos.serie_temporal, evol.datos.tipos_disponibles || []) > 1;
+              const nm = datosEvolucionNoMotor(no_motor, periodo, NO_MOTOR_LABELS);
+              const hayNoMotor = nm.serie.length >= 2 && nm.orden.length > 5;
+              if (!hayMotor && !hayNoMotor) {
+                return <div className="tarjeta-reporte" style={{ background: 'rgba(255,255,255,0.04)', border: '2px solid #FFC107', borderRadius: '16px', padding: '16px', fontSize: '13px', marginBottom: '14px' }}>Anexo F — No hay más gráficas: todas caben en el Reporte principal.</div>;
+              }
+              return (<>
+                {hayMotor && <GraficaUnificada serie={evol.datos.serie_temporal} tipos={evol.datos.tipos_disponibles || []} dias={periodo.dias}
+                  periodoTxt={periodoTxtF} animar={false} inicio={1} conTabla={false} alto={230} />}
+                {hayNoMotor && <GraficasPorGrupos filas={nm.filas} semanal={nm.semanal} claves={nm.orden} titulo="Evolución de síntomas no motores"
+                  periodoTxt={periodoTxtF} animar={false} inicio={1} nombreDe={k => NO_MOTOR_LABELS[k].label} maximo={4} ticks={[0, 1, 2, 3, 4]} tituloY="Nivel (0 a 4)" alto={230} />}
+              </>);
+            })()}
+          </div>
+        )}
 
         {/* PIE */}
         <div style={{

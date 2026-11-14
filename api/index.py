@@ -1579,6 +1579,21 @@ def _duraciones_de(uid, ids):
     return {f.evento_id: {'minutos': f.minutos, 'origen': f.origen} for f in filas}
 
 
+LIMITE_EPISODIO_MIN = 16 * 60  # más de 16 h sin otro registro = sin cierre conocido
+
+
+def _banderas_toma(t):
+    """(fuera_de_horario, registro_extemporaneo) de una toma. Mismas reglas P65/P66 para toda la app."""
+    fuera_de_horario = bool(t.tomada and t.fecha_toma_real and
+                            abs((t.fecha_toma_real - t.fecha_programada).total_seconds()) > 30 * 60)
+    # Solo cuentan las capturas hechas desde este cambio (hora local). Antes, fecha_registro era la hora UTC
+    # de creación de la toma y no sirve para medir la captura.
+    registro_extemporaneo = bool(t.tomada and t.fecha_toma_real and t.fecha_registro and
+                                 t.fecha_registro >= datetime.datetime(2026, 10, 11, 2, 0) and
+                                 (t.fecha_registro - t.fecha_toma_real).total_seconds() > 30 * 60)
+    return fuera_de_horario, registro_extemporaneo
+
+
 def calcular_intervalos_exactos(filas, zona, ventana=None):
     """
     Duraciones exactas del estado motor (HZ-REG-01).
@@ -1588,9 +1603,12 @@ def calcular_intervalos_exactos(filas, zona, ventana=None):
     - La duración se atribuye completa al episodio donde empieza: no se parte ni se repite entre días o ventanas.
     - Dos episodios con el mismo instante: prevalece el de mayor id (último guardado); el otro no suma tiempo.
     - El último episodio sin siguiente cambio conocido no tiene duración calculada.
+    - Si pasan más de LIMITE_EPISODIO_MIN (16 h) hasta el siguiente cambio, el episodio queda «sin cierre conocido»:
+      no suma horas y se informa aparte (decisión de Toño, 2026-11-14). No se inventa duración.
     """
     estados = ('ON', 'OFF', 'ON_DISC_LEVE', 'ON_DISC_GRAVE', 'DORMIDO')
     episodios, intervalos, cerrados = [], [], []
+    sin_cierre_largo = []
     horas = {e: 0.0 for e in estados}
     sin_cierre = 0
     eff = []
@@ -1618,8 +1636,16 @@ def calcular_intervalos_exactos(filas, zona, ventana=None):
                 intervalos.append({'fecha': ep['fecha'], 'hora': ep['hora'], 'estado': ep['estado'], 'duracion_min': None})
             continue
         siguiente = eff[i + 1]
+        total_min = int(round((siguiente['ocurrio'] - ep['ocurrio']).total_seconds() / 60))
+        if total_min > LIMITE_EPISODIO_MIN:
+            if dentro(ep['ocurrio']):
+                sin_cierre_largo.append({'fecha': ep['fecha'], 'hora': ep['hora'], 'estado': ep['estado'],
+                                         'horas_transcurridas': round(total_min / 60, 1)})
+                intervalos.append({'fecha': ep['fecha'], 'hora': ep['hora'], 'estado': ep['estado'],
+                                   'duracion_min': None, 'sin_cierre_conocido': True})
+            continue
         if dentro(ep['ocurrio']):
-            total = int(round((siguiente['ocurrio'] - ep['ocurrio']).total_seconds() / 60))
+            total = total_min
             intervalos.append({'fecha': ep['fecha'], 'hora': ep['hora'], 'estado': ep['estado'], 'duracion_min': total})
         inicio = ep['ocurrio'] if ventana is None else max(ep['ocurrio'], ventana[0])
         fin = siguiente['ocurrio'] if ventana is None else min(siguiente['ocurrio'], ventana[1])
@@ -1640,6 +1666,7 @@ def calcular_intervalos_exactos(filas, zona, ventana=None):
         'episodios': episodios,
         'intervalos': intervalos,
         'sin_cierre': sin_cierre,
+        'sin_cierre_largo': sin_cierre_largo,
         'horas_por_estado': {e: round(horas[e], 2) for e in estados},
         'cerrados': cerrados,
         'minutos_por_fecha': minutos_por_fecha,
@@ -1661,6 +1688,7 @@ def combinar_estado_motor(cerrados, bloques, zona):
         if c['estado'] in exactas:
             exactas[c['estado']] += (c['fin'] - c['inicio']).total_seconds() / 3600
     conteo = {e: 0 for e in estados}
+    bloques_por_fecha = {}
     en_conflicto = 0
     for b in bloques:
         if b['estado'] not in conteo:
@@ -1671,6 +1699,8 @@ def combinar_estado_motor(cerrados, bloques, zona):
             en_conflicto += 1
             continue
         conteo[b['estado']] += 1
+        dic = bloques_por_fecha.setdefault(b['fecha'], {e: 0 for e in estados})
+        dic[b['estado']] += 30
     horas_exactas = {e: round(exactas[e], 2) for e in estados}
     horas_por_bloque = {e: round(conteo[e] * 0.5, 2) for e in estados}
     return {
@@ -1680,6 +1710,7 @@ def combinar_estado_motor(cerrados, bloques, zona):
         'horas': {e: round(horas_exactas[e] + horas_por_bloque[e], 2) for e in estados},
         'bloques_contados': sum(conteo.values()),
         'bloques_en_conflicto': en_conflicto,
+        'bloques_por_fecha': bloques_por_fecha,
     }
 
 
@@ -2102,6 +2133,25 @@ def generar_reporte(usuario_actual):
         tomas_tomadas = len([t for t in tomas if t.tomada])
         tomas_omitidas = len([t for t in tomas if t.omitida and not t.tomada])
         adherencia_pct = round((tomas_tomadas / total_tomas * 100) if total_tomas > 0 else 0)
+        # Resumen por medicamento y por fecha (mismo conjunto de tomas que las cifras de arriba).
+        por_medicamento, por_fecha = {}, {}
+        extemporaneos_total = 0
+        for t in tomas:
+            nombre_med = t.medicamento.nombre if t.medicamento else 'Sin nombre'
+            fuera, extemp = _banderas_toma(t)
+            for dic, clave in ((por_medicamento, nombre_med), (por_fecha, t.fecha_programada.date().isoformat())):
+                r = dic.setdefault(clave, {'programadas': 0, 'tomadas': 0, 'omitidas': 0, 'a_tiempo': 0, 'extemporaneas': 0})
+                r['programadas'] += 1
+                if t.tomada:
+                    r['tomadas'] += 1
+                    if not fuera:
+                        r['a_tiempo'] += 1
+                if t.omitida and not t.tomada:
+                    r['omitidas'] += 1
+                if extemp:
+                    r['extemporaneas'] += 1
+            if extemp:
+                extemporaneos_total += 1
 
         # 3. Estado motor (HZ-REG-01)
         # a) Episodios exactos: fluctuaciones_eventos vigentes (corregidos y eliminados no cuentan).
@@ -2217,13 +2267,7 @@ def generar_reporte(usuario_actual):
                 dosis_vigente, fuente = t.medicamento.dosis, 'dosis actual (sin cambios registrados)'
             # P65: toma fuera de horario = hora real más de 30 min después (o antes) de la programada.
             # P66: registro extemporáneo = captura más de 30 min después de la hora real de la toma.
-            fuera_de_horario = bool(t.tomada and t.fecha_toma_real and
-                                    abs((t.fecha_toma_real - t.fecha_programada).total_seconds()) > 30 * 60)
-            # Solo cuentan las capturas hechas desde este cambio (hora local). Antes, fecha_registro era la hora UTC
-            # de creación de la toma y no sirve para medir la captura.
-            registro_extemporaneo = bool(t.tomada and t.fecha_toma_real and t.fecha_registro and
-                                         t.fecha_registro >= datetime.datetime(2026, 10, 11, 2, 0) and
-                                         (t.fecha_registro - t.fecha_toma_real).total_seconds() > 30 * 60)
+            fuera_de_horario, registro_extemporaneo = _banderas_toma(t)
             tomas_dosis.append({
                 'medicamento': t.medicamento.nombre if t.medicamento else None,
                 'horario': t.horario_programado,
@@ -2269,7 +2313,10 @@ def generar_reporte(usuario_actual):
                 'total_programadas': total_tomas,
                 'tomadas': tomas_tomadas,
                 'omitidas': tomas_omitidas,
+                'extemporaneas': extemporaneos_total,
                 'porcentaje': adherencia_pct,
+                'por_medicamento': por_medicamento,
+                'por_fecha': por_fecha,
             },
             'estado_motor': {
                 'total_bloques': combinado['bloques_contados'],
@@ -2277,10 +2324,12 @@ def generar_reporte(usuario_actual):
                 'horas': combinado['horas'],
                 'horas_exactas': combinado['horas_exactas'],
                 'horas_por_bloque': combinado['horas_por_bloque'],
+                'bloques_por_fecha': combinado['bloques_por_fecha'],
                 'bloques_en_conflicto': combinado['bloques_en_conflicto'],
                 'episodios_exactos': {
                     'total': len(exactos['episodios']),
                     'sin_cierre': exactos['sin_cierre'],
+                    'sin_cierre_largo': exactos['sin_cierre_largo'],
                     'intervalos': exactos['intervalos'][-200:],
                     'minutos_por_fecha': exactos['minutos_por_fecha'],
                 },

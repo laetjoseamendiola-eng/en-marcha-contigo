@@ -1,4 +1,4 @@
-import React, { useId } from 'react';
+import React from 'react';
 import {
   ComposedChart, Line, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip,
@@ -45,38 +45,25 @@ export const TRAZOS_TIPO = {
   otros: '16 5'
 };
 
-// Para síntomas que no están en la lista fija (p. ej. Distonía): se reparten estos, en orden alfabético.
-const EXTRA_FORMAS = ['estrella', 'hexagono', 'equis', 'rombo', 'cuadrado', 'triangulo', 'cruz', 'circulo'];
-const EXTRA_TRAZOS = ['8 3 2 3 2 3', '3 3', '14 3', '6 2 1 2', '10 5', '2 5', '5 4', ''];
-const EXTRA_COLORES = ['#B9770E', '#2E86C1', '#7D3C98', '#117A65', '#A04000', '#34495E', '#CB4335', '#B7950B'];
-
 // "dolor_de_cabeza" -> "Dolor de cabeza"
 const NOMBRES_CONOCIDOS = { distonia: 'Distonía', bradicinesia: 'Bradicinesia', discinesia: 'Discinesia', disfagia: 'Disfagia' };
-function nombreBonito(tipo) {
-  if (NOMBRES_CONOCIDOS[String(tipo).toLowerCase()]) return NOMBRES_CONOCIDOS[String(tipo).toLowerCase()];
+export function nombreSintoma(tipo) {
+  const k = String(tipo).toLowerCase();
+  if (ETIQUETAS_TIPO[k]) return ETIQUETAS_TIPO[k];
+  if (NOMBRES_CONOCIDOS[k]) return NOMBRES_CONOCIDOS[k];
   const t = String(tipo).replace(/_/g, ' ').trim();
   return t.charAt(0).toUpperCase() + t.slice(1);
 }
 
-// Devuelve { clave: { nombre, color, forma, trazo } } para todos los síntomas pedidos.
-export function estiloDeTipos(tipos) {
-  const estilos = {};
-  let i = 0;
-  [...tipos].sort().forEach(t => {
-    if (ETIQUETAS_TIPO[t]) {
-      estilos[t] = { nombre: ETIQUETAS_TIPO[t], color: COLORES_TIPO[t], forma: FORMAS_TIPO[t], trazo: TRAZOS_TIPO[t] };
-    } else {
-      estilos[t] = {
-        nombre: nombreBonito(t),
-        color: EXTRA_COLORES[i % EXTRA_COLORES.length],
-        forma: EXTRA_FORMAS[i % EXTRA_FORMAS.length],
-        trazo: EXTRA_TRAZOS[i % EXTRA_TRAZOS.length]
-      };
-      i++;
-    }
-  });
-  return estilos;
-}
+// Las 5 posiciones de cada gráfica: cada una se dibuja distinto, para distinguirlas sin color.
+export const REPRESENTACIONES = [
+  { id: 'linea',    texto: 'línea continua con círculos',      forma: 'circulo',   tipoLinea: 'linear',    trazo: '',      linea: true },
+  { id: 'curva',    texto: 'curva suave con cuadrados',        forma: 'cuadrado',  tipoLinea: 'monotone',  trazo: '',      linea: true },
+  { id: 'puntos',   texto: 'puntos de dispersión (triángulos)', forma: 'triangulo', tipoLinea: 'linear',    trazo: '',      linea: false },
+  { id: 'palitos',  texto: 'palitos con rombo',                forma: 'rombo',     tipoLinea: 'linear',    trazo: '',      linea: false, palitos: true },
+  { id: 'escalon',  texto: 'escalones de guiones con estrellas', forma: 'estrella',  tipoLinea: 'stepAfter', trazo: '8 5',   linea: true },
+];
+export const SINTOMAS_POR_GRAFICA = 5;
 
 export const TITULO_EJE_FECHA = 'Fecha';
 export const TITULO_EJE_INTENSIDAD = 'Intensidad (0 a 10)';
@@ -104,7 +91,7 @@ export function fechaCompleta(fechaStr) {
 }
 
 // Lunes de la semana de una fecha "AAAA-MM-DD"
-function lunesDe(fechaStr) {
+export function lunesDe(fechaStr) {
   const [a, m, d] = fechaStr.split('-').map(Number);
   const f = new Date(a, m - 1, d, 12);
   const dif = (f.getDay() + 6) % 7; // lunes = 0
@@ -113,69 +100,63 @@ function lunesDe(fechaStr) {
   return `${f.getFullYear()}-${p2(f.getMonth() + 1)}-${p2(f.getDate())}`;
 }
 
-const MAX_SERIES = 6;       // si hay más, se muestran 5 y el resto va en «Otros»
 const DIAS_MAX_DIARIO = 31; // si el periodo es más largo, se agrupa por semana
 
-// Convierte la respuesta de la API en filas listas para graficar.
-// Cada síntoma solo tiene valor en los días (o semanas) en que tiene registros; en los demás, null.
+const conteoDe = (fila, t) => (fila[`n_${t}`] != null ? fila[`n_${t}`] : (fila[`intensidad_${t}`] != null ? 1 : 0));
+
+// Síntomas del periodo, de más a menos registros (empates: orden alfabético).
+export function ordenarSintomas(serie, tipos) {
+  const total = {};
+  tipos.forEach(t => { total[t] = serie.reduce((s, f) => s + conteoDe(f, t), 0); });
+  return [...tipos].sort((a, b) => total[b] - total[a] || a.localeCompare(b));
+}
+
+// Datos de la tabla: registros, intensidad promedio y máxima de cada síntoma (en todo el periodo).
+export function resumenPorSintoma(serie, tipos) {
+  const filas = ordenarSintomas(serie, tipos).map(t => {
+    let n = 0, suma = 0, max = null;
+    serie.forEach(f => {
+      const v = f[`intensidad_${t}`];
+      if (v == null) return;
+      const c = conteoDe(f, t);
+      n += c; suma += v * c;
+      const m = f[`max_${t}`] != null ? f[`max_${t}`] : v;
+      if (max === null || m > max) max = m;
+    });
+    return { tipo: t, nombre: nombreSintoma(t), registros: n, promedio: n ? Math.round(suma / n * 10) / 10 : null, maximo: max };
+  });
+  return filas;
+}
+
+// Filas para graficar: una por día (o por semana si el periodo pasa de 31 días).
+// Cada síntoma solo tiene valor donde tiene registros; en los demás, null.
 export function prepararDatos(serie, tipos, dias) {
   const semanal = dias > DIAS_MAX_DIARIO;
-  const conteo = (fila, t) => (fila[`n_${t}`] != null ? fila[`n_${t}`] : (fila[`intensidad_${t}`] != null ? 1 : 0));
-
-  // 1. Qué síntomas se muestran (los 5 más registrados + «Otros» si hay más de 6)
-  const total = {};
-  tipos.forEach(t => { total[t] = serie.reduce((s, f) => s + conteo(f, t), 0); });
-  let grupoDe = {};
-  let claves;
-  if (tipos.length > MAX_SERIES) {
-    const orden = [...tipos].sort((a, b) => total[b] - total[a] || a.localeCompare(b));
-    const visibles = orden.slice(0, MAX_SERIES - 1);
-    tipos.forEach(t => { grupoDe[t] = visibles.includes(t) ? t : 'otros'; });
-    claves = [...visibles];
-    if (!claves.includes('otros')) claves.push('otros');
-  } else {
-    tipos.forEach(t => { grupoDe[t] = t; });
-    claves = [...tipos];
-  }
-
-  // 2. Agrupar por día o por semana, con promedio ponderado por número de registros
   const cubos = new Map();
   serie.forEach(f => {
     const clave = semanal ? lunesDe(f.fecha) : f.fecha;
-    if (!cubos.has(clave)) {
-      cubos.set(clave, { clave, sumaProm: 0, nProm: 0, registros: 0, por: {} });
-    }
+    if (!cubos.has(clave)) cubos.set(clave, { clave, por: {} });
     const c = cubos.get(clave);
-    const nDia = f.total_registros || 0;
-    c.sumaProm += (f.intensidad_promedio || 0) * nDia;
-    c.nProm += nDia;
-    c.registros += nDia;
     tipos.forEach(t => {
       const v = f[`intensidad_${t}`];
-      const n = conteo(f, t);
+      const n = conteoDe(f, t);
       if (v == null || n === 0) return;
-      const g = grupoDe[t];
-      if (!c.por[g]) c.por[g] = { suma: 0, n: 0 };
-      c.por[g].suma += v * n;
-      c.por[g].n += n;
+      if (!c.por[t]) c.por[t] = { suma: 0, n: 0 };
+      c.por[t].suma += v * n;
+      c.por[t].n += n;
     });
   });
-
   const redondea = x => Math.round(x * 10) / 10;
   const filas = [...cubos.values()]
     .sort((a, b) => (a.clave < b.clave ? -1 : 1))
     .map(c => {
-      const fila = {
-        fecha: c.clave,
-        promedio: c.nProm > 0 ? redondea(c.sumaProm / c.nProm) : null,
-        registros: c.registros
-      };
-      claves.forEach(k => {
-        fila[`s_${k}`] = c.por[k] && c.por[k].n > 0 ? redondea(c.por[k].suma / c.por[k].n) : null;
+      const fila = { fecha: c.clave };
+      tipos.forEach(t => {
+        fila[`s_${t}`] = c.por[t] && c.por[t].n > 0 ? redondea(c.por[t].suma / c.por[t].n) : null;
       });
       return fila;
     });
-  return { filas, claves, semanal };
+  return { filas, semanal };
 }
 
 // ─── Formas para los puntos ─────────────────────────────────────
@@ -230,37 +211,33 @@ function crearPunto(forma, color, r = 5, relleno) {
   };
 }
 
-// ─── Leyenda única ───────────────────────────────────────────────
-function Leyenda({ claves, estilos, tituloRegistros, idRayas }) {
-  const item = { display: 'inline-flex', alignItems: 'center', gap: '6px' };
+
+const TINTA = '#1a1a2e';
+
+// ─── Leyenda de una gráfica: representación + nombre ─────────────
+function MuestraRep({ rep }) {
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 18px', marginBottom: '8px', fontSize: '13px', fontWeight: 700, color: '#1a1a2e' }}>
-      {claves.map(k => {
-        const e = estilos[k];
-        return (
-          <span key={k} style={item}>
-            <svg width="40" height="18" viewBox="0 0 40 18" aria-hidden="true">
-              <line x1="1" y1="9" x2="39" y2="9" stroke={e.color} strokeWidth="3" strokeDasharray={e.trazo || undefined} />
-              <Forma forma={e.forma} cx={20} cy={9} r={5} color={e.color} />
-            </svg>
-            {e.nombre}
-          </span>
-        );
-      })}
-      <span style={item}>
-        <svg width="40" height="18" viewBox="0 0 40 18" aria-hidden="true">
-          <line x1="1" y1="9" x2="39" y2="9" stroke="#000" strokeWidth="4" strokeDasharray="2 4" strokeLinecap="round" />
-          <circle cx="20" cy="9" r="4" fill="#fff" stroke="#000" strokeWidth="1.5" />
-        </svg>
-        Promedio
-      </span>
-      <span style={item}>
-        <svg width="22" height="18" viewBox="0 0 22 18" aria-hidden="true">
-          <rect x="2" y="2" width="18" height="14" fill="#D9D9D9" stroke="#8A8A8A" strokeWidth="1.2" />
-          <path d="M2 16 L20 2 M2 10 L11 2 M11 16 L20 8" stroke="#8A8A8A" strokeWidth="1" />
-        </svg>
-        {tituloRegistros}
-      </span>
+    <svg width="44" height="20" viewBox="0 0 44 20" aria-hidden="true">
+      {rep.linea && (
+        <path d={rep.tipoLinea === 'monotone' ? 'M2 14 C 12 2, 20 2, 22 10 S 34 18, 42 6'
+          : rep.tipoLinea === 'stepAfter' ? 'M2 14 H14 V6 H30 V12 H42' : 'M2 12 L22 8 L42 12'}
+          fill="none" stroke={TINTA} strokeWidth="2.5" strokeDasharray={rep.trazo || undefined} />
+      )}
+      {rep.palitos && <line x1="22" y1="18" x2="22" y2="8" stroke={TINTA} strokeWidth="3" />}
+      <Forma forma={rep.forma} cx={22} cy={rep.palitos ? 8 : 10} r={5} color={TINTA} borde="#FFFFFF" />
+    </svg>
+  );
+}
+
+function Leyenda({ items }) {
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 18px', marginBottom: '8px', fontSize: '13px', fontWeight: 700, color: TINTA }}>
+      {items.map(({ rep, nombre }) => (
+        <span key={nombre} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <MuestraRep rep={rep} />
+          {nombre}
+        </span>
+      ))}
     </div>
   );
 }
@@ -303,51 +280,46 @@ export function ResumenEvolucion({ datos }) {
   );
 }
 
-// ─── Gráfica unificada ───────────────────────────────────────────
-const TINTA = '#1a1a2e';
+// ─── Una gráfica con hasta 5 síntomas ────────────────────────────
 const TICK = { fill: TINTA, fontWeight: 600, fontSize: 12 };
 const TITULO_EJE = { fill: TINTA, fontWeight: 600, fontSize: 12 };
-const ALTO = 400;
-const MARGEN = { top: 12, right: 8, bottom: 4, left: 4 };
+const ALTO = 340;
+const MARGEN = { top: 12, right: 14, bottom: 4, left: 4 };
 
-export function GraficaUnificada({ serie, tipos, dias, periodoTxt, animar = true, style }) {
-  const idRayas = 'rayas-' + useId().replace(/:/g, '');
-  const { filas, claves, semanal } = prepararDatos(serie, tipos, dias);
-  const estilos = estiloDeTipos(claves);
-  const tituloRegistros = semanal ? TITULO_EJE_REGISTROS_SEMANA : TITULO_EJE_REGISTROS;
-  const nombreRegistros = tituloRegistros;
-  const maxReg = Math.max(1, ...filas.map(f => f.registros));
-  const topeDerecho = Math.max(4, Math.ceil(maxReg * 2));
+function GraficaCinco({ filas, semanal, grupo, titulo, periodoTxt, animar, style,
+  nombreDe = nombreSintoma, maximo = 10, ticks = [0, 2, 4, 6, 8, 10], tituloY = TITULO_EJE_INTENSIDAD, alto = ALTO }) {
   const altoEjeX = semanal ? 86 : 44;
-  const altoPlot = ALTO - MARGEN.top - MARGEN.bottom - altoEjeX;
-  const pxPorUnidad = altoPlot / 10;
+  const altoPlot = alto - MARGEN.top - MARGEN.bottom - altoEjeX;
+  const pxPorUnidad = altoPlot / maximo;
 
-  // Último punto de cada síntoma, para escribir su nombre sin que se encimen.
+  // Último punto de cada síntoma: ahí se escribe su nombre, separado de los demás.
   const ultimo = {};
-  claves.forEach(k => {
+  grupo.forEach(k => {
     for (let i = filas.length - 1; i >= 0; i--) {
       if (filas[i][`s_${k}`] != null) { ultimo[k] = { i, v: filas[i][`s_${k}`] }; break; }
     }
   });
+  // Las etiquetas van encima de su último punto; si chocan, se apilan hacia arriba.
   const GAP = 14;
-  const desplazamiento = {};
+  const posEtiqueta = {};
   let yPrevio = null;
-  claves.filter(k => ultimo[k])
-    .sort((a, b) => ultimo[b].v - ultimo[a].v)
+  grupo.filter(k => ultimo[k])
+    .sort((a, b) => ultimo[a].v - ultimo[b].v)
     .forEach(k => {
-      const yIdeal = (10 - ultimo[k].v) * pxPorUnidad;
-      const y = yPrevio === null ? yIdeal : Math.max(yIdeal, yPrevio + GAP);
-      desplazamiento[k] = y - yIdeal;
+      const yIdeal = (maximo - ultimo[k].v) * pxPorUnidad - 14;
+      const y = yPrevio === null ? yIdeal : Math.min(yIdeal, yPrevio - GAP);
+      posEtiqueta[k] = y;
       yPrevio = y;
     });
   const etiquetaFinal = (k) => (props) => {
     const { x, y, index } = props;
     if (!ultimo[k] || index !== ultimo[k].i || x == null || y == null) return null;
+    const yIdeal = (maximo - ultimo[k].v) * pxPorUnidad - 14;
     return (
-      <text key={`e-${k}`} x={x + 4} y={y - 12 + (desplazamiento[k] || 0)} textAnchor="end"
-        fill={estilos[k].color} fontSize={12} fontWeight={800}
+      <text key={`e-${k}`} x={x + 4} y={y + (posEtiqueta[k] - yIdeal) - 14} textAnchor="end"
+        fill={TINTA} fontSize={12} fontWeight={800}
         stroke="#FFFFFF" strokeWidth={3} paintOrder="stroke">
-        {estilos[k].nombre}
+        {nombreDe(k)}
       </text>
     );
   };
@@ -360,93 +332,134 @@ export function GraficaUnificada({ serie, tipos, dias, periodoTxt, animar = true
     return (
       <div style={{ background: '#FFFFFF', border: '2px solid #1a1a2e', borderRadius: '10px', padding: '10px 14px', color: TINTA, fontSize: '13px', fontWeight: 700, minWidth: '170px' }}>
         <p style={{ margin: '0 0 6px', fontWeight: 800 }}>{semanal ? `Semana del ${fechaCompleta(label)}` : fechaCompleta(label)}</p>
-        {claves.filter(k => fila[`s_${k}`] != null).map(k => (
-          <p key={k} style={{ margin: '3px 0', color: estilos[k].color }}>{estilos[k].nombre}: <strong>{fila[`s_${k}`]}</strong></p>
+        {grupo.filter(k => fila[`s_${k}`] != null).map(k => (
+          <p key={k} style={{ margin: '3px 0' }}>{nombreDe(k)}: <strong>{fila[`s_${k}`]}</strong></p>
         ))}
-        {fila.promedio != null && <p style={{ margin: '3px 0' }}>Promedio: <strong>{fila.promedio}</strong></p>}
-        <p style={{ margin: '3px 0', color: '#555' }}>{nombreRegistros}: <strong>{fila.registros}</strong></p>
       </div>
     );
   };
 
+  const puntos = (rep) => crearPunto(rep.forma, TINTA, rep.id === 'puntos' ? 6 : 5);
+
   return (
-    <TarjetaGrafica titulo="Evolución de síntomas" periodoTxt={periodoTxt} style={style}>
+    <TarjetaGrafica titulo={titulo} periodoTxt={periodoTxt} style={style}>
       <div style={{ background: '#FFFFFF', borderRadius: '12px', padding: '14px 10px 8px', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
-        <Leyenda claves={claves} estilos={estilos} tituloRegistros={tituloRegistros} />
-        <ResponsiveContainer width="100%" height={ALTO}>
+        <Leyenda items={grupo.map((k, i) => ({ rep: REPRESENTACIONES[i], nombre: nombreDe(k) }))} />
+        <ResponsiveContainer width="100%" height={alto}>
           <ComposedChart data={filas} margin={MARGEN}>
-            <defs>
-              <pattern id={idRayas} width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                <rect width="8" height="8" fill="#E3E3E3" />
-                <line x1="0" y1="0" x2="0" y2="8" stroke="#9A9A9A" strokeWidth="2" />
-              </pattern>
-            </defs>
-            <CartesianGrid stroke="#CCCCCC" strokeDasharray="1 3" vertical={false} />
+            <CartesianGrid stroke="#BBBBBB" strokeDasharray="1 3" vertical={false} />
             <XAxis
               dataKey="fecha"
               tickFormatter={formatoX}
               tick={semanal ? { ...TICK, textAnchor: 'end' } : TICK}
               angle={semanal ? -35 : 0}
-              interval="preserveStartEnd"
-              minTickGap={semanal ? 18 : 14}
+              interval={Math.max(0, Math.ceil(filas.length / (semanal ? 6 : 8)) - 1)}
               height={altoEjeX}
-              padding={{ left: 14, right: 14 }}
+              padding={{ left: semanal ? 36 : 14, right: 14 }}
               label={{ value: TITULO_EJE_FECHA, position: 'insideBottom', offset: 0, ...TITULO_EJE }}
             />
             <YAxis
-              yAxisId="izq"
-              domain={[0, 10]}
-              ticks={[0, 2, 4, 6, 8, 10]}
+              domain={[0, maximo]}
+              ticks={ticks}
               tick={TICK}
               width={48}
-              label={{ value: TITULO_EJE_INTENSIDAD, angle: -90, position: 'insideLeft', offset: 8, style: { textAnchor: 'middle' }, ...TITULO_EJE }}
-            />
-            <YAxis
-              yAxisId="der"
-              orientation="right"
-              domain={[0, topeDerecho]}
-              allowDecimals={false}
-              tick={TICK}
-              width={48}
-              label={{ value: tituloRegistros, angle: 90, position: 'insideRight', offset: 8, style: { textAnchor: 'middle' }, ...TITULO_EJE }}
+              label={{ value: tituloY, angle: -90, position: 'insideLeft', offset: 8, style: { textAnchor: 'middle' }, ...TITULO_EJE }}
             />
             <Tooltip content={<Tip />} />
-            <Bar yAxisId="der" dataKey="registros" name={nombreRegistros} fill={`url(#${idRayas})`} stroke="#8A8A8A" strokeWidth={1}
-              maxBarSize={48} isAnimationActive={animar} />
-            {claves.map(k => (
-              <Line
-                key={k}
-                yAxisId="izq"
-                type="linear"
-                dataKey={`s_${k}`}
-                name={estilos[k].nombre}
-                stroke={estilos[k].color}
-                strokeWidth={3}
-                strokeDasharray={estilos[k].trazo || undefined}
-                dot={crearPunto(estilos[k].forma, estilos[k].color, 5)}
-                activeDot={{ r: 7 }}
-                connectNulls
-                label={etiquetaFinal(k)}
-                isAnimationActive={animar}
-              />
-            ))}
-            <Line
-              yAxisId="izq"
-              type="linear"
-              dataKey="promedio"
-              name="Promedio"
-              stroke="#000000"
-              strokeWidth={4}
-              strokeDasharray="2 5"
-              strokeLinecap="round"
-              dot={crearPunto('circulo', '#000000', 4, '#FFFFFF')}
-              activeDot={{ r: 6 }}
-              connectNulls
-              isAnimationActive={animar}
-            />
+            {grupo.map((k, i) => {
+              const rep = REPRESENTACIONES[i];
+              const comunes = { dataKey: `s_${k}`, name: nombreDe(k), isAnimationActive: animar };
+              if (rep.palitos) {
+                return [
+                  <Bar key={`b-${k}`} {...comunes} barSize={3} fill={TINTA} stroke="none" />,
+                  <Line key={`l-${k}`} {...comunes} stroke="none" strokeWidth={0} dot={puntos(rep)} activeDot={{ r: 7 }}
+                    legendType="none" label={etiquetaFinal(k)} />
+                ];
+              }
+              return (
+                <Line key={`l-${k}`} {...comunes}
+                  type={rep.tipoLinea}
+                  stroke={rep.linea ? TINTA : 'none'}
+                  strokeWidth={rep.linea ? 3 : 0}
+                  strokeDasharray={rep.trazo || undefined}
+                  dot={puntos(rep)}
+                  activeDot={{ r: 7 }}
+                  connectNulls
+                  label={etiquetaFinal(k)} />
+              );
+            })}
           </ComposedChart>
         </ResponsiveContainer>
       </div>
     </TarjetaGrafica>
+  );
+}
+
+// ─── Tabla con TODOS los síntomas ────────────────────────────────
+function TablaSintomas({ serie, tipos, periodoTxt, style }) {
+  const filas = resumenPorSintoma(serie, tipos);
+  const celda = { padding: '8px 10px', borderTop: '1px solid #999999', color: TINTA, fontSize: '13px' };
+  const cab = { padding: '8px 10px', textAlign: 'left', color: TINTA, fontSize: '12px', fontWeight: 800, borderBottom: '2px solid #1a1a2e' };
+  const num = { textAlign: 'right', whiteSpace: 'nowrap' };
+  return (
+    <TarjetaGrafica titulo="Síntomas del período" periodoTxt={periodoTxt} style={style}>
+      <div style={{ background: '#FFFFFF', borderRadius: '12px', padding: '6px 4px', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr>
+              <th style={cab}>Síntoma</th>
+              <th style={{ ...cab, ...num }}>Registros</th>
+              <th style={{ ...cab, ...num }}>Intensidad promedio</th>
+              <th style={{ ...cab, ...num }}>Intensidad máxima</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filas.map(f => (
+              <tr key={f.tipo}>
+                <td style={{ ...celda, fontWeight: 700 }}>{f.nombre}</td>
+                <td style={{ ...celda, ...num }}>{f.registros}</td>
+                <td style={{ ...celda, ...num }}>{f.promedio != null ? f.promedio.toFixed(1) : '—'}</td>
+                <td style={{ ...celda, ...num }}>{f.maximo != null ? Number(f.maximo).toFixed(1) : '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div style={{ fontSize: '11px', color: '#444444', padding: '6px 10px 2px' }}>
+          Intensidad en escala de 0 a 10. De más a menos registros.
+        </div>
+      </div>
+    </TarjetaGrafica>
+  );
+}
+
+// ─── Grupos de 5 a partir de filas ya preparadas ─────────────────
+export function GraficasPorGrupos({ filas, semanal, claves, titulo, periodoTxt, animar = true, inicio = 0, fin = Infinity, ...resto }) {
+  const grupos = [];
+  for (let i = 0; i < claves.length; i += SINTOMAS_POR_GRAFICA) grupos.push(claves.slice(i, i + SINTOMAS_POR_GRAFICA));
+  return (
+    <>
+      {grupos.map((grupo, i) => (i < inicio || i >= fin) ? null : (
+        <GraficaCinco key={i} filas={filas} semanal={semanal} grupo={grupo} animar={animar} periodoTxt={periodoTxt}
+          titulo={grupos.length > 1 ? `${titulo} (${i + 1} de ${grupos.length})` : titulo} {...resto} />
+      ))}
+    </>
+  );
+}
+
+export function numeroDeGraficas(serie, tipos) {
+  return Math.ceil(tipos.length / SINTOMAS_POR_GRAFICA);
+}
+
+// ─── Todo junto: N gráficas de 5 síntomas + tabla ────────────────
+// inicio/fin: qué gráficas mostrar (0 = la primera). conTabla: si va la tabla de todos los síntomas.
+export function GraficaUnificada({ serie, tipos, dias, periodoTxt, animar = true, style, inicio = 0, fin = Infinity, conTabla = true, alto }) {
+  const ordenados = ordenarSintomas(serie, tipos);
+  const { filas, semanal } = prepararDatos(serie, ordenados, dias);
+  return (
+    <>
+      <GraficasPorGrupos filas={filas} semanal={semanal} claves={ordenados} titulo="Evolución de síntomas"
+        periodoTxt={periodoTxt} animar={animar} inicio={inicio} fin={fin} style={style} alto={alto} />
+      {conTabla && <TablaSintomas serie={serie} tipos={ordenados} periodoTxt={periodoTxt} style={style} />}
+    </>
   );
 }
