@@ -287,7 +287,7 @@ const ALTO = 340;
 const MARGEN = { top: 12, right: 14, bottom: 4, left: 4 };
 
 function GraficaCinco({ filas, semanal, grupo, titulo, periodoTxt, animar, style,
-  nombreDe = nombreSintoma, maximo = 10, ticks = [0, 2, 4, 6, 8, 10], tituloY = TITULO_EJE_INTENSIDAD, alto = ALTO }) {
+  nombreDe = nombreSintoma, maximo = 10, ticks = [0, 2, 4, 6, 8, 10], tituloY = TITULO_EJE_INTENSIDAD, alto = ALTO, etiquetas = true }) {
   const altoEjeX = semanal ? 86 : 44;
   const altoPlot = alto - MARGEN.top - MARGEN.bottom - altoEjeX;
   const pxPorUnidad = altoPlot / maximo;
@@ -311,9 +311,13 @@ function GraficaCinco({ filas, semanal, grupo, titulo, periodoTxt, animar, style
       posEtiqueta[k] = y;
       yPrevio = y;
     });
+  // Si algún nombre es largo o ya no cabe al apilarlos, no se escriben en la gráfica: quedan solo en la leyenda.
+  const cabenEtiquetas = etiquetas
+    && grupo.every(k => nombreDe(k).length <= 18)
+    && Object.values(posEtiqueta).every(y => y >= -4);
   const etiquetaFinal = (k) => (props) => {
     const { x, y, index } = props;
-    if (!ultimo[k] || index !== ultimo[k].i || x == null || y == null) return null;
+    if (!cabenEtiquetas || !ultimo[k] || index !== ultimo[k].i || x == null || y == null) return null;
     const yIdeal = (maximo - ultimo[k].v) * pxPorUnidad - 14;
     return (
       <text key={`e-${k}`} x={x + 4} y={y + (posEtiqueta[k] - yIdeal) - 14} textAnchor="end"

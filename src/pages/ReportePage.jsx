@@ -312,7 +312,9 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
           .reporte-contenido .tarjeta-reporte { padding: 10px 12px !important; margin-bottom: 8px !important; }
           @page { margin: 10mm; }
           .reporte-contenido .seccion-reporte { break-inside: auto !important; }
-          .reporte-contenido .panel-reporte { break-inside: avoid; }
+          /* Los paneles pueden partirse entre hojas (evita medias páginas en blanco); las gráficas y filas de tabla no */
+          .reporte-contenido .panel-reporte { break-inside: auto; }
+          .reporte-contenido .panel-reporte svg, .reporte-contenido .panel-reporte .recharts-responsive-container, .reporte-contenido tr { break-inside: avoid; }
           .reporte-contenido .seccion-reporte > div:nth-child(-n+2) { break-after: avoid; }
           .anexos-reporte { break-before: page; }
           .anexos-reporte .tarjeta-reporte { break-inside: auto; }
@@ -483,7 +485,7 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
                 <>
                   <ResumenEvolucion datos={d} />
                   <GraficaUnificada serie={serie} tipos={d.tipos_disponibles || []} dias={periodo.dias}
-                    periodoTxt={periodoTxt} animar={false} fin={1} alto={230} />
+                    periodoTxt={periodoTxt} animar={false} fin={1} alto={190} />
                 </>
               )}
             </div>
@@ -653,10 +655,11 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
                 return <div className="tarjeta-reporte" style={{ background: 'rgba(255,255,255,0.04)', border: '2px solid #FFC107', borderRadius: '16px', padding: '16px', fontSize: '13px', marginBottom: '14px' }}>Anexo F — No hay más gráficas: todas caben en el Reporte principal.</div>;
               }
               return (<>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: '#00A7A7', margin: '6px 0 10px' }}>Anexo F — Más gráficas de evolución</div>
                 {hayMotor && <GraficaUnificada serie={evol.datos.serie_temporal} tipos={evol.datos.tipos_disponibles || []} dias={periodo.dias}
-                  periodoTxt={periodoTxtF} animar={false} inicio={1} conTabla={false} alto={230} />}
+                  periodoTxt={periodoTxtF} animar={false} inicio={1} conTabla={false} alto={190} />}
                 {hayNoMotor && <GraficasPorGrupos filas={nm.filas} semanal={nm.semanal} claves={nm.orden} titulo="Evolución de síntomas no motores"
-                  periodoTxt={periodoTxtF} animar={false} inicio={1} nombreDe={k => NO_MOTOR_LABELS[k].label} maximo={4} ticks={[0, 1, 2, 3, 4]} tituloY="Nivel (0 a 4)" alto={230} />}
+                  periodoTxt={periodoTxtF} animar={false} inicio={1} nombreDe={k => NO_MOTOR_LABELS[k].label} maximo={4} ticks={[0, 1, 2, 3, 4]} tituloY="Nivel (0 a 4)" alto={190} etiquetas={false} />}
               </>);
             })()}
           </div>

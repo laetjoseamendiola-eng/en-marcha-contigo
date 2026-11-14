@@ -239,35 +239,49 @@ function hora12(hhmm) {
 }
 const textoHorarios = hs => (hs && hs.length ? hs.map(hora12).join(' y ') : 'sin horario');
 
-export function cambiosDeDosis(historial, desdePeriodo) {
+const h24 = hhmm => String(hhmm || '').slice(0, 5);
+const lista24 = hs => (hs && hs.length ? hs.map(h24).join(', ') : 'sin horario');
+
+// Cambios dentro del período (desde..hasta), agrupados por fecha y solo con lo que cambió.
+export function cambiosDeDosis(historial, desdePeriodo, hastaPeriodo) {
   const porMed = {};
   historial.forEach(h => { (porMed[h.medicamento] = porMed[h.medicamento] || []).push(h); });
-  const eventos = [];
+  const porFecha = {};
+  const poner = (fecha, texto) => {
+    if (fecha < desdePeriodo || (hastaPeriodo && fecha > hastaPeriodo)) return;
+    (porFecha[fecha] = porFecha[fecha] || []).push(texto);
+  };
   Object.entries(porMed).forEach(([med, filas]) => {
     filas.sort((a, b) => (a.desde < b.desde ? -1 : 1));
     filas.forEach((h, i) => {
       const fecha = h.desde.slice(0, 10);
-      if (i === 0) {
-        if (fecha >= desdePeriodo) eventos.push({ fecha, texto: `${med}: inicio con ${h.dosis}, a las ${textoHorarios(h.horarios)}` });
-        return;
-      }
+      if (i === 0) { poner(fecha, `${med}: inicio ${h.dosis} a las ${lista24(h.horarios)}`); return; }
       const p = filas[i - 1];
       const partes = [];
-      if (p.dosis !== h.dosis) partes.push(`dosis ${p.dosis} → ${h.dosis}`);
-      if (JSON.stringify(p.horarios) !== JSON.stringify(h.horarios)) partes.push(`horarios ${textoHorarios(p.horarios)} → ${textoHorarios(h.horarios)}`);
-      eventos.push({ fecha, texto: `${med}: ${partes.length ? partes.join('; ') : 'nueva vigencia sin cambio de dosis ni de horario'}` });
+      if (p.dosis !== h.dosis) partes.push(`${p.dosis}→${h.dosis}`);
+      const hp = p.horarios || [], hn = h.horarios || [];
+      if (JSON.stringify(hp) !== JSON.stringify(hn)) {
+        if (hp.length === hn.length) {
+          const pares = hp.map((x, j) => (x !== hn[j] ? `${h24(x)}→${h24(hn[j])}` : null)).filter(Boolean);
+          partes.push(pares.join(', '));
+        } else partes.push(`horarios ${lista24(hp)}→${lista24(hn)}`);
+      }
+      if (partes.length) poner(fecha, `${med}: ${partes.join('; ')}`);
     });
   });
-  return eventos.sort((a, b) => (a.fecha < b.fecha ? -1 : 1));
+  return Object.keys(porFecha).sort().map(fecha => ({ fecha, texto: porFecha[fecha].join(' · ') }));
 }
 
 export function DosisSeccion({ historial, periodo }) {
+  // Todo se corta en la fecha final del período: nada posterior se muestra como vigente ni como cambio.
+  const hastaIso = periodo.hasta;
+  const hastaPeriodo = historial.filter(h => h.desde.slice(0, 10) <= hastaIso);
   const porMed = {};
-  historial.forEach(h => {
+  hastaPeriodo.forEach(h => {
     if (!porMed[h.medicamento] || h.desde > porMed[h.medicamento].desde) porMed[h.medicamento] = h;
   });
   const vigentes = Object.values(porMed);
-  const eventos = cambiosDeDosis(historial, periodo.desde);
+  const eventos = cambiosDeDosis(hastaPeriodo, periodo.desde, hastaIso);
   return (
     <SeccionReporte titulo="💊 Dosis y horarios vigentes"
       nota="Dosis vigente al final del período y cambios dentro del período. El historial completo está en el Anexo B.">
@@ -295,9 +309,9 @@ export function DosisSeccion({ historial, periodo }) {
         ) : (
           <ol style={{ listStyle: 'none', margin: '0 0 4px', padding: '0 0 0 14px', borderLeft: '3px solid #1a1a2e' }}>
             {eventos.map((e, i) => (
-              <li key={i} style={{ position: 'relative', padding: '4px 0 4px 12px', fontSize: '13px', color: TINTA }}>
-                <span style={{ position: 'absolute', left: '-22px', top: '9px', width: '10px', height: '10px', background: TINTA, borderRadius: '50%', border: '2px solid #FFFFFF' }} />
-                <strong>{fechaCompleta(e.fecha)}</strong> · {e.texto}
+              <li key={i} style={{ position: 'relative', padding: '2px 0 2px 12px', fontSize: '12px', color: TINTA }}>
+                <span style={{ position: 'absolute', left: '-22px', top: '7px', width: '10px', height: '10px', background: TINTA, borderRadius: '50%', border: '2px solid #FFFFFF' }} />
+                <strong>{formatFecha(e.fecha)}</strong> · {e.texto}
               </li>
             ))}
           </ol>
@@ -338,6 +352,8 @@ export function HauserSeccion({ estadoMotor, periodo, COLOR_ESTADO }) {
   const horas = estadoMotor.horas || {};
   const totalH = ESTADOS_TODOS.reduce((s, e) => s + (horas[e] || 0), 0);
   const largo = exactos.sin_cierre_largo || [];
+  const hayHoras = totalH > 0;
+  const nEpisodios = (exactos.total ?? 0) || (largo.length + (exactos.sin_cierre || 0));
 
   // Dibujo SVG
   const W = 640, X0 = 78, X1 = 622, FILA = 13, TOP = 20, BASE = 38;
@@ -349,7 +365,9 @@ export function HauserSeccion({ estadoMotor, periodo, COLOR_ESTADO }) {
       nota={`Cada barra es un ${semanal ? 'promedio por día con registro, por semana' : 'día'}, de 0 a 24 horas. Lo que queda en blanco sin patrón es tiempo sin registro. El detalle de episodios está en el Anexo D.`}>
       <PanelBlanco>
         <LeyendaPatrones items={GRUPOS_HAUSER.map(g => ({ texto: g.texto, patron: g.patron }))} />
-        {filas.length === 0 ? <div style={{ fontSize: '13px', padding: '8px' }}>Sin registros de estado motor en el período.</div> : (
+        {!hayHoras && nEpisodios > 0 ? (
+          <div style={{ fontSize: '13px', padding: '8px' }}>Hay {nEpisodios} {nEpisodios === 1 ? 'episodio' : 'episodios'}, pero ninguno tiene duración calculable (ver Anexo D).</div>
+        ) : filas.length === 0 ? <div style={{ fontSize: '13px', padding: '8px' }}>Sin registros de estado motor en el período.</div> : (
           <svg viewBox={`0 0 ${W} ${alto}`} width="100%" role="img" aria-label="Horas por estado motor en cada día">
             <defs>
               <pattern id="hz-rayas" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
@@ -390,7 +408,7 @@ export function HauserSeccion({ estadoMotor, periodo, COLOR_ESTADO }) {
           </svg>
         )}
       </PanelBlanco>
-      <PanelBlanco style={{ marginTop: '10px' }}>
+      {hayHoras && <PanelBlanco style={{ marginTop: '10px' }}>
         <SubTitulo>Horas por estado en el período</SubTitulo>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead><tr><th style={cab}>Estado</th><th style={{ ...cab, ...num }}>Tiempo</th><th style={{ ...cab, ...num }}>%</th></tr></thead>
@@ -409,7 +427,7 @@ export function HauserSeccion({ estadoMotor, periodo, COLOR_ESTADO }) {
             </tr>
           </tbody>
         </table>
-      </PanelBlanco>
+      </PanelBlanco>}
       {(largo.length > 0 || exactos.sin_cierre > 0) && (
         <PanelBlanco style={{ marginTop: '10px' }}>
           <SubTitulo>Episodios sin cierre conocido (no suman horas)</SubTitulo>
@@ -536,7 +554,7 @@ export function NoMotorSeccion({ noMotor, periodo, NO_MOTOR_LABELS, LABEL_PROMED
           <div style={{ margin: '0 -20px' }}>
             <GraficasPorGrupos filas={filas} semanal={semanal} claves={orden}
               titulo="Evolución de síntomas no motores" periodoTxt={periodoTxt} animar={false} fin={fin}
-              nombreDe={k => NO_MOTOR_LABELS[k].label} maximo={4} ticks={[0, 1, 2, 3, 4]} tituloY="Nivel (0 a 4)" alto={230}
+              nombreDe={k => NO_MOTOR_LABELS[k].label} maximo={4} ticks={[0, 1, 2, 3, 4]} tituloY="Nivel (0 a 4)" alto={190} etiquetas={false}
               style={{ background: 'transparent', border: 'none', padding: '0 20px', marginBottom: 0 }} />
           </div>
         )}
