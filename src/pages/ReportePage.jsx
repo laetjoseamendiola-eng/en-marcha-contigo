@@ -318,6 +318,8 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
           /* Un título (y su nota) nunca se queda solo al final de una hoja */
           .reporte-contenido .tit-sec { break-after: avoid; }
           .reporte-contenido .panel-reporte:has(svg), .reporte-contenido .panel-reporte:has(.recharts-responsive-container) { break-inside: avoid; }
+          /* Franjas y Evolución pasan completas a la hoja siguiente si no caben */
+          .reporte-contenido .no-partir, .reporte-contenido .bloque-evol { break-inside: avoid !important; }
           .anexos-reporte { break-before: page; }
           .anexos-reporte .tarjeta-reporte { break-inside: auto; }
           .reporte-contenido { font-size: 12px; }
@@ -464,7 +466,7 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
           const d = evol.datos;
           const serie = d ? d.serie_temporal : [];
           return (
-            <div style={{ marginBottom: '14px' }}>
+            <div className="bloque-evol" style={{ marginBottom: '14px' }}>
               <div className="tit-sec" style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '4px' }}>
                 📈 Evolución de síntomas
               </div>

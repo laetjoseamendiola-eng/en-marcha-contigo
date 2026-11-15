@@ -14,9 +14,9 @@ const TICK = { fill: TINTA, fontWeight: 600, fontSize: 12 };
 const TITULO_EJE = { fill: TINTA, fontWeight: 600, fontSize: 12 };
 
 // ─── Piezas comunes ──────────────────────────────────────────────
-export function SeccionReporte({ titulo, nota, children, style }) {
+export function SeccionReporte({ titulo, nota, children, style, noPartir }) {
   return (
-    <div className="tarjeta-reporte seccion-reporte" style={{
+    <div className={`tarjeta-reporte seccion-reporte${noPartir ? ' no-partir' : ''}`} style={{
       background: 'rgba(255,255,255,0.04)', border: '2px solid #FFC107', borderRadius: '16px',
       padding: '20px', marginBottom: '14px', ...style
     }}>
@@ -471,7 +471,7 @@ export function FranjasSeccion({ franjas, FRANJAS }) {
     );
   };
   return (
-    <SeccionReporte titulo="🕐 Franjas del día"
+    <SeccionReporte noPartir titulo="🕐 Franjas del día"
       nota="Estado OFF: se cuenta por la hora exacta del episodio. Síntomas reportados: se cuentan por la hora en que se capturaron, no por la hora del síntoma.">
       <PanelBlanco>
         <LeyendaPatrones items={[{ texto: 'Estado OFF (episodios)', patron: 'solido' }, { texto: 'Síntomas reportados', patron: 'rayas' }]} />
