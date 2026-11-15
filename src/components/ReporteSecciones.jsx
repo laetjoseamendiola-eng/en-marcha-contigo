@@ -107,7 +107,7 @@ export function AdherenciaSeccion({ adherencia, periodo, BarraAdherencia }) {
   const meds = Object.entries(porMed).map(([nombre, r]) => ({
     nombre, pct: r.programadas ? Math.round(r.tomadas / r.programadas * 100) : 0, tomadas: r.tomadas, programadas: r.programadas
   })).sort((a, b) => b.programadas - a.programadas || a.nombre.localeCompare(b.nombre));
-  const formatoX = f => (semanal ? `Semana del ${formatFecha(f)}` : formatFecha(f));
+  const formatoX = f => formatFecha(f);
   const cifras = [
     { label: 'Tomas programadas', valor: adherencia.total_programadas },
     { label: 'Tomadas', valor: adherencia.tomadas },
@@ -145,11 +145,11 @@ export function AdherenciaSeccion({ adherencia, periodo, BarraAdherencia }) {
             <BarChart data={datos} margin={{ top: 18, right: 10, bottom: 4, left: 4 }}>
               <Patrones id="adh" />
               <CartesianGrid stroke="#BBBBBB" strokeDasharray="1 3" vertical={false} />
-              <XAxis dataKey="fecha" tickFormatter={formatoX} tick={TICK} height={semanal ? 76 : 40}
-                angle={semanal ? -30 : 0} textAnchor={semanal ? 'end' : 'middle'}
-                padding={{ left: semanal ? 30 : 8, right: 8 }}
-                interval={Math.max(0, Math.ceil(datos.length / (semanal ? 7 : 8)) - 1)}
-                label={{ value: 'Fecha', position: 'insideBottom', offset: 0, ...TITULO_EJE }} />
+              <XAxis dataKey="fecha" tickFormatter={formatoX} tick={TICK} height={40}
+                angle={0} textAnchor="middle"
+                padding={{ left: 8, right: 8 }}
+                interval={Math.max(0, Math.ceil(datos.length / 8) - 1)}
+                label={{ value: semanal ? 'Fecha (lunes de cada semana)' : 'Fecha', position: 'insideBottom', offset: 0, ...TITULO_EJE }} />
               <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tick={TICK} width={46}
                 label={{ value: '% de tomas tomadas', angle: -90, position: 'insideLeft', offset: 10, style: { textAnchor: 'middle' }, ...TITULO_EJE }} />
               <Tooltip content={<Tip />} />
@@ -197,7 +197,7 @@ export function TomasResumenSeccion({ adherencia }) {
   const titulosCol = { programadas: 'Programadas', tomadas: 'Tomadas', omitidas: 'Omitidas', sin_registro: 'Sin registro', pendientes: 'Pendientes', a_tiempo: 'A tiempo', extemporaneas: 'Extemporáneas' };
   return (
     <SeccionReporte titulo="🕒 Tomas por medicamento"
-      nota="A tiempo: tomada dentro de 30 minutos de su hora. Extemporánea: capturada más de 30 minutos después de tomarla (solo se mide desde el 11/10/2026). Sin registro: pasó el plazo (el día de la toma y el siguiente) y no se marcó tomada ni omitida. Programadas = tomadas + omitidas + sin registro. El detalle toma por toma está en el Anexo A.">
+      nota="A tiempo: tomada dentro de 30 minutos de su hora. Extemporánea: capturada más de 30 minutos después de tomarla (solo se mide desde el 11/10/2026). Sin registro: pasó el plazo (el día de la toma y el siguiente) y no se marcó tomada ni omitida. Programadas = tomadas + omitidas + sin registro + pendientes. El detalle toma por toma está en el Anexo A.">
       <PanelBlanco>
         {filas.length === 0 ? <div style={{ fontSize: '13px', padding: '8px' }}>Sin tomas en el período.</div> : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
