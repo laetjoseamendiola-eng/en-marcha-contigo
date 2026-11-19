@@ -355,13 +355,13 @@ def token_requerido(f):
             datos = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
             usuario_actual = db.session.get(Usuario, datos['usuario_id'])
             if not usuario_actual or not usuario_actual.activo:
-                return jsonify({'error': 'Usuario no válido o inactivo'}), 401
+                return jsonify({'error': 'Tu cuenta está desactivada. Si necesitas ayuda, escríbenos.'}), 401
             if usuario_actual.sesion_id and datos.get('sid') != usuario_actual.sesion_id:
-                return jsonify({'error': 'La sesión se inició en otro dispositivo. Inicia sesión de nuevo.'}), 401
+                return jsonify({'error': 'Tu sesión se cerró por seguridad. Inicia sesión nuevamente.'}), 401
             if f.__name__ not in RUTAS_SIN_CONSENTIMIENTO and not estado_consentimiento(usuario_actual)['salud']:
-                return jsonify({'error': 'Debes aceptar el aviso de privacidad para continuar', 'codigo': 'consentimiento_pendiente'}), 403
+                return jsonify({'error': 'Para usar EMC App, primero debes aceptar el Aviso de privacidad y el tratamiento de tus datos de salud.', 'codigo': 'consentimiento_pendiente'}), 403
         except jwt.ExpiredSignatureError:
-            return jsonify({'error': 'Token expirado. Inicia sesión nuevamente'}), 401
+            return jsonify({'error': 'Tu sesión se cerró por seguridad. Inicia sesión nuevamente.'}), 401
         except jwt.InvalidTokenError:
             return jsonify({'error': 'Token no válido'}), 401
 
@@ -502,7 +502,7 @@ def login():
         db.session.commit()
 
         if not usuario.activo:
-            return jsonify({'error': 'Cuenta desactivada'}), 403
+            return jsonify({'error': 'Tu cuenta está desactivada. Si necesitas ayuda, escríbenos.'}), 403
 
         token = generar_token(usuario)
 
@@ -599,7 +599,7 @@ def consentimiento_estado(usuario_actual):
 def consentimiento_registrar(usuario_actual):
     data = request.get_json(silent=True) or {}
     if data.get('salud') is not True:
-        return jsonify({'error': 'Debes aceptar el tratamiento de datos de salud para usar la app'}), 400
+        return jsonify({'error': 'Para usar EMC App, primero debes aceptar el Aviso de privacidad y el tratamiento de tus datos de salud.'}), 400
     origen = data.get('origen') if data.get('origen') in ORIGENES_CONSENTIMIENTO else 'primer_inicio'
     valores = {'salud': True, 'whatsapp': data.get('whatsapp') is True}
     for tipo in TIPOS_CONSENTIMIENTO:
@@ -1085,7 +1085,7 @@ def inicializar_medicamentos(usuario_actual):
     """
     # Ya no se carga ninguna receta fija. Cada persona registra sus propios medicamentos.
     return jsonify({
-        'mensaje': 'La receta ya no se carga automáticamente. Registra tus medicamentos y dosis.',
+        'mensaje': 'Los medicamentos ya no se cargan automáticamente. Registra tus medicamentos y horarios.',
     }), 410
 
 
@@ -1428,7 +1428,7 @@ def registrar_fluctuacion(usuario_actual):
             db.session.add(nueva)
 
         db.session.commit()
-        return jsonify({'mensaje': 'Estado motor registrado', 'hora_bloque': hora_bloque, 'estado': estado}), 201
+        return jsonify({'mensaje': 'Estado motor registrado correctamente', 'hora_bloque': hora_bloque, 'estado': estado}), 201
 
     except Exception as e:
         db.session.rollback()
@@ -1826,7 +1826,7 @@ def registrar_fluctuacion_evento(usuario_actual):
         ocurrio = _hora_episodio(datos, zona)
         nuevo_id = _insertar_evento(usuario_actual.id, estado, ocurrio, zona)
         db.session.commit()
-        return jsonify({'mensaje': 'Estado registrado', 'id': nuevo_id, 'estado': estado}), 201
+        return jsonify({'mensaje': 'Estado motor registrado correctamente', 'id': nuevo_id, 'estado': estado}), 201
 
     except ValueError as e:
         db.session.rollback()
@@ -1947,7 +1947,7 @@ def guardar_duracion_evento(usuario_actual, evento_id):
         """), {'id': evento_id, 'uid': usuario_actual.id, 'minutos': minutos, 'origen': origen})
         db.session.commit()
         return jsonify({
-            'mensaje': 'Duración aproximada guardada',
+            'mensaje': 'Duración del estado guardada',
             'evento_id': evento_id,
             'duracion_aproximada': {'minutos': minutos, 'origen': origen},
         }), 200

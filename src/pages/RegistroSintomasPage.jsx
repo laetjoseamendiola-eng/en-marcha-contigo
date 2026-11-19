@@ -225,7 +225,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
       });
 
       if (response.ok) {
-        setMensaje('Síntoma eliminado');
+        setMensaje('Síntoma eliminado correctamente');
         cargarSintomas();
         setTimeout(() => setMensaje(''), 2000);
       } else if (response.status === 401) {
@@ -321,7 +321,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
       {sintomasAbiertos.length > 0 && (
         <div style={{ margin: '12px 16px', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(0, 167, 167,0.4)' }}>
           <p style={{ margin: '0 0 8px 0' }}>
-            Tienes {sintomasAbiertos.length} síntoma(s) de días anteriores marcados como "Todavía presente". ¿Cuánto duró?
+            Tienes {sintomasAbiertos.length} síntoma(s) de días anteriores marcados como "Sigue presente". ¿Cuánto duró?
           </p>
           {sintomasAbiertos.map(s => (
             <div key={s.id} style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '6px' }}>
@@ -353,19 +353,19 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
           💊 Mi Día
         </button>
         <button style={estiloPestana(pestanaActiva === 'registro')} onClick={() => setPestanaActiva('registro')}>
-          ✏️ Síntomas
+          ✏️ Síntomas motores
         </button>
         <button style={estiloPestana(pestanaActiva === 'evolucion')} onClick={() => setPestanaActiva('evolucion')}>
-          📈 Evolución
+          📈 Mi evolución
         </button>
         <button style={estiloPestana(pestanaActiva === 'fluctuaciones')} onClick={() => setPestanaActiva('fluctuaciones')}>
-          🌡️ Estado
+          🌡️ Estado motor
         </button>
         <button style={estiloPestana(pestanaActiva === 'historial')} onClick={() => setPestanaActiva('historial')}>
-          📋 Historial
+          📋 Mis registros
         </button>
         <button style={estiloPestana(pestanaActiva === 'diario')} onClick={() => setPestanaActiva('diario')}>
-          🌿 Hábitos diarios
+          🌿 Bienestar diario
         </button>
         <button style={estiloPestana(pestanaActiva === 'reporte')} onClick={() => setPestanaActiva('reporte')}>
           📄 Reporte
@@ -409,7 +409,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
           <h2>Historial de Síntomas</h2>
           {sintomas.length === 0 ? (
             <div className="sin-datos">
-              <p>No hay síntomas registrados aún</p>
+              <p>Aún no hay síntomas registrados</p>
             </div>
           ) : (
             <div className="sintomas-list">
@@ -456,8 +456,8 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
       <div className="registro-sintomas-wrapper">
         {/* Sección del formulario */}
         <div className="registro-form-section">
-          <h1>Registro de Síntomas</h1>
-          <p className="subtitle">Documenta tus síntomas para seguimiento neurológico</p>
+          <h1>Mi Seguimiento</h1>
+          <p className="subtitle">Documenta tus síntomas y tomas para tu seguimiento neurológico</p>
 
           {mensaje && (
             <div className={`mensaje ${mensaje.includes('Error') ? 'error' : 'exito'}`}>

@@ -88,7 +88,7 @@ const ConsentimientoPage = ({ token, onAceptado, onCancelar }) => {
             style={{ marginTop: '4px', width: '18px', height: '18px', flexShrink: 0 }}
           />
           <span>
-            Acepto que En Marcha Contigo trate mis datos de salud (síntomas, medicamentos y tomas) para mostrarme mi seguimiento. (Obligatorio)
+            Acepto el Aviso de privacidad y autorizo que En Marcha Contigo trate únicamente mis datos de salud (síntomas, medicamentos y tomas) para mostrarme mi seguimiento. (Obligatorio)
           </span>
         </label>
 

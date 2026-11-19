@@ -9,14 +9,14 @@ import {
 
 // Estados del Diario de Hauser (los cinco estados aprobados)
 const ESTADOS = [
-  { id: 'ON', label: 'ON', emoji: '🟢', descripcion: 'Me siento bien, activo',
+  { id: 'ON', label: 'ON (buen efecto del medicamento)', emoji: '🟢', descripcion: 'Me siento bien, activo',
     color: '#27AE60', colorFondo: 'rgba(39,174,96,0.15)', colorBorde: 'rgba(39,174,96,0.5)' },
-  { id: 'OFF', label: 'OFF', emoji: '🔴', descripcion: 'Síntomas presentes, lento',
+  { id: 'OFF', label: 'OFF (efecto reducido o ausente)', emoji: '🔴', descripcion: 'Síntomas presentes, lento',
     color: '#E74C3C', colorFondo: 'rgba(231,76,60,0.15)', colorBorde: 'rgba(231,76,60,0.5)' },
-  { id: 'ON_DISC_LEVE', label: 'ON con movimientos', emoji: '🟡',
+  { id: 'ON_DISC_LEVE', label: 'ON con movimientos involuntarios leves', emoji: '🟡',
     descripcion: 'Activo pero con movimientos involuntarios leves',
     color: '#F39C12', colorFondo: 'rgba(243,156,18,0.15)', colorBorde: 'rgba(243,156,18,0.5)' },
-  { id: 'ON_DISC_GRAVE', label: 'ON con movimientos graves', emoji: '🟠',
+  { id: 'ON_DISC_GRAVE', label: 'ON con movimientos involuntarios intensos', emoji: '🟠',
     descripcion: 'Activo pero con movimientos involuntarios intensos',
     color: '#E67E22', colorFondo: 'rgba(230,126,34,0.15)', colorBorde: 'rgba(230,126,34,0.5)' },
   { id: 'DORMIDO', label: 'Dormido', emoji: '😴', descripcion: 'Dormido / descansando',
@@ -42,7 +42,7 @@ function CeldaBloque({ bloque, esActual }) {
 
   if (bloque.tipo === 'evento') {
     estilo.background = color;
-    titulo = `${hora12(bloque.hora)} — ${nombre}${bloque.extemporaneo ? ' (registro extemporáneo)' : ''}`;
+    titulo = `${hora12(bloque.hora)} — ${nombre}${bloque.extemporaneo ? ' (anotada después)' : ''}`;
   } else if (bloque.tipo === 'historico') {
     estilo.background = color;
     estilo.opacity = 0.8;
@@ -59,7 +59,7 @@ function CeldaBloque({ bloque, esActual }) {
     <div title={titulo} style={estilo}>
       {bloque.tipo === 'continua' && <span style={{ color: 'white', opacity: 0.85 }}>→</span>}
       {bloque.tipo === 'evento' && bloque.extemporaneo && (
-        <span style={{ position: 'absolute', top: '1px', right: '3px', fontSize: '9px' }} aria-label="Registro extemporáneo">🕒</span>
+        <span style={{ position: 'absolute', top: '1px', right: '3px', fontSize: '9px' }} aria-label="Anotada después">🕒</span>
       )}
       {esActual && (
         <div style={{ position: 'absolute', bottom: '3px', width: '5px', height: '5px', borderRadius: '50%', background: 'white' }} />
@@ -90,7 +90,7 @@ function GrillaDia({ bloques, bloqueActualStr }) {
         <div style={{ marginBottom: '12px' }}>
           {extemporaneos.map(b => (
             <div key={b.hora} style={{ fontSize: '11px', color: '#FFFFFF', marginBottom: '2px' }}>
-              🕒 {hora12(b.hora)} — Registro extemporáneo
+              🕒 {hora12(b.hora)} — Anotada después
             </div>
           ))}
         </div>
@@ -259,7 +259,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
     try {
       await enviar(`/api/fluctuaciones-eventos/${eventoId}/duracion`, { minutos, origen });
       setDuracionEdit(null);
-      avisar('Duración aproximada guardada', true);
+      avisar('Duración del estado guardada', true);
       await cargar();
     } catch (e) {
       avisar(e.message, false);
@@ -309,7 +309,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
 
       <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
         <button onClick={() => setVistaActiva('ahora')} style={estiloBtn(vistaActiva === 'ahora')}>⚡ Ahora</button>
-        <button onClick={() => setVistaActiva('hoy')} style={estiloBtn(vistaActiva === 'hoy')}>📅 Mi día</button>
+        <button onClick={() => setVistaActiva('hoy')} style={estiloBtn(vistaActiva === 'hoy')}>📅 Hoy</button>
       </div>
 
         {/* Formulario: hora anterior o corrección */}
@@ -332,7 +332,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
             />
             {formulario.ocurrio && esExtemporaneo(formulario.ocurrio, ahora) && (
               <div style={{ fontSize: '12px', color: '#FFFFFF', marginBottom: '12px' }}>
-                🕒 Registro extemporáneo
+                🕒 Anotada después
               </div>
             )}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
@@ -374,7 +374,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
                 </div>
                 <div style={{ fontSize: '13px', color: '#FFFFFF', marginTop: '4px' }}>
                   {textoCuandoOcurrio(ultimo.ocurrio_en, ahora)}
-                  {ultimo.extemporaneo && ' · 🕒 Registro extemporáneo'}
+                  {ultimo.extemporaneo && ' · 🕒 Anotada después'}
                 </div>
               </>
             ) : (
@@ -491,9 +491,9 @@ export default function FluctuacionesPage({ token, apiUrl }) {
                     {p.ids.length > 1 && <span style={{ fontSize: '12px', fontWeight: 400, color: '#FFFFFF' }}> · {p.ids.length} registros unidos</span>}
                   </div>
                   <div style={{ fontSize: '12px', color: '#FFFFFF' }}>
-                    {hora12(p.inicio.slice(11, 16))} – {p.fin ? hora12(p.fin.slice(11, 16)) : 'sin cierre registrado'}
+                    {hora12(p.inicio.slice(11, 16))} – {p.fin ? hora12(p.fin.slice(11, 16)) : 'Sin hora de cierre registrada'}
                     {' · '}{textoDuracion(p.minutosExactos)}
-                    {p.extemporaneo && ' · 🕒 extemporáneo'}
+                    {p.extemporaneo && ' · 🕒 Anotada después'}
                   </div>
 
                   {guardada && (
@@ -576,7 +576,7 @@ export default function FluctuacionesPage({ token, apiUrl }) {
                     </div>
                     <div style={{ fontSize: '12px', color: '#FFFFFF' }}>
                       {hora12(ev.ocurrio_en.slice(11, 16))}
-                      {ev.extemporaneo && ' · 🕒 Registro extemporáneo'}
+                      {ev.extemporaneo && ' · 🕒 Anotada después'}
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '6px' }}>

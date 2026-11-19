@@ -395,6 +395,9 @@ export default function RegistroDiarioPage({ token, apiUrl }) {
               ¿Cómo Te Sientes Hoy?
             </div>
             <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)', marginTop: '4px', lineHeight: '1.5' }}>
+              Registro de síntomas no motores como sueño, fatiga o ánimo
+            </div>
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)', marginTop: '4px', lineHeight: '1.5' }}>
               Escala 0–4 · 0 = sin problema · 4 = muy grave
             </div>
           </div>

@@ -21,7 +21,7 @@ export const COLORES_TIPO = {
 export const ETIQUETAS_TIPO = {
   temblor: 'Temblor',
   rigidez: 'Rigidez',
-  lentitud: 'Lentitud / Bradicinesia',
+  lentitud: 'Bradicinesia',
   equilibrio: 'Equilibrio',
   fatiga: 'Fatiga',
   otros: 'Otros'

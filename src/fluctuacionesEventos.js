@@ -82,7 +82,7 @@ export function textoTrazabilidad(ev, ahora, porId) {
 }
 
 const ETIQUETAS = {
-  ON: 'ON', OFF: 'OFF', ON_DISC_LEVE: 'ON con movimientos', ON_DISC_GRAVE: 'ON con movimientos graves', DORMIDO: 'Dormido'
+  ON: 'ON (buen efecto del medicamento)', OFF: 'OFF (efecto reducido o ausente)', ON_DISC_LEVE: 'ON con movimientos involuntarios leves', ON_DISC_GRAVE: 'ON con movimientos involuntarios intensos', DORMIDO: 'Dormido'
 };
 export function etiquetaEstado(id) { return ETIQUETAS[id] || id; }
 

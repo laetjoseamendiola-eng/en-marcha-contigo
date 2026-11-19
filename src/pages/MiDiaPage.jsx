@@ -189,7 +189,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
           {/* Hora real de toma */}
           {estado === 'tomada' && tomaHora && (
             <div style={{ fontSize: '14px', color: '#5dde83', marginTop: '6px', fontWeight: 600 }}>
-              ✓ Tomado a las {formatHora(tomaHora)}
+              ✓ Tomada a las {formatHora(tomaHora)}
               {horaVentana !== horario && <span style={{ fontWeight: 400, color: 'rgba(255,255,255,0.8)' }}> (programada {aHora12(horario)})</span>}
             </div>
           )}
@@ -197,7 +197,7 @@ function TarjetaToma({ bloque, onTomar, onOmitir, onDeshacer, cargando }) {
           {/* Toma antes de su hora: se pide la hora real */}
           {panelHora && (
             <div style={{ marginTop: '10px', padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)' }}>
-              <div style={{ fontSize: '13px', marginBottom: '6px' }}>¿A qué hora la tomó?</div>
+              <div style={{ fontSize: '13px', marginBottom: '6px' }}>¿A qué hora la tomaste?</div>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                 <label style={{ fontSize: '12px' }}>Hora
                   <select style={campoEstilo} value={hr.h} onChange={e => setHr({ ...hr, h: e.target.value })}>
@@ -362,7 +362,7 @@ function ResumenDia({ tomas }) {
           Tomas
         </div>
         <div style={{ fontSize: '18px', color: 'white' }}>
-          {tomadas}/{total} <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.93)' }}>completadas</span>
+          {tomadas} de {total} <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.93)' }}>tomas registradas hoy</span>
         </div>
       </div>
     </div>
@@ -545,7 +545,7 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
   // Tres datos por medicamento: sustancia activa, dosis y horarios
   const formulario = (onGuardar, onCancelar, esNuevo) => (
     <div style={{ marginTop: '10px', padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.04)' }}>
-      <label style={{ display: 'block', fontSize: '13px' }}>Sustancia activa
+      <label style={{ display: 'block', fontSize: '13px' }}>Nombre del medicamento
         <input style={campoEstilo} value={form.principio_activo} placeholder="Ej. Levodopa 250 mg / Carbidopa 25 mg" onChange={e => setForm({ ...form, principio_activo: e.target.value })} />
       </label>
       <label style={{ display: 'block', fontSize: '13px', marginTop: '8px' }}>Dosis
@@ -624,7 +624,7 @@ function MenuMedicamentos({ token, apiUrl, onCerrar, onCambio }) {
         {mensaje && <p style={{ fontSize: '13px', color: '#5dde83', margin: '10px 0 0' }}>{mensaje}</p>}
         {cargando && <p style={{ fontSize: '14px' }}>Cargando...</p>}
         {!cargando && lista.length === 0 && !agregando && (
-          <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.93)' }}>Aún no tienes medicamentos registrados.</p>
+          <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.93)' }}>Aún no tienes medicamentos registrados</p>
         )}
 
         {lista.map(m => (
@@ -798,7 +798,7 @@ export default function MiDiaPage({ token, apiUrl }) {
           textAlign: 'center'
         }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>💊</div>
-          <h3 style={{ color: '#00A7A7', margin: '0 0 12px' }}>Aún No Hay Medicamentos Registrados</h3>
+          <h3 style={{ color: '#00A7A7', margin: '0 0 12px' }}>Aún no tienes medicamentos registrados</h3>
           <p style={{ color: 'rgba(255,255,255,0.93)', fontSize: '14px', lineHeight: '1.6' }}>
             Agrega tus medicamentos, dosis y horarios para ver tus tomas del día.
           </p>
