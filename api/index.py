@@ -210,6 +210,12 @@ class MedicamentoProgramado(db.Model):
         }
 
 
+def ahora_cdmx_naive():
+    """Hora actual en America/Mexico_City, sin zona (igual que el resto de las fechas de tomas)."""
+    from zoneinfo import ZoneInfo
+    return datetime.datetime.now(datetime.timezone.utc).astimezone(ZoneInfo('America/Mexico_City')).replace(tzinfo=None)
+
+
 class TomaRegistrada(db.Model):
     """
     Registro de cada toma real con timestamp exacto.
@@ -227,7 +233,8 @@ class TomaRegistrada(db.Model):
     omitida = db.Column(db.Boolean, default=False)
     desvio_minutos = db.Column(db.Integer)                         # positivo=tarde, negativo=temprano
     notas = db.Column(db.Text)
-    fecha_registro = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    # Solo registros nuevos: hora de CDMX. Las tomas existentes no se modifican.
+    fecha_registro = db.Column(db.DateTime, default=ahora_cdmx_naive)
 
     def to_dict(self):
         return {
