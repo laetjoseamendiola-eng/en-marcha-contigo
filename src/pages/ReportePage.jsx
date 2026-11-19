@@ -183,7 +183,9 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
   useEffect(() => {
     leerPreferencias(apiUrl, token).then(pref => {
       const r = pref && pref.config_reporte;
-      if (r) {
+      // Periodo guardado al revés (hasta < desde): se usa «Hoy» sin tocar lo guardado.
+      const invalido = !!(r && r.desde && r.hasta && r.hasta < r.desde);
+      if (r && !invalido) {
         if (r.modo) setModoPeriodo(r.modo);
         if (r.desde) setFechaDesde(r.desde);
         if (r.hasta) setFechaHasta(r.hasta);
@@ -194,10 +196,16 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
 
   useEffect(() => {
     if (!prefListoRef.current) return;
+    if (fechaHasta < fechaDesde) return; // nunca se guarda un periodo al revés
     guardarPreferencias(apiUrl, token, { config_reporte: { modo: modoPeriodo, desde: fechaDesde, hasta: fechaHasta } });
   }, [apiUrl, token, modoPeriodo, fechaDesde, fechaHasta]);
 
   const cargarReporte = useCallback(async () => {
+    if (modoPeriodo === 'personalizado' && fechaHasta < fechaDesde) {
+      setCargando(false);
+      setError('La fecha final es anterior a la inicial. Elige otra fecha.');
+      return;
+    }
     setCargando(true);
     setError('');
     try {
@@ -259,18 +267,63 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
     window.print();
   };
 
+  const selectorPeriodo = (
+    <>
+          <style>{`.selector-periodo option { color: #000; background: #fff; }
+            .selector-periodo option:checked, .selector-periodo option:hover { background: #00A7A7 !important; color: #fff !important; }`}</style>
+          <select
+            className="selector-periodo"
+            value={modoPeriodo}
+            onChange={e => setModoPeriodo(e.target.value)}
+            style={{
+              background: 'rgba(255,255,255,0.08)',
+              border: '2px solid #FFC107',
+              borderRadius: '10px',
+              padding: '8px 14px',
+              color: 'white',
+              fontFamily: 'inherit',
+              fontSize: '13px',
+            }}
+          >
+            <option value="hoy" style={{ color: '#000', background: '#fff' }}>Hoy</option>
+            <option value="personalizado" style={{ color: '#000', background: '#fff' }}>Personalizado</option>
+          </select>
+          {modoPeriodo === 'personalizado' && (
+            <>
+              <input type="date" value={fechaDesde} min={minFecha || undefined} max={fechaHasta}
+                onChange={e => setFechaDesde(clampFecha(e.target.value, minFecha, maxFecha))} style={estiloInputPeriodo} />
+              <span style={{ color: 'white', fontSize: '13px' }}>a</span>
+              <input type="date" value={fechaHasta} min={fechaDesde} max={maxFecha}
+                onChange={e => setFechaHasta(clampFecha(e.target.value, minFecha, maxFecha))} style={estiloInputPeriodo} />
+            </>
+          )}
+    </>
+  );
+
+  const contenedorControles = (
+    <div className="no-print" style={{ display: 'flex', gap: '10px', marginBottom: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
+      {selectorPeriodo}
+    </div>
+  );
+
   if (cargando) {
     return (
-      <div style={{ textAlign: 'center', padding: '60px 20px', color: 'rgba(255,255,255,0.93)' }}>
-        Generando reporte...
+      <div style={{ padding: '16px 16px 40px', maxWidth: '700px', margin: '0 auto', color: 'white' }}>
+        {contenedorControles}
+        <div style={{ textAlign: 'center', padding: '60px 20px', color: 'rgba(255,255,255,0.93)' }}>
+          Generando reporte...
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div style={{ padding: '24px', color: '#ff6b6b', textAlign: 'center' }}>
-        {error}
+      <div style={{ padding: '16px 16px 40px', maxWidth: '700px', margin: '0 auto', color: 'white' }}>
+        {contenedorControles}
+        <div style={{ padding: '24px', color: '#ff6b6b', textAlign: 'center' }}>
+          {error}
+        </div>
       </div>
     );
   }
@@ -336,34 +389,7 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
 
         {/* Controles (no imprimir) */}
         <div className="no-print" style={{ display: 'flex', gap: '10px', marginBottom: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <style>{`.selector-periodo option { color: #000; background: #fff; }
-            .selector-periodo option:checked, .selector-periodo option:hover { background: #00A7A7 !important; color: #fff !important; }`}</style>
-          <select
-            className="selector-periodo"
-            value={modoPeriodo}
-            onChange={e => setModoPeriodo(e.target.value)}
-            style={{
-              background: 'rgba(255,255,255,0.08)',
-              border: '2px solid #FFC107',
-              borderRadius: '10px',
-              padding: '8px 14px',
-              color: 'white',
-              fontFamily: 'inherit',
-              fontSize: '13px',
-            }}
-          >
-            <option value="hoy" style={{ color: '#000', background: '#fff' }}>Hoy</option>
-            <option value="personalizado" style={{ color: '#000', background: '#fff' }}>Personalizado</option>
-          </select>
-          {modoPeriodo === 'personalizado' && (
-            <>
-              <input type="date" value={fechaDesde} min={minFecha || undefined} max={fechaHasta}
-                onChange={e => setFechaDesde(clampFecha(e.target.value, minFecha, maxFecha))} style={estiloInputPeriodo} />
-              <span style={{ color: 'white', fontSize: '13px' }}>a</span>
-              <input type="date" value={fechaHasta} min={fechaDesde} max={maxFecha}
-                onChange={e => setFechaHasta(clampFecha(e.target.value, minFecha, maxFecha))} style={estiloInputPeriodo} />
-            </>
-          )}
+          {selectorPeriodo}
           <button
             onClick={handleImprimir}
             style={{
