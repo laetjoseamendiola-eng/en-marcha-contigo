@@ -96,13 +96,15 @@ export function AdherenciaSeccion({ adherencia, periodo, BarraAdherencia }) {
   const cubos = {};
   Object.entries(porFecha).forEach(([f, r]) => {
     const clave = semanal ? lunesDe(f) : f;
-    if (!cubos[clave]) cubos[clave] = { programadas: 0, tomadas: 0 };
+    if (!cubos[clave]) cubos[clave] = { programadas: 0, tomadas: 0, cerradas: 0 };
     cubos[clave].programadas += r.programadas;
     cubos[clave].tomadas += r.tomadas;
+    // Misma formula que el total: solo tomas con plazo cerrado (tomadas + omitidas + sin registro).
+    cubos[clave].cerradas += r.tomadas + (r.omitidas ?? 0) + (r.sin_registro ?? 0);
   });
   const datos = Object.keys(cubos).sort().map(f => ({
-    fecha: f, pct: cubos[f].programadas ? Math.round(cubos[f].tomadas / cubos[f].programadas * 100) : 0,
-    tomadas: cubos[f].tomadas, programadas: cubos[f].programadas
+    fecha: f, pct: cubos[f].cerradas ? Math.round(cubos[f].tomadas / cubos[f].cerradas * 100) : 0,
+    tomadas: cubos[f].tomadas, cerradas: cubos[f].cerradas
   }));
   const meds = Object.entries(porMed).map(([nombre, r]) => ({
     nombre, pct: r.programadas ? Math.round(r.tomadas / r.programadas * 100) : 0, tomadas: r.tomadas, programadas: r.programadas
@@ -121,7 +123,7 @@ export function AdherenciaSeccion({ adherencia, periodo, BarraAdherencia }) {
     return (
       <div style={{ background: '#FFF', border: '2px solid #1a1a2e', borderRadius: '10px', padding: '8px 12px', color: TINTA, fontSize: '13px', fontWeight: 700 }}>
         <div>{d.nombre || (semanal ? `Semana del ${fechaCompleta(label)}` : fechaCompleta(label))}</div>
-        <div>{d.pct}% tomadas ({d.tomadas} de {d.programadas})</div>
+        <div>{d.pct}% tomadas ({d.tomadas} de {d.cerradas} con plazo cerrado)</div>
       </div>
     );
   };

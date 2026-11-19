@@ -113,7 +113,7 @@ function BarraAdherencia({ pct }) {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-        <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.93)' }}>Porcentaje de tomas tomadas</span>
+        <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.93)' }}>Medicación tomada</span>
         <span style={{ fontSize: '18px', fontWeight: 'bold', color }}>{pct}%</span>
       </div>
       <div style={{ height: '10px', background: 'rgba(255,255,255,0.08)', borderRadius: '5px', overflow: 'hidden' }}>
