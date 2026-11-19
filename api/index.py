@@ -640,6 +640,8 @@ def crear_sintoma(usuario_actual):
             return jsonify({'error': 'tipo es requerido'}), 400
         if not isinstance(data.get('intensidad'), int) or data['intensidad'] < 1 or data['intensidad'] > 5:
             return jsonify({'error': 'intensidad debe ser un número entre 1 y 5'}), 400
+        if len(str(data.get('tipo', ''))) > 50:
+            return jsonify({'error': 'El nombre del síntoma es demasiado largo (máximo 50 caracteres)'}), 400
         if data.get('duracion') not in DURACIONES_VALIDAS:
             return jsonify({'error': 'duracion no es una opción válida'}), 400
         if not data.get('localizacion'):
@@ -701,6 +703,8 @@ def actualizar_sintoma(usuario_actual, sintoma_id):
         data = request.get_json()
 
         if 'tipo' in data:
+            if len(str(data['tipo'])) > 50:
+                return jsonify({'error': 'El nombre del síntoma es demasiado largo (máximo 50 caracteres)'}), 400
             sintoma.tipo = data['tipo']
         if 'intensidad' in data:
             if not isinstance(data['intensidad'], int) or data['intensidad'] < 1 or data['intensidad'] > 5:
