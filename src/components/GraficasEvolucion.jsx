@@ -58,7 +58,7 @@ export function nombreSintoma(tipo) {
 // Las 5 posiciones de cada gráfica: cada una se dibuja distinto, para distinguirlas sin color.
 export const REPRESENTACIONES = [
   { id: 'linea',    texto: 'línea continua con círculos',      forma: 'circulo',   tipoLinea: 'linear',    trazo: '',      linea: true },
-  { id: 'curva',    texto: 'curva suave con cuadrados',        forma: 'cuadrado',  tipoLinea: 'monotone',  trazo: '',      linea: true },
+  { id: 'curva',    texto: 'curva suave con cuadrados',        forma: 'cuadrado',  tipoLinea: 'monotone',  trazo: '6 4',   linea: true },
   { id: 'puntos',   texto: 'puntos de dispersión (triángulos)', forma: 'triangulo', tipoLinea: 'linear',    trazo: '',      linea: false },
   { id: 'palitos',  texto: 'palitos con rombo',                forma: 'rombo',     tipoLinea: 'linear',    trazo: '',      linea: false, palitos: true },
   { id: 'escalon',  texto: 'escalones de guiones con estrellas', forma: 'estrella',  tipoLinea: 'stepAfter', trazo: '8 5',   linea: true },
