@@ -110,11 +110,10 @@ export function AdherenciaSeccion({ adherencia, periodo, BarraAdherencia }) {
   const formatoX = f => formatFecha(f);
   const cifras = [
     { label: 'Tomas programadas', valor: adherencia.total_programadas },
-    { label: 'Tomadas', valor: adherencia.tomadas },
+    { label: 'Tomadas', valor: adherencia.tomadas, sub: `de las cuales ${adherencia.extemporaneas ?? 0}: Registro posterior (más de 30 min)` },
     { label: 'Omitidas', valor: adherencia.omitidas },
     { label: 'Sin registro', valor: adherencia.sin_registro ?? 0 },
     ...((adherencia.pendientes ?? 0) > 0 ? [{ label: 'Pendientes (aún en plazo)', valor: adherencia.pendientes }] : []),
-    { label: 'Registro extemporáneo', valor: adherencia.extemporaneas ?? 0 },
   ];
   const Tip = ({ active, payload, label }) => {
     if (!active || !payload || !payload.length) return null;
@@ -129,11 +128,20 @@ export function AdherenciaSeccion({ adherencia, periodo, BarraAdherencia }) {
   return (
     <SeccionReporte titulo="💊 Adherencia al Tratamiento">
       {BarraAdherencia}
+      <p className="subtexto-reporte" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.93)', margin: '8px 0 0' }}>
+        El porcentaje se calcula sólo sobre tomas con plazo ya cerrado (Tomadas, Omitidas y Sin registro); las Pendientes (aún en plazo) no se incluyen para reflejar con justicia tu avance.
+      </p>
+      {adherencia.porcentaje_anterior !== undefined && adherencia.porcentaje_anterior !== adherencia.porcentaje && (
+        <p className="subtexto-reporte" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.93)', margin: '4px 0 0' }}>
+          Antes de este cambio: {adherencia.porcentaje_anterior}%.
+        </p>
+      )}
       <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cifras.length}, 1fr)`, gap: '10px', margin: '14px 0' }}>
         {cifras.map(c => (
           <div key={c.label} style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
             <div className="texto-reporte" style={{ fontSize: '22px', fontWeight: 'bold', color: 'rgba(255,255,255,0.95)' }}>{c.valor}</div>
             <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginTop: '2px' }}>{c.label}</div>
+            {c.sub && <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginTop: '4px' }}>{c.sub}</div>}
           </div>
         ))}
       </div>

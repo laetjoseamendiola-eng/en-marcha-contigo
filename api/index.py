@@ -2239,7 +2239,11 @@ def generar_reporte(usuario_actual):
         # Sin registro = pendiente cuya ventana ya cerró. Pendientes = aún dentro de su ventana (hoy y ayer).
         tomas_sin_registro = len([t for t in tomas if toma_sin_registro(t, ahora_rep)])
         tomas_pendientes = total_tomas - tomas_tomadas - tomas_omitidas - tomas_sin_registro
-        adherencia_pct = round((tomas_tomadas / total_tomas * 100) if total_tomas > 0 else 0)
+        # Porcentaje solo sobre tomas con plazo cerrado (tomadas + omitidas + sin registro). Las pendientes no cuentan.
+        tomas_cerradas = tomas_tomadas + tomas_omitidas + tomas_sin_registro
+        adherencia_pct = round(tomas_tomadas / tomas_cerradas * 100) if tomas_cerradas > 0 else 0
+        # Formula anterior (incluia pendientes), solo para mostrar la comparacion antes/despues.
+        adherencia_pct_anterior = round((tomas_tomadas / total_tomas * 100) if total_tomas > 0 else 0)
         # Resumen por medicamento y por fecha (mismo conjunto de tomas que las cifras de arriba).
         por_medicamento, por_fecha = {}, {}
         extemporaneos_total = 0
@@ -2426,6 +2430,8 @@ def generar_reporte(usuario_actual):
                 'pendientes': tomas_pendientes,
                 'extemporaneas': extemporaneos_total,
                 'porcentaje': adherencia_pct,
+                'porcentaje_anterior': adherencia_pct_anterior,
+                'cerradas': tomas_cerradas,
                 'por_medicamento': por_medicamento,
                 'por_fecha': por_fecha,
             },
