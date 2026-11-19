@@ -1,5 +1,5 @@
 import { zonaReloj, hora12, diaClave } from '../zonaReloj';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './RegistroSintomasPage.css';
 import EvolucionPage from './EvolucionPage.jsx';
 import MiDiaPage from './MiDiaPage.jsx';
@@ -8,6 +8,110 @@ import RegistroDiarioPage from './RegistroDiarioPage.jsx';
 import ReportePage from './ReportePage.jsx';
 import ConfiguracionPage from './ConfiguracionPage.jsx';
 import BarraHora from './BarraHora.jsx';
+
+const VentanaSintomas = ({ onCerrar, catalogoVisible, catalogoOculto, sinClasificar, onCrear, onCambiar, errorVentana }) => {
+  const [nombre, setNombre] = useState('');
+  const [clasificacion, setClasificacion] = useState('');
+  const [explicacion, setExplicacion] = useState('');
+  const dialogo = useRef(null);
+
+  useEffect(() => {
+    const previo = document.activeElement;
+    const primero = dialogo.current && dialogo.current.querySelector('input');
+    if (primero) primero.focus();
+    const tecla = (e) => {
+      if (e.key === 'Escape') { onCerrar(); return; }
+      if (e.key !== 'Tab' || !dialogo.current) return;
+      const focos = Array.from(dialogo.current.querySelectorAll('button, input, textarea, select')).filter(el => !el.disabled);
+      if (!focos.length) return;
+      const inicio = focos[0];
+      const fin = focos[focos.length - 1];
+      if (e.shiftKey && document.activeElement === inicio) { e.preventDefault(); fin.focus(); }
+      else if (!e.shiftKey && document.activeElement === fin) { e.preventDefault(); inicio.focus(); }
+    };
+    document.addEventListener('keydown', tecla);
+    return () => {
+      document.removeEventListener('keydown', tecla);
+      if (previo && previo.focus) previo.focus();
+    };
+  }, []);
+
+  const enviar = async () => {
+    const ok = await onCrear({ nombre, clasificacion, explicacion });
+    if (ok) { setNombre(''); setClasificacion(''); setExplicacion(''); }
+  };
+
+  const botonFila = { padding: '8px 10px', borderRadius: '6px', border: '2px solid #FFFFFF', background: 'transparent', color: '#FFFFFF', fontSize: '14px', fontFamily: 'inherit', cursor: 'pointer', marginRight: '6px', marginTop: '6px' };
+  const etiqueta = (c) => (c === 'motor' ? '🚶 Motor' : '🧠 No motor');
+  const filaSintoma = (c, accion, textoAccion) => (
+    <div key={c.clave} style={{ borderBottom: '1px solid rgba(255,255,255,0.4)', padding: '8px 0' }}>
+      <div style={{ fontSize: '16px', fontWeight: 600 }}>{c.nombre}</div>
+      <div style={{ fontSize: '13px', opacity: 0.9 }}>{etiqueta(c.clasificacion)}{c.propio ? ' · propio' : ''}</div>
+      <button type="button" onClick={() => accion(c)} style={botonFila}>{textoAccion}</button>
+    </div>
+  );
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 50, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '16px', overflowY: 'auto' }}>
+      <div ref={dialogo} role="dialog" aria-modal="true" aria-labelledby="titulo-ventana-sintomas"
+        style={{ background: '#0D2C4D', color: '#FFFFFF', border: '2px solid #FFFFFF', borderRadius: '10px', width: '100%', maxWidth: '480px', padding: '18px', marginTop: '24px', boxSizing: 'border-box' }}>
+        <h2 id="titulo-ventana-sintomas" style={{ fontSize: '20px', margin: '0 0 12px' }}>＋ Añadir o quitar síntoma</h2>
+
+        <div>
+          <h3 style={{ fontSize: '17px', margin: '0 0 8px' }}>Agregar un síntoma propio</h3>
+          <label htmlFor="nuevo-sintoma-nombre" style={{ display: 'block', fontSize: '15px' }}>Nombre del síntoma *</label>
+          <input id="nuevo-sintoma-nombre" type="text" maxLength={50} value={nombre} onChange={(e) => setNombre(e.target.value)}
+            style={{ width: '100%', boxSizing: 'border-box', padding: '10px', fontSize: '16px', borderRadius: '6px', marginBottom: '10px' }} />
+          <fieldset style={{ border: '1px solid #FFFFFF', borderRadius: '6px', padding: '8px', marginBottom: '10px' }}>
+            <legend style={{ fontSize: '15px', padding: '0 4px' }}>Clasificación *</legend>
+            <label style={{ display: 'block', fontSize: '16px', padding: '6px 0' }}>
+              <input type="radio" name="clasificacion-nuevo" value="motor" checked={clasificacion === 'motor'} onChange={() => setClasificacion('motor')} /> 🚶 Motor
+            </label>
+            <label style={{ display: 'block', fontSize: '16px', padding: '6px 0' }}>
+              <input type="radio" name="clasificacion-nuevo" value="no_motor" checked={clasificacion === 'no_motor'} onChange={() => setClasificacion('no_motor')} /> 🧠 No motor
+            </label>
+          </fieldset>
+          <label htmlFor="nuevo-sintoma-explicacion" style={{ display: 'block', fontSize: '15px' }}>Explicación corta (opcional)</label>
+          <input id="nuevo-sintoma-explicacion" type="text" maxLength={120} value={explicacion} onChange={(e) => setExplicacion(e.target.value)}
+            style={{ width: '100%', boxSizing: 'border-box', padding: '10px', fontSize: '16px', borderRadius: '6px', marginBottom: '10px' }} />
+          <button type="button" onClick={enviar} className="btn-submit">Agregar síntoma</button>
+        </div>
+
+        {sinClasificar.length > 0 && (
+          <div style={{ marginTop: '18px' }}>
+            <h3 style={{ fontSize: '17px', margin: '0 0 6px' }}>Sin clasificar</h3>
+            <p style={{ fontSize: '14px', margin: '0 0 6px' }}>Nombres de tus registros anteriores. Elige en qué grupo van.</p>
+            {sinClasificar.map(n => (
+              <div key={n} style={{ borderBottom: '1px solid rgba(255,255,255,0.4)', padding: '8px 0' }}>
+                <div style={{ fontSize: '16px', fontWeight: 600 }}>{n}</div>
+                <button type="button" onClick={() => onCambiar(n, { clasificacion: 'motor' })} style={botonFila}>🚶 Clasificar como Motor</button>
+                <button type="button" onClick={() => onCambiar(n, { clasificacion: 'no_motor' })} style={botonFila}>🧠 Clasificar como No motor</button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div style={{ marginTop: '18px' }}>
+          <h3 style={{ fontSize: '17px', margin: '0 0 6px' }}>Mis síntomas en la lista</h3>
+          {catalogoVisible.length === 0 && <p style={{ fontSize: '14px' }}>No hay síntomas en la lista.</p>}
+          {catalogoVisible.map(c => filaSintoma(c, (x) => onCambiar(x.clave, { oculto: true }), 'Quitar'))}
+        </div>
+
+        {catalogoOculto.length > 0 && (
+          <div style={{ marginTop: '18px' }}>
+            <h3 style={{ fontSize: '17px', margin: '0 0 6px' }}>Quitados</h3>
+            <p style={{ fontSize: '14px', margin: '0 0 6px' }}>Los registros de estos síntomas se conservan.</p>
+            {catalogoOculto.map(c => filaSintoma(c, (x) => onCambiar(x.clave, { oculto: false }), 'Volver a agregar'))}
+          </div>
+        )}
+
+        {errorVentana && <p role="alert" style={{ color: '#FFFFFF', fontWeight: 700, marginTop: '12px' }}>{errorVentana}</p>}
+
+        <button type="button" onClick={onCerrar} className="btn-submit" style={{ marginTop: '16px' }}>Cerrar</button>
+      </div>
+    </div>
+  );
+};
 
 const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
   const [pestanaActiva, setPestanaActiva] = useState('midia'); // 'midia' | 'registro' | 'evolucion' | 'historial'
@@ -21,6 +125,9 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
 
   const [otroTexto, setOtroTexto] = useState('');
   const [pendientes, setPendientes] = useState([]);
+  const [listaPersonal, setListaPersonal] = useState([]);
+  const [ventanaSintomas, setVentanaSintomas] = useState(false);
+  const [errorVentana, setErrorVentana] = useState('');
 
   const opcionesDuracion = [
     'Menos de 30 min',
@@ -120,6 +227,31 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
     const encontrado = tiposSintomas.find(t => normalizarTexto(t.key) === n || normalizarTexto(t.nombre) === n);
     return encontrado ? encontrado.key : PREFIJO_OTRO + limpio;
   };
+
+  // Lista personal: catálogo visible (base sin quitar + propios/clasificados) y quitados
+  const catalogoBase = [
+    ...TIPOS_MOTORES.map(t => ({ clave: t.key, nombre: t.nombre, clasificacion: 'motor', propio: false, descripcion: t.descripcion })),
+    ...TIPOS_NO_MOTORES.map(t => ({ clave: t.key, nombre: t.nombre, clasificacion: 'no_motor', propio: false, descripcion: t.descripcion }))
+  ];
+  const clavesOcultas = new Set(listaPersonal.filter(x => x.oculto).map(x => x.clave));
+  const clavesBase = new Set(catalogoBase.map(c => c.clave));
+  const catalogoVisible = [
+    ...catalogoBase.filter(c => !clavesOcultas.has(c.clave)),
+    ...listaPersonal.filter(x => !x.oculto && x.clasificacion && !clavesBase.has(x.clave))
+      .map(x => ({ clave: x.clave, nombre: x.nombre, clasificacion: x.clasificacion, propio: true, descripcion: x.explicacion || '' }))
+  ];
+  const catalogoOculto = [
+    ...catalogoBase.filter(c => clavesOcultas.has(c.clave)),
+    ...listaPersonal.filter(x => x.oculto && !clavesBase.has(x.clave))
+      .map(x => ({ clave: x.clave, nombre: x.nombre, clasificacion: x.clasificacion || 'no_motor', propio: true, descripcion: x.explicacion || '' }))
+  ];
+  const conocidas = new Set(listaPersonal.map(x => x.clave));
+  const sinClasificar = [...new Set(sintomas.map(x => x.tipo))]
+    .filter(t => t && !clavesBase.has(t) && !conocidas.has(t));
+  const motoresVisibles = catalogoVisible.filter(c => c.clasificacion === 'motor')
+    .map(c => ({ key: c.clave, nombre: c.nombre, descripcion: c.propio ? (c.descripcion ? `propio: ${c.descripcion}` : 'propio') : c.descripcion }));
+  const noMotoresVisibles = catalogoVisible.filter(c => c.clasificacion === 'no_motor')
+    .map(c => ({ key: c.clave, nombre: c.nombre, descripcion: c.propio ? (c.descripcion ? `propio: ${c.descripcion}` : 'propio') : c.descripcion }));
 
   const renderGrupoTipos = (titulo, lista) => [
     <li key={`titulo-${titulo}`} role="presentation" style={{ padding: '14px 14px 8px', fontSize: '18px', fontWeight: 800, color: '#FFFFFF', borderTop: '3px solid #FFFFFF', borderBottom: '2px solid #FFFFFF', background: 'rgba(255,255,255,0.08)' }}>{titulo === 'Motores' ? '🚶 Motores' : '🧠 No motores'}</li>,
@@ -222,6 +354,65 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
     }));
   };
 
+  const cargarListaPersonal = async () => {
+    try {
+      const r = await fetch(`${apiUrl}/api/sintomas/lista`, { headers: authHeaders });
+      if (r.ok) setListaPersonal(await r.json());
+      else if (r.status === 401) onLogout();
+    } catch (error) {
+      // Sin lista, el selector muestra solo la lista base
+    }
+  };
+
+  const abrirVentanaSintomas = () => {
+    setErrorVentana('');
+    setVentanaSintomas(true);
+    cargarListaPersonal();
+  };
+
+  const crearSintomaPropio = async ({ nombre, clasificacion, explicacion }) => {
+    setErrorVentana('');
+    if (!nombre.trim()) { setErrorVentana('Escribe el nombre del síntoma'); return false; }
+    if (!clasificacion) { setErrorVentana('Elige si el síntoma es motor o no motor'); return false; }
+    try {
+      const r = await fetch(`${apiUrl}/api/sintomas/lista`, {
+        method: 'POST',
+        headers: { ...authHeaders, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre: nombre.trim(), clasificacion, explicacion: explicacion.trim() })
+      });
+      const datos = await r.json().catch(() => ({}));
+      if (r.status === 401) { onLogout(); return false; }
+      if (!r.ok) { setErrorVentana(datos.error || 'No se pudo agregar el síntoma'); return false; }
+      setListaPersonal(prev => [...prev.filter(x => x.clave !== datos.clave), datos]);
+      return true;
+    } catch (error) {
+      setErrorVentana(`Error de conexión: ${error.message}`);
+      return false;
+    }
+  };
+
+  const cambiarSintomaLista = async (clave, cambios) => {
+    setErrorVentana('');
+    try {
+      const r = await fetch(`${apiUrl}/api/sintomas/lista/${encodeURIComponent(clave)}`, {
+        method: 'PUT',
+        headers: { ...authHeaders, 'Content-Type': 'application/json' },
+        body: JSON.stringify(cambios)
+      });
+      const datos = await r.json().catch(() => ({}));
+      if (r.status === 401) { onLogout(); return; }
+      if (!r.ok) { setErrorVentana(datos.error || 'No se pudo guardar el cambio'); return; }
+      setListaPersonal(prev => [...prev.filter(x => x.clave !== datos.clave), datos]);
+    } catch (error) {
+      setErrorVentana(`Error de conexión: ${error.message}`);
+    }
+  };
+
+  useEffect(() => {
+    cargarListaPersonal();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const validarEntrada = (entrada) => {
     if (!entrada.tipo || !entrada.localizacion) {
       return 'Por favor completa todos los campos requeridos';
@@ -236,7 +427,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
   };
 
   const entradaActual = () => {
-    const tipo = formData.tipo === OTRO ? tipoDesdeOtro(otroTexto) : formData.tipo;
+    const tipo = formData.tipo;
     return { ...formData, tipo };
   };
 
@@ -246,10 +437,6 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
   };
 
   const agregarOtroSintoma = () => {
-    if (formData.tipo === OTRO && !otroTexto.trim()) {
-      setMensaje('Escribe el síntoma en el campo de «Otro»');
-      return;
-    }
     const entrada = entradaActual();
     if (entrada.tipo.length > LARGO_MAX_TIPO) {
       setMensaje('El nombre del síntoma es demasiado largo (máximo 50 caracteres)');
@@ -596,7 +783,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
                     fontSize: '16px', fontFamily: 'inherit', cursor: 'pointer'
                   }}
                 >
-                  {formData.tipo === OTRO ? 'Otro síntoma (escríbelo aquí)' : (() => {
+                  {(() => {
                     const seleccionado = tiposSintomas.find(t => t.key === formData.tipo);
                     if (!seleccionado) return 'Selecciona un síntoma';
                     return (
@@ -617,22 +804,8 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
                       maxHeight: '60vh', overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.25)'
                     }}
                   >
-                    {renderGrupoTipos('Motores', TIPOS_MOTORES)}
-                    {renderGrupoTipos('No motores', TIPOS_NO_MOTORES)}
-                    <li role="option" aria-selected={formData.tipo === OTRO}>
-                      <button
-                        type="button"
-                        onClick={() => { setFormData(prev => ({ ...prev, tipo: OTRO })); setMensaje(''); setMenuTipoAbierto(false); }}
-                        style={{
-                          width: '100%', textAlign: 'left', padding: '14px',
-                          background: formData.tipo === OTRO ? '#00A7A7' : 'transparent',
-                          color: '#FFFFFF', border: 'none', borderBottom: '1px solid #FFFFFF',
-                          fontSize: '16px', fontFamily: 'inherit', cursor: 'pointer', lineHeight: 1.35
-                        }}
-                      >
-                        Otro síntoma (escríbelo aquí)
-                      </button>
-                    </li>
+                    {renderGrupoTipos('Motores', motoresVisibles)}
+                    {renderGrupoTipos('No motores', noMotoresVisibles)}
                   </ul>
                 )}
               </div>
@@ -643,21 +816,20 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
               )}
             </div>
 
-            {formData.tipo === OTRO && (
-              <div className="form-group">
-                <label htmlFor="otro-texto">¿Qué sentiste? *</label>
-                <input
-                  id="otro-texto"
-                  type="text"
-                  maxLength={LARGO_MAX_TIPO - PREFIJO_OTRO.length}
-                  value={otroTexto}
-                  onChange={(e) => setOtroTexto(e.target.value)}
-                  placeholder="ej. calambre en el dedo, zumbido, sensación de frío"
-                />
-                <p className="subtitle" style={{ fontSize: '14px', marginTop: '6px' }}>
-                  Puedes anotar uno o varios síntomas con tus propias palabras; aparecerán tal como los escribas en tu seguimiento y en tu reporte.
-                </p>
-              </div>
+            <div className="form-group">
+              <button type="button" onClick={abrirVentanaSintomas} className="btn-submit">＋ Añadir o quitar síntoma</button>
+            </div>
+
+            {ventanaSintomas && (
+              <VentanaSintomas
+                onCerrar={() => { setVentanaSintomas(false); setErrorVentana(''); }}
+                catalogoVisible={catalogoVisible}
+                catalogoOculto={catalogoOculto}
+                sinClasificar={sinClasificar}
+                onCrear={crearSintomaPropio}
+                onCambiar={cambiarSintomaLista}
+                errorVentana={errorVentana}
+              />
             )}
 
             {/* Intensidad */}

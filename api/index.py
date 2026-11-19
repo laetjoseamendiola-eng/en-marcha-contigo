@@ -159,6 +159,23 @@ class Sintoma(db.Model):
 # MODELO: MEDICAMENTOS PROGRAMADOS
 # =============================================
 
+class SintomaPersonal(db.Model):
+    """Lista personal de síntomas: propios, clasificados y ocultos. No toca los registros de `sintomas`."""
+    __tablename__ = 'sintomas_propios'
+
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    clave = db.Column(db.String(50), nullable=False)          # nombre que se guarda en sintomas.tipo
+    nombre = db.Column(db.String(50), nullable=False)
+    clasificacion = db.Column(db.String(10))                  # 'motor' | 'no_motor' | null (sin clasificar)
+    explicacion = db.Column(db.String(120))
+    propio = db.Column(db.Boolean, nullable=False, default=True)
+    oculto = db.Column(db.Boolean, nullable=False, default=False)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+    __table_args__ = (db.UniqueConstraint('usuario_id', 'clave', name='uq_sintoma_propio_usuario_clave'),)
+
+
 class MedicamentoProgramado(db.Model):
     """
     Catálogo de medicamentos del usuario con sus horarios programados.
@@ -629,6 +646,87 @@ def obtener_perfil(usuario_actual):
 # =============================================
 # ENDPOINTS DE SÍNTOMAS (PROTEGIDOS)
 # =============================================
+
+SINTOMAS_BASE_MOTOR = ['Bradicinesia', 'Temblor', 'Rigidez', 'Inestabilidad postural', 'Alteración de la marcha',
+                       'Congelamiento de la marcha', 'Discinesia', 'Distonía', 'Hipomimia', 'Disartria o hipofonía',
+                       'Disfagia', 'Micrografía']
+SINTOMAS_BASE_NO_MOTOR = ['Fatiga', 'Insomnio', 'Somnolencia diurna', 'Estreñimiento', 'Ansiedad', 'Depresión',
+                          'Apatía', 'Dolor', 'Síntomas urinarios', 'Hipotensión ortostática',
+                          'Dificultad de atención o memoria', 'Sialorrea', 'Alucinaciones']
+CLAVES_BASE = set(SINTOMAS_BASE_MOTOR + SINTOMAS_BASE_NO_MOTOR)
+CLASIFICACIONES_SINTOMA = ('motor', 'no_motor')
+
+
+def _normaliza_nombre(texto):
+    import unicodedata
+    base = unicodedata.normalize('NFD', str(texto or ''))
+    return ''.join(c for c in base if unicodedata.category(c) != 'Mn').strip().lower()
+
+
+def _serializa_lista(fila):
+    return {'clave': fila.clave, 'nombre': fila.nombre, 'clasificacion': fila.clasificacion,
+            'explicacion': fila.explicacion, 'propio': fila.propio, 'oculto': fila.oculto}
+
+
+@app.route('/api/sintomas/lista', methods=['GET'])
+@token_requerido
+def listar_sintomas_lista(usuario_actual):
+    filas = SintomaPersonal.query.filter_by(usuario_id=usuario_actual.id).all()
+    return jsonify([_serializa_lista(f) for f in filas]), 200
+
+
+@app.route('/api/sintomas/lista', methods=['POST'])
+@token_requerido
+def crear_sintoma_propio(usuario_actual):
+    data = request.get_json(silent=True) or {}
+    nombre = str(data.get('nombre') or '').strip()
+    clasificacion = data.get('clasificacion')
+    explicacion = str(data.get('explicacion') or '').strip()[:120] or None
+    if not nombre or len(nombre) > 50:
+        return jsonify({'error': 'El nombre del síntoma debe tener entre 1 y 50 caracteres'}), 400
+    if clasificacion not in CLASIFICACIONES_SINTOMA:
+        return jsonify({'error': 'Elige si el síntoma es motor o no motor'}), 400
+    norm = _normaliza_nombre(nombre)
+    if norm in {_normaliza_nombre(c) for c in CLAVES_BASE}:
+        return jsonify({'error': 'Ese síntoma ya está en la lista'}), 409
+    filas = SintomaPersonal.query.filter_by(usuario_id=usuario_actual.id).all()
+    existente = next((f for f in filas if _normaliza_nombre(f.clave) == norm), None)
+    if existente is not None and not existente.oculto:
+        return jsonify({'error': 'Ya tienes ese síntoma en la lista'}), 409
+    if existente is None:
+        existente = SintomaPersonal(usuario_id=usuario_actual.id, clave=nombre, nombre=nombre,
+                                    propio=True, oculto=False, fecha_creacion=datetime.datetime.utcnow())
+        db.session.add(existente)
+    existente.nombre = nombre
+    existente.clasificacion = clasificacion
+    existente.explicacion = explicacion
+    existente.oculto = False
+    db.session.commit()
+    return jsonify(_serializa_lista(existente)), 201
+
+
+@app.route('/api/sintomas/lista/<path:clave>', methods=['PUT'])
+@token_requerido
+def actualizar_sintoma_lista(usuario_actual, clave):
+    data = request.get_json(silent=True) or {}
+    clave = clave.strip()[:50]
+    fila = SintomaPersonal.query.filter_by(usuario_id=usuario_actual.id, clave=clave).first()
+    if fila is None:
+        fila = SintomaPersonal(usuario_id=usuario_actual.id, clave=clave, nombre=clave,
+                               propio=clave not in CLAVES_BASE, oculto=False,
+                               fecha_creacion=datetime.datetime.utcnow())
+        db.session.add(fila)
+    if 'oculto' in data:
+        if not isinstance(data['oculto'], bool):
+            return jsonify({'error': 'oculto debe ser verdadero o falso'}), 400
+        fila.oculto = data['oculto']
+    if 'clasificacion' in data:
+        if data['clasificacion'] not in CLASIFICACIONES_SINTOMA:
+            return jsonify({'error': 'Elige si el síntoma es motor o no motor'}), 400
+        fila.clasificacion = data['clasificacion']
+    db.session.commit()
+    return jsonify(_serializa_lista(fila)), 200
+
 
 @app.route('/api/sintomas', methods=['POST'])
 @token_requerido
