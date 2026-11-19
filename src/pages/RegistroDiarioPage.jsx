@@ -53,7 +53,7 @@ const PREGUNTAS = [
   },
   {
     id: 'animo',
-    emoji: '🧠',
+    emoji: '🎭',
     titulo: 'Ánimo',
     pregunta: '¿Cómo está tu ánimo hoy?',
     opciones: [

@@ -82,7 +82,7 @@ const NO_MOTOR_LABELS = {
   energia: { emoji: '⚡', label: 'Fatiga/Energía' },
   calidad_sueno: { emoji: '🌙', label: 'Sueño nocturno' },
   somnolencia: { emoji: '😴', label: 'Somnolencia de día' },
-  animo: { emoji: '🧠', label: 'Ánimo' },
+  animo: { emoji: '🎭', label: 'Ánimo' },
   ansiedad: { emoji: '😰', label: 'Ansiedad' },
   digestion: { emoji: '🫁', label: 'Digestión' },
   nauseas: { emoji: '🤢', label: 'Náuseas' },
