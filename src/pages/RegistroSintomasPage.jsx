@@ -122,7 +122,7 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
   };
 
   const renderGrupoTipos = (titulo, lista) => [
-    <li key={`titulo-${titulo}`} role="presentation" style={{ padding: '10px 14px 4px', fontSize: '13px', fontWeight: 700, color: '#00A7A7' }}>{titulo}</li>,
+    <li key={`titulo-${titulo}`} role="presentation" style={{ padding: '14px 14px 8px', fontSize: '18px', fontWeight: 800, color: '#FFFFFF', borderTop: '3px solid #FFFFFF', borderBottom: '2px solid #FFFFFF', background: 'rgba(255,255,255,0.08)' }}>{titulo === 'Motores' ? '🚶 Motores' : '🧠 No motores'}</li>,
     ...lista.map(t => (
       <li key={t.key} role="option" aria-selected={formData.tipo === t.key}>
         <button
