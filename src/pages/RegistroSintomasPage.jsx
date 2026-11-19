@@ -720,15 +720,18 @@ const RegistroSintomasPage = ({ usuario, token, onLogout }) => {
 
             {formData.tipo === OTRO && (
               <div className="form-group">
-                <label htmlFor="otro-texto">Escribe el síntoma *</label>
+                <label htmlFor="otro-texto">¿Qué sentiste? *</label>
                 <input
                   id="otro-texto"
                   type="text"
                   maxLength={LARGO_MAX_TIPO - PREFIJO_OTRO.length}
                   value={otroTexto}
                   onChange={(e) => setOtroTexto(e.target.value)}
-                  placeholder="Ej: mareo al levantarme"
+                  placeholder="ej. calambre en el dedo, zumbido, sensación de frío"
                 />
+                <p className="subtitle" style={{ fontSize: '14px', marginTop: '6px' }}>
+                  Puedes anotar uno o varios síntomas con tus propias palabras; aparecerán tal como los escribas en tu seguimiento y en tu reporte.
+                </p>
               </div>
             )}
 
