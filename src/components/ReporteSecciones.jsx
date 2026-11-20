@@ -103,13 +103,20 @@ export function AdherenciaSeccion({ adherencia, periodo, BarraAdherencia }) {
     cubos[clave].cerradas += r.tomadas + (r.omitidas ?? 0) + (r.sin_registro ?? 0);
   });
   const datos = Object.keys(cubos).sort().map(f => ({
-    fecha: f, pct: cubos[f].cerradas ? Math.round(cubos[f].tomadas / cubos[f].cerradas * 100) : 0,
+    fecha: f, pct: cubos[f].cerradas ? Math.round(cubos[f].tomadas / cubos[f].cerradas * 100) : null,
     tomadas: cubos[f].tomadas, cerradas: cubos[f].cerradas
   }));
-  const meds = Object.entries(porMed).map(([nombre, r]) => ({
-    nombre, pct: r.programadas ? Math.round(r.tomadas / r.programadas * 100) : 0, tomadas: r.tomadas, programadas: r.programadas
-  })).sort((a, b) => b.programadas - a.programadas || a.nombre.localeCompare(b.nombre));
-  const formatoX = f => formatFecha(f);
+  const enPlazo = new Set(datos.filter(d => !d.cerradas).map(d => d.fecha));
+  const meds = Object.entries(porMed).map(([nombre, r]) => {
+    // Misma formula que el total: solo tomas con plazo cerrado.
+    const cerradas = r.tomadas + (r.omitidas ?? 0) + (r.sin_registro ?? 0);
+    return {
+      nombre: cerradas ? nombre : `${nombre} (en plazo)`,
+      pct: cerradas ? Math.round(r.tomadas / cerradas * 100) : null,
+      tomadas: r.tomadas, cerradas, programadas: r.programadas,
+    };
+  }).sort((a, b) => b.programadas - a.programadas || a.nombre.localeCompare(b.nombre));
+  const formatoX = f => (enPlazo.has(f) ? `${formatFecha(f)} · en plazo` : formatFecha(f));
   const cifras = [
     { label: 'Tomas programadas', valor: adherencia.total_programadas },
     { label: 'Tomadas', valor: adherencia.tomadas, sub: `de las cuales ${adherencia.extemporaneas ?? 0}: Registro posterior (más de 30 min)` },
@@ -123,7 +130,9 @@ export function AdherenciaSeccion({ adherencia, periodo, BarraAdherencia }) {
     return (
       <div style={{ background: '#FFF', border: '2px solid #1a1a2e', borderRadius: '10px', padding: '8px 12px', color: TINTA, fontSize: '13px', fontWeight: 700 }}>
         <div>{d.nombre || (semanal ? `Semana del ${fechaCompleta(label)}` : fechaCompleta(label))}</div>
-        <div>{d.pct}% tomadas ({d.tomadas} de {d.cerradas} con plazo cerrado)</div>
+        {d.pct == null
+          ? <div>En plazo: aún sin tomas con plazo cerrado</div>
+          : <div>{d.pct}% tomadas ({d.tomadas} de {d.cerradas} con plazo cerrado)</div>}
       </div>
     );
   };
@@ -150,7 +159,7 @@ export function AdherenciaSeccion({ adherencia, periodo, BarraAdherencia }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: '10px' }}>
       {datos.length > 0 && (
         <PanelBlanco>
-          <SubTitulo>{semanal ? 'Tomas tomadas por semana (%)' : 'Tomas tomadas por día (%)'}</SubTitulo>
+          <SubTitulo>{semanal ? 'Medicación tomada por semana (%)' : 'Medicación tomada por día (%)'}</SubTitulo>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={datos} margin={{ top: 18, right: 10, bottom: 4, left: 4 }}>
               <Patrones id="adh" />
@@ -161,7 +170,7 @@ export function AdherenciaSeccion({ adherencia, periodo, BarraAdherencia }) {
                 interval={Math.max(0, Math.ceil(datos.length / 8) - 1)}
                 label={{ value: semanal ? 'Fecha (lunes de cada semana)' : 'Fecha', position: 'insideBottom', offset: 0, ...TITULO_EJE }} />
               <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tick={TICK} width={46}
-                label={{ value: '% de tomas tomadas', angle: -90, position: 'insideLeft', offset: 10, style: { textAnchor: 'middle' }, ...TITULO_EJE }} />
+                label={{ value: '% de medicación tomada', angle: -90, position: 'insideLeft', offset: 10, style: { textAnchor: 'middle' }, ...TITULO_EJE }} />
               <Tooltip content={<Tip />} />
               <Bar dataKey="pct" fill="url(#adh-rayas)" stroke={TINTA} strokeWidth={1.5} isAnimationActive={false} maxBarSize={44}>
                 <LabelList dataKey="pct" position="top" formatter={v => `${v}%`} style={{ fill: TINTA, fontWeight: 700, fontSize: 11 }} />
@@ -172,12 +181,12 @@ export function AdherenciaSeccion({ adherencia, periodo, BarraAdherencia }) {
       )}
       {meds.length > 0 && (
         <PanelBlanco>
-          <SubTitulo>Tomas tomadas por medicamento (%)</SubTitulo>
+          <SubTitulo>Medicación tomada por medicamento (%)</SubTitulo>
           <ResponsiveContainer width="100%" height={Math.max(80, meds.length * 32 + 44)}>
             <BarChart data={meds} layout="vertical" margin={{ top: 4, right: 40, bottom: 4, left: 0 }}>
               <CartesianGrid stroke="#BBBBBB" strokeDasharray="1 3" horizontal={false} />
               <XAxis type="number" domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tick={TICK}
-                label={{ value: '% de tomas tomadas', position: 'insideBottom', offset: -2, ...TITULO_EJE }} height={42} />
+                label={{ value: '% de medicación tomada', position: 'insideBottom', offset: -2, ...TITULO_EJE }} height={42} />
               <YAxis type="category" dataKey="nombre" tick={{ ...TICK, fontSize: 10 }} width={110} />
               <Tooltip content={<Tip />} />
               <Bar dataKey="pct" fill={TINTA} isAnimationActive={false} barSize={18}>
