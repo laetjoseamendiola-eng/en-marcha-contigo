@@ -103,10 +103,9 @@ export function AdherenciaSeccion({ adherencia, periodo, BarraAdherencia }) {
     cubos[clave].cerradas += r.tomadas + (r.omitidas ?? 0) + (r.sin_registro ?? 0);
   });
   const datos = Object.keys(cubos).sort().map(f => ({
-    fecha: f, pct: cubos[f].cerradas ? Math.round(cubos[f].tomadas / cubos[f].cerradas * 100) : null,
+    fecha: f, pct: cubos[f].cerradas ? Math.round(cubos[f].tomadas / cubos[f].cerradas * 100) : 0,
     tomadas: cubos[f].tomadas, cerradas: cubos[f].cerradas
   }));
-  const enPlazo = new Set(datos.filter(d => !d.cerradas).map(d => d.fecha));
   const meds = Object.entries(porMed).map(([nombre, r]) => {
     // Misma formula que el total: solo tomas con plazo cerrado.
     const cerradas = r.tomadas + (r.omitidas ?? 0) + (r.sin_registro ?? 0);
@@ -116,7 +115,7 @@ export function AdherenciaSeccion({ adherencia, periodo, BarraAdherencia }) {
       tomadas: r.tomadas, cerradas, programadas: r.programadas,
     };
   }).sort((a, b) => b.programadas - a.programadas || a.nombre.localeCompare(b.nombre));
-  const formatoX = f => (enPlazo.has(f) ? `${formatFecha(f)} · en plazo` : formatFecha(f));
+  const formatoX = f => formatFecha(f);
   const cifras = [
     { label: 'Tomas programadas', valor: adherencia.total_programadas },
     { label: 'Tomadas', valor: adherencia.tomadas, sub: `de las cuales ${adherencia.extemporaneas ?? 0}: Registro posterior (más de 30 min)` },
@@ -130,7 +129,7 @@ export function AdherenciaSeccion({ adherencia, periodo, BarraAdherencia }) {
     return (
       <div style={{ background: '#FFF', border: '2px solid #1a1a2e', borderRadius: '10px', padding: '8px 12px', color: TINTA, fontSize: '13px', fontWeight: 700 }}>
         <div>{d.nombre || (semanal ? `Semana del ${fechaCompleta(label)}` : fechaCompleta(label))}</div>
-        {d.pct == null
+        {!d.cerradas
           ? <div>En plazo: aún sin tomas con plazo cerrado</div>
           : <div>{d.pct}% tomadas ({d.tomadas} de {d.cerradas} con plazo cerrado)</div>}
       </div>
@@ -173,7 +172,13 @@ export function AdherenciaSeccion({ adherencia, periodo, BarraAdherencia }) {
                 label={{ value: '% de medicación tomada', angle: -90, position: 'insideLeft', offset: 10, style: { textAnchor: 'middle' }, ...TITULO_EJE }} />
               <Tooltip content={<Tip />} />
               <Bar dataKey="pct" fill="url(#adh-rayas)" stroke={TINTA} strokeWidth={1.5} isAnimationActive={false} maxBarSize={44}>
-                <LabelList dataKey="pct" position="top" formatter={v => `${v}%`} style={{ fill: TINTA, fontWeight: 700, fontSize: 11 }} />
+                <LabelList dataKey="pct" position="top" content={({ x, y, width, value, index }) => {
+                  const d = datos[index];
+                  if (!d || x == null || y == null) return null;
+                  // Sin tomas cerradas: «en plazo» donde iria el porcentaje (columna vacia).
+                  const texto = d.cerradas ? `${value}%` : 'en plazo';
+                  return <text x={x + width / 2} y={y - 6} textAnchor="middle" fill={TINTA} fontWeight={700} fontSize={11}>{texto}</text>;
+                }} />
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -213,10 +218,10 @@ export function TomasResumenSeccion({ adherencia }) {
   }), { programadas: 0, tomadas: 0, omitidas: 0, sin_registro: 0, pendientes: 0, a_tiempo: 0, extemporaneas: 0 });
   const hayPend = total.pendientes > 0;
   const colsNum = ['programadas', 'tomadas', 'omitidas', 'sin_registro', ...(hayPend ? ['pendientes'] : []), 'a_tiempo', 'extemporaneas'];
-  const titulosCol = { programadas: 'Programadas', tomadas: 'Tomadas', omitidas: 'Omitidas', sin_registro: 'Sin registro', pendientes: 'Pendientes', a_tiempo: 'A tiempo', extemporaneas: 'Extemporáneas' };
+  const titulosCol = { programadas: 'Programadas', tomadas: 'Tomadas', omitidas: 'Omitidas', sin_registro: 'Sin registro', pendientes: 'Pendientes', a_tiempo: 'A tiempo', extemporaneas: 'Registro posterior' };
   return (
     <SeccionReporte titulo="🕒 Tomas por medicamento"
-      nota="A tiempo: tomada dentro de 30 minutos de su hora. Extemporánea: capturada más de 30 minutos después de tomarla (solo se mide desde el 11/10/2026). Sin registro: pasó el plazo (el día de la toma y el siguiente) y no se marcó tomada ni omitida. Programadas = tomadas + omitidas + sin registro + pendientes. El detalle toma por toma está en el Anexo A.">
+      nota="A tiempo: tomada dentro de 30 minutos de su hora. Registro posterior: capturada más de 30 minutos después de tomarla (sólo se mide desde el 11/10/2026). Sin registro: pasó el plazo (el día de la toma y el siguiente) y no se marcó tomada ni omitida. Programadas = tomadas + omitidas + sin registro + pendientes. El detalle toma por toma está en el Anexo A.">
       <PanelBlanco>
         {filas.length === 0 ? <div style={{ fontSize: '13px', padding: '8px' }}>Sin tomas en el período.</div> : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
