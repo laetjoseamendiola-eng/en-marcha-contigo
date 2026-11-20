@@ -104,6 +104,8 @@ export function AdherenciaSeccion({ adherencia, periodo, BarraAdherencia }) {
   });
   const datos = Object.keys(cubos).sort().map(f => ({
     fecha: f, pct: cubos[f].cerradas ? Math.round(cubos[f].tomadas / cubos[f].cerradas * 100) : 0,
+    // Marca «en plazo»: valor minimo apilado sobre la barra en 0 (sin tomas cerradas), para que el texto siempre se dibuje.
+    ayuda: cubos[f].cerradas ? null : 0.01,
     tomadas: cubos[f].tomadas, cerradas: cubos[f].cerradas
   }));
   const meds = Object.entries(porMed).map(([nombre, r]) => {
@@ -171,14 +173,15 @@ export function AdherenciaSeccion({ adherencia, periodo, BarraAdherencia }) {
               <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tick={TICK} width={46}
                 label={{ value: '% de medicación tomada', angle: -90, position: 'insideLeft', offset: 10, style: { textAnchor: 'middle' }, ...TITULO_EJE }} />
               <Tooltip content={<Tip />} />
-              <Bar dataKey="pct" fill="url(#adh-rayas)" stroke={TINTA} strokeWidth={1.5} isAnimationActive={false} maxBarSize={44}>
+              <Bar dataKey="pct" stackId="adh" fill="url(#adh-rayas)" stroke={TINTA} strokeWidth={1.5} isAnimationActive={false} maxBarSize={44}>
                 <LabelList dataKey="pct" position="top" content={({ x, y, width, value, index }) => {
                   const d = datos[index];
-                  if (!d || x == null || y == null) return null;
-                  // Sin tomas cerradas: «en plazo» donde iria el porcentaje (columna vacia).
-                  const texto = d.cerradas ? `${value}%` : 'en plazo';
-                  return <text x={x + width / 2} y={y - 6} textAnchor="middle" fill={TINTA} fontWeight={700} fontSize={11}>{texto}</text>;
+                  if (!d || !d.cerradas || x == null || y == null) return null;
+                  return <text x={x + width / 2} y={y - 6} textAnchor="middle" fill={TINTA} fontWeight={700} fontSize={11}>{`${value}%`}</text>;
                 }} />
+              </Bar>
+              <Bar dataKey="ayuda" stackId="adh" fill="transparent" stroke="none" isAnimationActive={false} maxBarSize={44}>
+                <LabelList dataKey="ayuda" position="top" formatter={v => (v === 0.01 ? 'en plazo' : '')} style={{ fill: TINTA, fontWeight: 700, fontSize: 11 }} />
               </Bar>
             </BarChart>
           </ResponsiveContainer>
