@@ -123,7 +123,7 @@ export function AdherenciaSeccion({ adherencia, periodo, BarraAdherencia }) {
     { label: 'Tomadas', valor: adherencia.tomadas, sub: `de las cuales ${adherencia.extemporaneas ?? 0}: Registro posterior (más de 30 min)` },
     { label: 'Omitidas', valor: adherencia.omitidas },
     { label: 'Sin registro', valor: adherencia.sin_registro ?? 0 },
-    ...((adherencia.pendientes ?? 0) > 0 ? [{ label: 'Pendientes (aún en plazo)', valor: adherencia.pendientes }] : []),
+    { label: 'Pendientes (aún en plazo)', valor: adherencia.pendientes ?? 0 },
   ];
   const Tip = ({ active, payload, label }) => {
     if (!active || !payload || !payload.length) return null;
