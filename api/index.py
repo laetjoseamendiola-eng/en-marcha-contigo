@@ -2248,9 +2248,10 @@ def generar_reporte(usuario_actual):
         tomas_pendientes = total_tomas - tomas_tomadas - tomas_omitidas - tomas_sin_registro
         # Porcentaje solo sobre tomas con plazo cerrado (tomadas + omitidas + sin registro). Las pendientes no cuentan.
         tomas_cerradas = tomas_tomadas + tomas_omitidas + tomas_sin_registro
-        adherencia_pct = round(tomas_tomadas / tomas_cerradas * 100) if tomas_cerradas > 0 else 0
+        # Redondeo «mitad hacia arriba» (84.5 -> 85), en enteros para evitar errores de coma flotante.
+        adherencia_pct = (200 * tomas_tomadas + tomas_cerradas) // (2 * tomas_cerradas) if tomas_cerradas > 0 else 0
         # Formula anterior (incluia pendientes), solo para mostrar la comparacion antes/despues.
-        adherencia_pct_anterior = round((tomas_tomadas / total_tomas * 100) if total_tomas > 0 else 0)
+        adherencia_pct_anterior = (200 * tomas_tomadas + total_tomas) // (2 * total_tomas) if total_tomas > 0 else 0
         # Resumen por medicamento y por fecha (mismo conjunto de tomas que las cifras de arriba).
         por_medicamento, por_fecha = {}, {}
         extemporaneos_total = 0
