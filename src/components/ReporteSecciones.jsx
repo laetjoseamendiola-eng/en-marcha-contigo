@@ -223,7 +223,7 @@ export function TomasResumenSeccion({ adherencia }) {
   const colsNum = ['programadas', 'tomadas', 'omitidas', 'sin_registro', ...(hayPend ? ['pendientes'] : []), 'a_tiempo', 'extemporaneas'];
   const titulosCol = { programadas: 'Programadas', tomadas: 'Tomadas', omitidas: 'Omitidas', sin_registro: 'Sin registro', pendientes: 'Pendientes', a_tiempo: 'A tiempo', extemporaneas: 'Registro posterior' };
   return (
-    <SeccionReporte titulo="🕒 Tomas por medicamento"
+    <SeccionReporte noPartir titulo="🕒 Tomas por medicamento"
       nota="A tiempo: tomada dentro de 30 minutos de su hora. Registro posterior: capturada más de 30 minutos después de tomarla (sólo se mide desde el 11/10/2026). «A tiempo» y «Registro posterior» no son excluyentes: una misma toma puede estar en las dos columnas. Sin registro: pasó el plazo (el día de la toma y el siguiente) y no se marcó tomada ni omitida. Programadas = tomadas + omitidas + sin registro + pendientes. El detalle toma por toma está en el Anexo A.">
       <div className="no-partir">
       <PanelBlanco>
@@ -559,7 +559,7 @@ export function NoMotorSeccion({ noMotor, periodo, NO_MOTOR_LABELS, LABEL_PROMED
   return (
     <SeccionReporte titulo="🧠 Síntomas No Motores — Promedio del Período"
       nota={`Escala 0–4 · 0 = sin problema · 4 = severo · Basado en ${noMotor.dias_registrados} ${noMotor.dias_registrados === 1 ? 'día' : 'días'} con registro. El registro por fecha está en el Anexo C.`}>
-      <div className="no-partir">
+      <div>
       <PanelBlanco>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '7px', padding: '2px 4px' }}>
           {filasProm.map(({ k, v }) => (
