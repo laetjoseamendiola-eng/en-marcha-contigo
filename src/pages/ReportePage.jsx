@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { leerPreferencias, guardarPreferencias } from '../preferenciasCuenta';
 import { ResumenEvolucion, GraficaUnificada, TablaSintomas, ordenarSintomas, fechaCompleta, numeroDeGraficas } from '../components/GraficasEvolucion';
-import { formatoDuracion, AdherenciaSeccion, TomasResumenSeccion, DosisSeccion, HauserSeccion, FranjasSeccion, NoMotorSeccion, datosEvolucionNoMotor } from '../components/ReporteSecciones';
+import { formatoDuracion, AdherenciaSeccion, TomasResumenSeccion, DosisSeccion, HauserSeccion, FranjasSeccion, NoMotorSeccion, datosEvolucionNoMotor, unirHorarios } from '../components/ReporteSecciones';
 import { GraficasPorGrupos } from '../components/GraficasEvolucion';
 
 const COLOR_ESTADO = {
@@ -518,7 +518,7 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
               {!evol.cargando && !evol.error && d && d.total_registros > 0 && periodo.dias > 1 && (
                 <>
                   <ResumenEvolucion datos={d} />
-                  <GraficaUnificada serie={serie} tipos={d.tipos_disponibles || []} dias={periodo.dias}
+                  <GraficaUnificada titulo="Síntomas motores" serie={serie} tipos={d.tipos_disponibles || []} dias={periodo.dias}
                     periodoTxt={periodoTxt} animar={false} fin={1} alto={190} />
                 </>
               )}
@@ -613,7 +613,7 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
           )}
           {(reporte.historial_dosis || []).map((h, i) => (
             <div key={i} className="texto-reporte" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginBottom: '8px' }}>
-              <strong>{h.medicamento}</strong>: {h.dosis}, a las {h.horarios.map(horaCorta12).join(' y ')}
+              <strong>{h.medicamento}</strong>: {h.dosis}, a las {unirHorarios(h.horarios.map(horaCorta12))}
               <div className="subtexto-reporte" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)' }}>
                 Desde {new Date(h.desde).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short', timeZone: zonaDelReloj() })}{h.hora_utc ? ' UTC' : ''}
                 {' · '}{h.hasta
@@ -696,7 +696,7 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
               }
               return (<>
                 <div style={{ fontSize: '14px', fontWeight: 600, color: '#00A7A7', margin: '6px 0 10px' }}>Anexo F — Más gráficas de evolución</div>
-                {hayMotor && <GraficaUnificada serie={evol.datos.serie_temporal} tipos={evol.datos.tipos_disponibles || []} dias={periodo.dias}
+                {hayMotor && <GraficaUnificada titulo="Síntomas motores" serie={evol.datos.serie_temporal} tipos={evol.datos.tipos_disponibles || []} dias={periodo.dias}
                   periodoTxt={periodoTxtF} animar={false} inicio={1} conTabla={false} alto={190} />}
                 {hayNoMotor && <GraficasPorGrupos filas={nm.filas} semanal={nm.semanal} claves={nm.orden} titulo="Evolución de síntomas no motores"
                   periodoTxt={periodoTxtF} animar={false} inicio={1} nombreDe={k => NO_MOTOR_LABELS[k].label} maximo={4} ticks={[0, 1, 2, 3, 4]} tituloY="Nivel (0 a 4)" alto={190} etiquetas={false} />}
@@ -714,7 +714,7 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
         }}>
           <div className="subtexto-reporte" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', lineHeight: '1.7' }}>
             Reporte generado por <strong style={{ color: '#00A7A7' }}>En Marcha Contigo</strong> · {new Date().toLocaleDateString('es-MX', { timeZone: zonaDelReloj(), day: 'numeric', month: 'long', year: 'numeric' })}<br/>
-            Este documento es informativo. La app acompaña, registra e informa. No diagnostica, no indica ni modifica tratamientos o terapias y no sustituye a ningún integrante de la Red de Apoyo.<br/>
+            Este documento es informativo. La App acompaña, registra e informa. No diagnostica, no indica ni modifica tratamientos o terapias y no sustituye a ningún integrante de la Red de Apoyo.<br/>
             Los datos fueron registrados directamente por el usuario principal en la aplicación.<br/>
             El Reporte refleja registros compartidos por el usuario de manera manual, diaria y voluntaria. No son producto de análisis clínicos.
           </div>

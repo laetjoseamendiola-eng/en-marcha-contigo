@@ -456,12 +456,12 @@ export function numeroDeGraficas(serie, tipos) {
 
 // ─── Todo junto: N gráficas de 5 síntomas + tabla ────────────────
 // inicio/fin: qué gráficas mostrar (0 = la primera). conTabla: si va la tabla de todos los síntomas.
-export function GraficaUnificada({ serie, tipos, dias, periodoTxt, animar = true, style, inicio = 0, fin = Infinity, conTabla = true, alto }) {
+export function GraficaUnificada({ serie, tipos, dias, periodoTxt, animar = true, style, inicio = 0, fin = Infinity, conTabla = true, alto, titulo = 'Evolución de síntomas' }) {
   const ordenados = ordenarSintomas(serie, tipos);
   const { filas, semanal } = prepararDatos(serie, ordenados, dias);
   return (
     <>
-      <GraficasPorGrupos filas={filas} semanal={semanal} claves={ordenados} titulo="Evolución de síntomas"
+      <GraficasPorGrupos filas={filas} semanal={semanal} claves={ordenados} titulo={titulo}
         periodoTxt={periodoTxt} animar={animar} inicio={inicio} fin={fin} style={style} alto={alto} />
       {conTabla && <TablaSintomas serie={serie} tipos={ordenados} periodoTxt={periodoTxt} style={style} />}
     </>

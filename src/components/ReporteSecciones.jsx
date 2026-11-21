@@ -224,14 +224,14 @@ export function TomasResumenSeccion({ adherencia }) {
   const titulosCol = { programadas: 'Programadas', tomadas: 'Tomadas', omitidas: 'Omitidas', sin_registro: 'Sin registro', pendientes: 'Pendientes', a_tiempo: 'A tiempo', extemporaneas: 'Registro posterior' };
   return (
     <SeccionReporte titulo="🕒 Tomas por medicamento"
-      nota="A tiempo: tomada dentro de 30 minutos de su hora. Registro posterior: capturada más de 30 minutos después de tomarla (sólo se mide desde el 11/10/2026). Sin registro: pasó el plazo (el día de la toma y el siguiente) y no se marcó tomada ni omitida. Programadas = tomadas + omitidas + sin registro + pendientes. El detalle toma por toma está en el Anexo A.">
+      nota="A tiempo: tomada dentro de 30 minutos de su hora. Registro posterior: capturada más de 30 minutos después de tomarla (sólo se mide desde el 11/10/2026). «A tiempo» y «Registro posterior» no son excluyentes: una misma toma puede estar en las dos columnas. Sin registro: pasó el plazo (el día de la toma y el siguiente) y no se marcó tomada ni omitida. Programadas = tomadas + omitidas + sin registro + pendientes. El detalle toma por toma está en el Anexo A.">
       <PanelBlanco>
         {filas.length === 0 ? <div style={{ fontSize: '13px', padding: '8px' }}>Sin tomas en el período.</div> : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
                 <th style={cab}>Medicamento</th>
-                {colsNum.map(k => <th key={k} style={{ ...cab, ...num }}>{titulosCol[k]}</th>)}
+                {colsNum.map(k => <th key={k} style={{ ...cab, ...num, whiteSpace: 'normal' }}>{titulosCol[k]}</th>)}
               </tr>
             </thead>
             <tbody>
@@ -262,7 +262,9 @@ function hora12(hhmm) {
   if (Number.isNaN(h)) return hhmm;
   return new Date(2000, 0, 1, h, Number.isNaN(m) ? 0 : m).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
 }
-const textoHorarios = hs => (hs && hs.length ? hs.map(hora12).join(' y ') : 'sin horario');
+// Lista de horarios: «a, b y c» (sin repetir «y» entre cada uno).
+export const unirHorarios = arr => (arr.length <= 1 ? arr.join('') : `${arr.slice(0, -1).join(', ')} y ${arr[arr.length - 1]}`);
+const textoHorarios = hs => (hs && hs.length ? unirHorarios(hs.map(hora12)) : 'sin horario');
 
 const h24 = hhmm => String(hhmm || '').slice(0, 5);
 const lista24 = hs => (hs && hs.length ? hs.map(h24).join(', ') : 'sin horario');
@@ -547,13 +549,13 @@ export function NoMotorSeccion({ noMotor, periodo, NO_MOTOR_LABELS, LABEL_PROMED
   const periodoTxt = `Período: ${fechaCompleta(periodo.desde)} al ${fechaCompleta(periodo.hasta)}`;
   if (!noMotor.dias_registrados) {
     return (
-      <SeccionReporte titulo="🌿 Síntomas No Motores — Promedio del Período">
+      <SeccionReporte titulo="🧠 Síntomas No Motores — Promedio del Período">
         <PanelBlanco><div style={{ fontSize: '13px', padding: '8px' }}>Sin registros en el período.</div></PanelBlanco>
       </SeccionReporte>
     );
   }
   return (
-    <SeccionReporte titulo="🌿 Síntomas No Motores — Promedio del Período"
+    <SeccionReporte titulo="🧠 Síntomas No Motores — Promedio del Período"
       nota={`Escala 0–4 · 0 = sin problema · 4 = severo · Basado en ${noMotor.dias_registrados} ${noMotor.dias_registrados === 1 ? 'día' : 'días'} con registro. El registro por fecha está en el Anexo C.`}>
       <PanelBlanco>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '7px', padding: '2px 4px' }}>
