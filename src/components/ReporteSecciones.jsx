@@ -559,7 +559,7 @@ export function NoMotorSeccion({ noMotor, periodo, NO_MOTOR_LABELS, LABEL_PROMED
     );
   }
   return (
-    <SeccionReporte titulo="🧠 Síntomas No Motores — Promedio del Período"
+    <SeccionReporte noPartir titulo="🧠 Síntomas No Motores — Promedio del Período"
       nota={`Escala 0–4 · 0 = sin problema · 4 = severo · Basado en ${noMotor.dias_registrados} ${noMotor.dias_registrados === 1 ? 'día' : 'días'} con registro. El registro por fecha está en el Anexo C.`}>
       <div>
       <PanelBlanco>

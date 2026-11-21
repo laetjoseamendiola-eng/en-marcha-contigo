@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { leerPreferencias, guardarPreferencias } from '../preferenciasCuenta';
 import { ResumenEvolucion, GraficaUnificada, TablaSintomas, ordenarSintomas, fechaCompleta, numeroDeGraficas } from '../components/GraficasEvolucion';
+import { LOGO_ENCABEZADO } from '../components/logoEncabezado';
 import { formatoDuracion, AdherenciaSeccion, TomasResumenSeccion, DosisSeccion, HauserSeccion, FranjasSeccion, NoMotorSeccion, datosEvolucionNoMotor, unirHorarios } from '../components/ReporteSecciones';
 import { GraficasPorGrupos } from '../components/GraficasEvolucion';
 
@@ -375,8 +376,8 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
           /* Hojas 2 en adelante: logo y nombre a la izquierda; período e impresión a la derecha; línea debajo */
           @page {
             margin: 18mm 10mm 12mm;
-            @top-left { content: url("/assets/isotipo-header.png") "  " ${encNombre}; width: 50%; text-align: left; vertical-align: middle; font-family: inherit; font-size: 9pt; font-weight: 700; color: #1a1a2e; border-bottom: 0.5pt solid #888888; padding-bottom: 2mm; }
-            @top-right { content: ${encPeriodo} "  ·  " ${encImpreso}; width: 50%; text-align: right; vertical-align: middle; font-family: inherit; font-size: 7.5pt; color: #1a1a2e; border-bottom: 0.5pt solid #888888; padding-bottom: 2mm; }
+            @top-left { content: url("${LOGO_ENCABEZADO}") "  " ${encNombre}; width: 50%; text-align: left; vertical-align: middle; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; font-size: 9pt; font-weight: 700; color: #1a1a2e; border-bottom: 0.5pt solid #888888; padding-bottom: 2mm; }
+            @top-right { content: ${encPeriodo} "  ·  " ${encImpreso}; width: 50%; text-align: right; vertical-align: middle; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; font-size: 7.5pt; color: #1a1a2e; border-bottom: 0.5pt solid #888888; padding-bottom: 2mm; }
           }
           .reporte-contenido .seccion-reporte { break-inside: auto !important; }
           /* Los paneles pueden partirse entre hojas (evita medias páginas en blanco); las gráficas y filas de tabla no */
