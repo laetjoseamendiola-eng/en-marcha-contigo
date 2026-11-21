@@ -20,8 +20,10 @@ export function SeccionReporte({ titulo, nota, children, style, noPartir }) {
       background: 'rgba(255,255,255,0.04)', border: '2px solid #FFC107', borderRadius: '16px',
       padding: '20px', marginBottom: '14px', ...style
     }}>
+      <div className="cabecera-seccion">
       <div className="tit-sec" style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: nota ? '4px' : '12px' }}>{titulo}</div>
       {nota && <div className="subtexto-reporte tit-sec" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.93)', marginBottom: '12px', lineHeight: 1.6 }}>{nota}</div>}
+      </div>
       {children}
     </div>
   );
@@ -219,7 +221,7 @@ export function TomasResumenSeccion({ adherencia }) {
     sin_registro: t.sin_registro + (f.sin_registro || 0), pendientes: t.pendientes + (f.pendientes || 0),
     a_tiempo: t.a_tiempo + f.a_tiempo, extemporaneas: t.extemporaneas + f.extemporaneas
   }), { programadas: 0, tomadas: 0, omitidas: 0, sin_registro: 0, pendientes: 0, a_tiempo: 0, extemporaneas: 0 });
-  const hayPend = total.pendientes > 0;
+  const hayPend = true; // la columna Pendientes se muestra siempre, aunque valga 0
   const colsNum = ['programadas', 'tomadas', 'omitidas', 'sin_registro', ...(hayPend ? ['pendientes'] : []), 'a_tiempo', 'extemporaneas'];
   const titulosCol = { programadas: 'Programadas', tomadas: 'Tomadas', omitidas: 'Omitidas', sin_registro: 'Sin registro', pendientes: 'Pendientes', a_tiempo: 'A tiempo', extemporaneas: 'Registro posterior' };
   return (

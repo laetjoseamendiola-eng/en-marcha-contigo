@@ -372,6 +372,12 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
           .reporte-contenido .panel-reporte svg, .reporte-contenido .panel-reporte .recharts-responsive-container, .reporte-contenido tr { break-inside: avoid; }
           /* Un título (y su nota) nunca se queda solo al final de una hoja */
           .reporte-contenido .tit-sec { break-after: avoid; }
+          /* Encabezado de sección (título + explicación): bloque único, va con lo que sigue */
+          .reporte-contenido .cabecera-seccion { break-inside: avoid !important; break-after: avoid !important; }
+          /* Evolución: tarjetas + primera gráfica juntas */
+          .reporte-contenido .evol-con-grafica { break-inside: avoid !important; }
+          /* Tablas: no se parten si caben en una hoja; si no caben, se parten con encabezado repetido */
+          .reporte-contenido .panel-reporte:has(table) { break-inside: avoid; }
           .reporte-contenido .panel-reporte:has(svg), .reporte-contenido .panel-reporte:has(.recharts-responsive-container) { break-inside: avoid; }
           /* Franjas y Evolución pasan completas a la hoja siguiente si no caben */
           .reporte-contenido .no-partir { break-inside: avoid !important; }
@@ -499,11 +505,13 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
           const serie = d ? d.serie_temporal : [];
           return (
             <div className="bloque-evol" style={{ marginBottom: '14px' }}>
+              <div className="cabecera-seccion">
               <div className="tit-sec" style={{ fontSize: '14px', fontWeight: '600', color: '#00A7A7', marginBottom: '4px' }}>
                 📈 Evolución de síntomas
               </div>
               <div className="subtexto-reporte tit-sec" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.93)', marginBottom: '12px' }}>
                 {periodoTxt}
+              </div>
               </div>
               {evol.cargando && <div style={{ fontSize: '12px', padding: '12px 0' }}>Cargando evolución...</div>}
               {evol.error && <div style={{ fontSize: '12px', padding: '12px 0', color: '#ff6b6b' }}>{evol.error}</div>}
@@ -523,9 +531,11 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
               )}
               {!evol.cargando && !evol.error && d && d.total_registros > 0 && periodo.dias > 1 && (
                 <>
+                  <div className="evol-con-grafica">
                   <ResumenEvolucion datos={d} />
                   <GraficaUnificada titulo="Síntomas motores" serie={serie} tipos={d.tipos_disponibles || []} dias={periodo.dias}
                     periodoTxt={periodoTxt} animar={false} fin={1} alto={190} />
+                  </div>
                 </>
               )}
             </div>
