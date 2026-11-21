@@ -374,7 +374,11 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
           .reporte-contenido .tit-sec { break-after: avoid; }
           .reporte-contenido .panel-reporte:has(svg), .reporte-contenido .panel-reporte:has(.recharts-responsive-container) { break-inside: avoid; }
           /* Franjas y Evolución pasan completas a la hoja siguiente si no caben */
-          .reporte-contenido .no-partir, .reporte-contenido .bloque-evol { break-inside: avoid !important; }
+          .reporte-contenido .no-partir { break-inside: avoid !important; }
+          /* Evolución: sólo el título con su gráfica; la sección puede empezar al pie de la hoja anterior */
+          .reporte-contenido .bloque-evol { break-inside: auto; }
+          /* Pie: no se separa, y se pega al final de la hoja 5 si hay lugar */
+          .reporte-contenido .pie-reporte { break-inside: avoid !important; margin-top: 10px !important; padding-top: 8px !important; }
           .anexos-reporte { break-before: page; }
           .anexos-reporte .tarjeta-reporte { break-inside: auto; }
           .reporte-contenido { font-size: 12px; }
@@ -708,7 +712,7 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
         )}
 
         {/* PIE */}
-        <div style={{
+        <div className="pie-reporte" style={{
           textAlign: 'center',
           marginTop: '24px',
           paddingTop: '16px',

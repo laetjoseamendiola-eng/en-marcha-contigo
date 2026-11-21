@@ -225,6 +225,7 @@ export function TomasResumenSeccion({ adherencia }) {
   return (
     <SeccionReporte titulo="🕒 Tomas por medicamento"
       nota="A tiempo: tomada dentro de 30 minutos de su hora. Registro posterior: capturada más de 30 minutos después de tomarla (sólo se mide desde el 11/10/2026). «A tiempo» y «Registro posterior» no son excluyentes: una misma toma puede estar en las dos columnas. Sin registro: pasó el plazo (el día de la toma y el siguiente) y no se marcó tomada ni omitida. Programadas = tomadas + omitidas + sin registro + pendientes. El detalle toma por toma está en el Anexo A.">
+      <div className="no-partir">
       <PanelBlanco>
         {filas.length === 0 ? <div style={{ fontSize: '13px', padding: '8px' }}>Sin tomas en el período.</div> : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -251,6 +252,7 @@ export function TomasResumenSeccion({ adherencia }) {
           </table>
         )}
       </PanelBlanco>
+      </div>
     </SeccionReporte>
   );
 }
