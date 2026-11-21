@@ -116,13 +116,15 @@ function BarraAdherencia({ pct }) {
         <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.93)' }}>Medicación tomada</span>
         <span style={{ fontSize: '18px', fontWeight: 'bold', color }}>{pct}%</span>
       </div>
-      <div style={{ height: '10px', background: 'rgba(255,255,255,0.08)', borderRadius: '5px', overflow: 'hidden' }}>
+      <div style={{ height: '10px', background: 'rgba(255,255,255,0.08)', borderRadius: '5px', overflow: 'hidden', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
+        {/* Sin transicion: al imprimir la barra debe quedar en su valor final (no en 0). */}
         <div style={{
           height: '100%',
           width: `${pct}%`,
           background: color,
           borderRadius: '5px',
-          transition: 'width 1s ease',
+          WebkitPrintColorAdjust: 'exact',
+          printColorAdjust: 'exact',
         }} />
       </div>
     </div>

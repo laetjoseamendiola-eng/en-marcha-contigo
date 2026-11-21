@@ -500,7 +500,7 @@ export function FranjasSeccion({ franjas, FRANJAS }) {
     );
   };
   return (
-    <SeccionReporte noPartir titulo="🕐 Franjas del día"
+    <SeccionReporte titulo="🕐 Franjas del día"
       nota="Estado OFF: se cuenta por la hora exacta del episodio. Síntomas reportados: se cuentan por la hora en que se capturaron, no por la hora del síntoma.">
       <PanelBlanco>
         <LeyendaPatrones items={[{ texto: 'Estado OFF (episodios)', patron: 'solido' }, { texto: 'Síntomas reportados', patron: 'rayas' }]} />
@@ -542,7 +542,7 @@ export function datosEvolucionNoMotor(noMotor, periodo, NO_MOTOR_LABELS) {
   return { serie, orden, filas, semanal };
 }
 
-export function NoMotorSeccion({ noMotor, periodo, NO_MOTOR_LABELS, LABEL_PROMEDIO, fin = 1 }) {
+export function NoMotorSeccion({ noMotor, periodo, NO_MOTOR_LABELS, LABEL_PROMEDIO, fin = Infinity }) {
   const claves = Object.keys(NO_MOTOR_LABELS);
   const filasProm = claves.filter(k => noMotor.promedios?.[k] != null).map(k => ({ k, v: noMotor.promedios[k] }));
   const { serie, orden, filas, semanal } = datosEvolucionNoMotor(noMotor, periodo, NO_MOTOR_LABELS);
@@ -557,6 +557,7 @@ export function NoMotorSeccion({ noMotor, periodo, NO_MOTOR_LABELS, LABEL_PROMED
   return (
     <SeccionReporte titulo="🧠 Síntomas No Motores — Promedio del Período"
       nota={`Escala 0–4 · 0 = sin problema · 4 = severo · Basado en ${noMotor.dias_registrados} ${noMotor.dias_registrados === 1 ? 'día' : 'días'} con registro. El registro por fecha está en el Anexo C.`}>
+      <div className="no-partir">
       <PanelBlanco>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '7px', padding: '2px 4px' }}>
           {filasProm.map(({ k, v }) => (
@@ -592,6 +593,7 @@ export function NoMotorSeccion({ noMotor, periodo, NO_MOTOR_LABELS, LABEL_PROMED
               style={{ background: 'transparent', border: 'none', padding: '0 20px', marginBottom: 0 }} />
           </div>
         )}
+      </div>
       </div>
     </SeccionReporte>
   );
