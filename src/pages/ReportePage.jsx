@@ -335,6 +335,11 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
   const { paciente, periodo, adherencia, estado_motor, sintomas_motores, no_motor } = reporte;
   const horas = estado_motor.horas;
   const totalHorasRegistradas = Object.values(horas).reduce((a, b) => a + b, 0);
+  // Encabezado de impresión (hojas 2 en adelante): textos seguros para CSS
+  const encCss = t => JSON.stringify(String(t ?? ''));
+  const encNombre = encCss(paciente?.nombre || '');
+  const encPeriodo = encCss(`Período: ${fechaCompleta(periodo.desde)} al ${fechaCompleta(periodo.hasta)}`);
+  const encImpreso = encCss(`Impreso: ${new Date().toLocaleString('es-MX', { timeZone: zonaDelReloj(), day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`);
 
   return (
     <>
@@ -365,7 +370,14 @@ export default function ReportePage({ token, apiUrl, fechaRegistro }) {
           .grafica-evolucion, .grafica-evolucion * { break-inside: avoid; }
           /* Reporte resumido: compacto y con los anexos en hoja nueva */
           .reporte-contenido .tarjeta-reporte { padding: 10px 12px !important; margin-bottom: 8px !important; }
-          @page { margin: 10mm; }
+          /* Pág. 1: igual que antes, sin encabezado repetido */
+          @page :first { margin: 10mm; @top-left { content: none; } @top-right { content: none; } }
+          /* Hojas 2 en adelante: logo y nombre a la izquierda; período e impresión a la derecha; línea debajo */
+          @page {
+            margin: 18mm 10mm 12mm;
+            @top-left { content: url("/assets/isotipo-header.png") "  " ${encNombre}; width: 50%; text-align: left; vertical-align: middle; font-family: inherit; font-size: 9pt; font-weight: 700; color: #1a1a2e; border-bottom: 0.5pt solid #888888; padding-bottom: 2mm; }
+            @top-right { content: ${encPeriodo} "  ·  " ${encImpreso}; width: 50%; text-align: right; vertical-align: middle; font-family: inherit; font-size: 7.5pt; color: #1a1a2e; border-bottom: 0.5pt solid #888888; padding-bottom: 2mm; }
+          }
           .reporte-contenido .seccion-reporte { break-inside: auto !important; }
           /* Los paneles pueden partirse entre hojas (evita medias páginas en blanco); las gráficas y filas de tabla no */
           .reporte-contenido .panel-reporte { break-inside: auto; }
